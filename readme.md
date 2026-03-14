@@ -1,4 +1,4 @@
-# Shwanspod Fitness — PWA
+# ShawnsPod Fitness — PWA
 
 A multi-user workout tracker, hypertrophy programme, and meal planner that works as a Progressive Web App.
 
@@ -6,7 +6,7 @@ A multi-user workout tracker, hypertrophy programme, and meal planner that works
 
 1. Put all files in a folder together:
    ```
-   shwanspod-pwa/
+   shawnspod-pwa/
    ├── index.html
    ├── manifest.json
    ├── sw.js
@@ -48,7 +48,7 @@ To access from any device and share with friends, host the files on any static h
 1. Create a GitHub repository
 2. Upload all files
 3. Go to Settings → Pages → Deploy from main branch
-4. Share the URL: `https://yourusername.github.io/shwanspod-fitness/`
+4. Share the URL: `https://yourusername.github.io/shawnspod-fitness/`
 
 ### Netlify (free)
 1. Go to [netlify.com](https://netlify.com)

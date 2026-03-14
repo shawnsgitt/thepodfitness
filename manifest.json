@@ -1,6 +1,6 @@
 {
-  "name": "Shwanspod Fitness",
-  "short_name": "Shwanspod",
+  "name": "ShawnsPod Fitness",
+  "short_name": "ShawnsPod",
   "description": "Multi-user workout tracker · Hypertrophy programme · Meal planner",
   "start_url": "./index.html",
   "display": "standalone",
