@@ -402,8 +402,8 @@ h+=`<div class="ob-nav">${s>1?`<button class="ob-back" onclick="OB.step--;rOB()"
 h+=`</div>`;el.innerHTML=h}
 function togA(a){const i=OB.areas.indexOf(a);i>=0?OB.areas.splice(i,1):OB.areas.push(a);rOB()}
 function chkOB(){const s=OB.step;const cn=s===5?(OB.age&&OB.height&&OB.weight):s===7?OB.name.trim():false;const btn=document.querySelector('.ob-next');if(btn){btn.disabled=!cn;btn.style.background=cn?'var(--amb)':'rgba(255,255,255,.06)';btn.style.color=cn?'#000':'var(--sub)'}}
-function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const prof={goal:OB.goal,gender:OB.gender,areas:OB.areas,level:OB.level,age:+OB.age,height:+OB.height,weight:+OB.weight,days:OB.days,cardio:OB.cardio!==false};S.user={id,name:OB.name.trim(),avatar:OB.avatar,joined:new Date().toISOString(),profile:prof,stats:{totalSessions:0,totalSets:0,avgRating:0,lastSession:null}};S.logs={};S.week=1;S.plan=genPlan(prof);S.nutri=calcNutri(prof);S.flog={};S.customPlans=[];S.customMeals=[];SS("sp-me",S.user);savProf(S.user);SS("sp-plan-"+S.user.id,S.plan);SS("sp-nutri-"+S.user.id,S.nutri);SS("sp-flog-"+S.user.id,{});SS("sp-custom-"+S.user.id,[]);SS("sp-cmeals-"+S.user.id,[]);showApp()}
-function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];SS("sp-me",u);S.plan.length?showApp():(OB.step=1,rOB())}
+function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const prof={goal:OB.goal,gender:OB.gender,areas:OB.areas,level:OB.level,age:+OB.age,height:+OB.height,weight:+OB.weight,days:OB.days,cardio:OB.cardio!==false};S.user={id,name:OB.name.trim(),avatar:OB.avatar,joined:new Date().toISOString(),profile:prof,stats:{totalSessions:0,totalSets:0,avgRating:0,lastSession:null}};S.logs={};S.week=1;S.plan=genPlan(prof);S.nutri=calcNutri(prof);S.flog={};S.customPlans=[];S.customMeals=[];SS("sp-me",S.user);savProf(S.user);SS("sp-plan-"+S.user.id,S.plan);SS("sp-nutri-"+S.user.id,S.nutri);SS("sp-flog-"+S.user.id,{});SS("sp-custom-"+S.user.id,[]);SS("sp-cmeals-"+S.user.id,[]);showApp();syncLeaderboard()}
+function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];SS("sp-me",u);syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
 function doLogout(){SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
 // ═══════ APP SHELL ═══════
@@ -533,7 +533,7 @@ el.innerHTML=`<div style="margin-bottom:12px"><div style="font-size:14px;font-we
 w.exs.map((e,ei)=>`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div><div style="font-size:10px;color:var(--sub);margin-bottom:6px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div><div class="s-hdr"><span>Set</span><span>kg</span><span>Reps</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><input class="s-inp" type="number" inputmode="decimal" placeholder="0" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><input class="s-inp" type="number" inputmode="numeric" placeholder="0" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`).join("")+
 `<div style="margin-top:16px;text-align:center"><div style="font-size:12px;font-weight:600;margin-bottom:8px">How did this session feel?</div><div style="display:flex;justify-content:center;gap:8px;margin-bottom:12px">${[1,2,3,4,5].map(r=>`<button class="r-btn ${S.rat===r?'on':''}" onclick="setRat(${r})">${EMO[r]}</button>`).join("")}</div><button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>Save & Finish Session</button></div>`}
 function updS(ei,si,f,v){S.cs[ei][si][f]=v}function togS(ei,si){S.cs[ei][si].d=!S.cs[ei][si].d;rTrack()}function setRat(r){S.rat=r;rTrack()}
-function finWO(){const key="w"+S.week+"-d"+S.aw;const mapped={};Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:s.w,reps:s.r,done:s.d}))});S.logs[key]={sets:mapped,rating:S.rat,date:new Date().toISOString(),dayIndex:S.aw};savLogs();S.aw=null;S.cs={};S.rat=null;updHdr();swTab("plan")}
+function finWO(){const key="w"+S.week+"-d"+S.aw;const mapped={};Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:s.w,reps:s.r,done:s.d}))});S.logs[key]={sets:mapped,rating:S.rat,date:new Date().toISOString(),dayIndex:S.aw};savLogs();S.aw=null;S.cs={};S.rat=null;updHdr();syncLeaderboard();swTab("plan")}
 
 // ═══════ SETTINGS TAB ═══════
 function rSet(){const el=document.getElementById("tab-settings");const p=S.user.profile||{};
@@ -565,45 +565,83 @@ function setAllAreas(){const p=S.user.profile;p.areas=["chest","back","shoulders
 function updProfAndRegen(){SS("sp-me",S.user);savProf(S.user);S.nutri=calcNutri(S.user.profile);SS("sp-nutri-"+S.user.id,S.nutri);S.plan=genPlan(S.user.profile);savPlan();updHdr();rSet()}
 
 // ═══════ LEADERBOARD ═══════
-function rLeaders(){const el=document.getElementById("tab-leaders");const ids=LS("sp-user-ids")||[];
-const board=ids.map(id=>{const u=LS("sp-prof-"+id);if(!u)return null;const logs=LS("sp-logs-"+id)||{};
+function calcUserStats(userId){
+const u=userId===S.user?.id?S.user:LS("sp-prof-"+userId);
+if(!u)return null;
+const logs=userId===S.user?.id?S.logs:(LS("sp-logs-"+userId)||{});
 const sessions=Object.keys(logs).length;
+const totalSets=Object.values(logs).reduce((a,l)=>a+Object.values(l.sets).reduce((b,s)=>b+s.filter(x=>x.done).length,0),0);
+const rats=Object.values(logs).map(l=>l.rating).filter(Boolean);
+const avgRating=rats.length?+(rats.reduce((a,b)=>a+b,0)/rats.length).toFixed(1):0;
 const dates=Object.values(logs).map(l=>l.date).filter(Boolean).sort();
-// Calculate weekly streak
 let streak=0;
 if(dates.length){const logDates=new Set(dates.map(d=>new Date(d).toISOString().slice(0,10)));
-const today=new Date();today.setHours(0,0,0,0);
-let checkDate=new Date(today);
+const today=new Date();today.setHours(0,0,0,0);let checkDate=new Date(today);
 for(let w=0;w<52;w++){const weekStart=new Date(checkDate);weekStart.setDate(weekStart.getDate()-weekStart.getDay());
-let hasWorkout=false;
-for(let d=0;d<7;d++){const day=new Date(weekStart);day.setDate(day.getDate()+d);if(logDates.has(day.toISOString().slice(0,10))){hasWorkout=true;break}}
-if(hasWorkout){streak++}else if(w>0){break}
-checkDate.setDate(checkDate.getDate()-7)}}
-// Consistency: sessions per week avg
+let hasWorkout=false;for(let d=0;d<7;d++){const day=new Date(weekStart);day.setDate(day.getDate()+d);if(logDates.has(day.toISOString().slice(0,10))){hasWorkout=true;break}}
+if(hasWorkout){streak++}else if(w>0){break}checkDate.setDate(checkDate.getDate()-7)}}
 const firstDate=dates[0]?new Date(dates[0]):null;
 const weeksSinceStart=firstDate?Math.max(1,Math.ceil((Date.now()-firstDate.getTime())/(7*86400000))):1;
 const consistency=sessions?+(sessions/weeksSinceStart).toFixed(1):0;
 const targetDays=u.profile?.days||0;
 const completionRate=targetDays?Math.min(100,Math.round(consistency/targetDays*100)):0;
-return{id,name:u.name,avatar:u.avatar,sessions,streak,consistency,targetDays,completionRate,gender:u.profile?.gender||''}}).filter(Boolean).sort((a,b)=>b.sessions-a.sessions||b.streak-a.streak||b.consistency-a.consistency);
+const lastSession=Object.values(logs).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]?.date||null;
+return{userId:u.id,name:u.name,avatar:u.avatar,sessions,streak,totalSets,avgRating,consistency,completionRate,targetDays,gender:u.profile?.gender||'',lastSession}}
+
+function calcScoreLocal(s){
+const sessionPts=(s.sessions||0)*10;const streakPts=(s.streak||0)*15;const setPts=(s.totalSets||0)*1;
+const consistencyPts=Math.round(((s.completionRate||0)/100)*50);const raw=sessionPts+streakPts+setPts+consistencyPts;
+const ratingMult=s.avgRating?Math.max(0.6,s.avgRating/5):0.8;return Math.round(raw*ratingMult)}
+
+async function syncLeaderboard(){
+if(!S.user)return;
+const stats=calcUserStats(S.user.id);
+if(!stats)return;
+try{await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(stats)})}catch(e){console.log("Leaderboard sync offline")}}
+
+async function fetchLeaderboard(){
+try{const res=await fetch("/api/leaderboard");if(!res.ok)throw new Error("fetch failed");const data=await res.json();return data.leaderboard||[]}catch(e){return null}}
+
+function renderBoard(board,el){
 const medals=["🥇","🥈","🥉"];
-el.innerHTML=`<div class="log-t">🏆 Consistency Leaderboard</div><p class="intro">Most consistent gym-goers ranked by total workout sessions. Complete workouts to climb the board!</p>`+
+el.innerHTML=`<div class="log-t">🏆 Fitness Leaderboard</div><p class="intro">Compete with all ShawnsPod users! Scores are based on sessions, streaks, sets completed, and consistency. Finish workouts to climb the ranks!</p>`+
+`<div class="card" style="padding:12px;margin-bottom:10px;background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(6,182,212,.04));border-color:rgba(56,189,248,.2)">
+<div style="font-size:11px;font-weight:700;margin-bottom:8px">📊 How Scoring Works</div>
+<div style="font-size:9px;color:var(--sub);line-height:1.6">
+<span style="color:var(--amb)">+10 pts</span> per session · <span style="color:var(--amb)">+15 pts</span> per streak week · <span style="color:var(--amb)">+1 pt</span> per set completed<br>
+<span style="color:var(--amb)">+50 pts max</span> consistency bonus · <span style="color:var(--amb)">×rating</span> multiplier from session ratings
+</div></div>`+
 (board.length===0?`<div class="empty"><div class="empty-i">🏆</div><p class="empty-t">No data yet</p><p class="empty-s">Complete workouts to appear on the leaderboard!</p></div>`:
-board.map((u,i)=>`<div class="card" style="display:flex;align-items:center;gap:12px;${u.id===S.user?.id?'border-color:var(--amb);background:rgba(56,189,248,.04)':''}">
-<div style="font-size:${i<3?'28':'20'}px;width:36px;text-align:center;flex-shrink:0">${medals[i]||'<span style="font-family:JetBrains Mono;font-weight:700;color:var(--sub)">#'+(i+1)+'</span>'}</div>
+board.map((u,i)=>{const rank=u.rank||i+1;const isMe=u.userId===S.user?.id||u.id===S.user?.id;const score=u.score!=null?u.score:calcScoreLocal(u);
+return`<div class="card" style="display:flex;align-items:center;gap:12px;${isMe?'border-color:var(--amb);background:rgba(56,189,248,.04)':''}">
+<div style="font-size:${rank<=3?'28':'20'}px;width:36px;text-align:center;flex-shrink:0">${medals[rank-1]||'<span style="font-family:JetBrains Mono;font-weight:700;color:var(--sub)">#'+rank+'</span>'}</div>
 <div style="font-size:24px;flex-shrink:0">${u.avatar}</div>
 <div style="flex:1;min-width:0">
-<div style="font-size:13px;font-weight:700">${esc(u.name)}${u.id===S.user?.id?' <span style="font-size:9px;color:var(--amb)">(You)</span>':''}</div>
-<div style="font-size:10px;color:var(--sub);margin-top:2px">${u.sessions} session${u.sessions!==1?'s':''} · ${u.streak} wk streak</div>
-<div style="margin-top:6px"><div class="apb"><div class="fill ${u.completionRate>=80?'grn':u.completionRate>=50?'amb':'red'}" style="width:${u.completionRate}%"></div></div>
-<div style="font-size:9px;color:var(--sub);margin-top:2px">${u.consistency}/wk avg${u.targetDays?' (target: '+u.targetDays+'/wk)':''}</div></div>
+<div style="font-size:13px;font-weight:700">${esc(u.name)}${isMe?' <span style="font-size:9px;color:var(--amb)">(You)</span>':''}</div>
+<div style="font-size:10px;color:var(--sub);margin-top:2px">${u.sessions} session${u.sessions!==1?'s':''} · ${u.streak} wk streak · ${u.totalSets||0} sets</div>
+<div style="margin-top:6px"><div class="apb"><div class="fill ${(u.completionRate||0)>=80?'grn':(u.completionRate||0)>=50?'amb':'red'}" style="width:${u.completionRate||0}%"></div></div>
+<div style="font-size:9px;color:var(--sub);margin-top:2px">${u.consistency||0}/wk avg${u.targetDays?' (target: '+u.targetDays+'/wk)':''}</div></div>
 </div>
-<div style="text-align:right;flex-shrink:0"><div style="font-family:'JetBrains Mono';font-size:20px;font-weight:700;color:var(--amb)">${u.sessions}</div>
-<div style="font-size:8px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em">sessions</div></div></div>`).join(""))+
+<div style="text-align:right;flex-shrink:0"><div style="font-family:'JetBrains Mono';font-size:20px;font-weight:700;color:var(--amb)">${score}</div>
+<div style="font-size:8px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em">points</div></div></div>`}).join(""))+
 `<div class="card" style="text-align:center;padding:20px;margin-top:10px;background:linear-gradient(135deg,rgba(56,189,248,.06),rgba(56,189,248,.02));border-color:rgba(56,189,248,.15)">
 <div style="font-size:28px;margin-bottom:6px">💪</div>
 <div style="font-size:12px;font-weight:700;margin-bottom:4px">Stay Consistent!</div>
 <div style="font-size:10px;color:var(--sub);line-height:1.5">Complete your planned workouts each week to climb the leaderboard. Consistency beats intensity!</div></div>`}
+
+async function rLeaders(){const el=document.getElementById("tab-leaders");
+el.innerHTML=`<div style="text-align:center;padding:40px 20px"><div style="font-size:28px;margin-bottom:8px">🏆</div><div style="font-size:12px;color:var(--sub)">Loading leaderboard...</div></div>`;
+// Sync current user first
+await syncLeaderboard();
+// Try to fetch shared leaderboard from server
+const remote=await fetchLeaderboard();
+if(remote){renderBoard(remote,el);return}
+// Fallback to local data if offline
+const ids=LS("sp-user-ids")||[];
+const board=ids.map(id=>{const stats=calcUserStats(id);if(!stats)return null;stats.score=calcScoreLocal(stats);return stats}).filter(Boolean);
+board.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
+board.forEach((e,i)=>{e.rank=i+1});
+renderBoard(board,el)}
 
 // ═══════ UTILS ═══════
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
