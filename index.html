@@ -250,7 +250,31 @@ if(sp.groups.length<=2){cp.slice(0,2).forEach(e=>exs.push({...e,s:sp.primary===g
 else{cp.slice(0,1).forEach(e=>exs.push({...e,s:sp.primary===grp?4:3,r:g.rm,rest:g.rstm}));ip.slice(0,1).forEach(e=>exs.push({...e,s:3,r:g.ri,rest:g.rsti}))}});
 const fe=exs.slice(0,7);return{day:`Day ${i+1} — ${sp.name}`,sub:sp.groups.map(g=>CAT_META[g]?.l||AM[g]?.l||g).join(" · "),sched:dn[sd[i]]||`Day ${i+1}`,dur:`~${Math.round(fe.reduce((a,e)=>a+e.s*1.5+(parseFloat(e.rest)||1.5)*e.s/60,10))} min`,
 warm:"5 min cardio · dynamic stretches",exs:fe.map(e=>({n:e.n,s:e.s,r:e.r,rest:e.rest,note:e.nt})),cool:"Full stretch · 5 min",prog:goal==="fat_loss"?"Maintain weights. Reduce rest.":"Hit top rep range → add 2.5 kg.",custom:false}});}
-function mkSplit(a,d){if(d===1)return[{name:"Full Body",groups:a.length?a:["chest","back","legs","shoulders"],primary:"chest"}];if(d===2)return[{name:"Upper",groups:["chest","back","shoulders","arms"],primary:"chest"},{name:"Lower",groups:["legs","core"],primary:"legs"}];if(d===3)return[{name:"Push",groups:["chest","shoulders","arms"],primary:"chest"},{name:"Pull",groups:["back","arms"],primary:"back"},{name:"Legs",groups:["legs","core"],primary:"legs"}];if(d===4)return[{name:"Push",groups:["chest","shoulders","arms"],primary:"chest"},{name:"Pull",groups:["back","arms"],primary:"back"},{name:"Legs",groups:["legs","core"],primary:"legs"},{name:"Upper",groups:["chest","back","shoulders","arms"],primary:"chest"}];if(d===5)return[{name:"Push",groups:["chest","shoulders"],primary:"chest"},{name:"Pull",groups:["back","arms"],primary:"back"},{name:"Legs",groups:["legs","core"],primary:"legs"},{name:"Upper Hyper",groups:["chest","back","shoulders"],primary:"shoulders"},{name:"Arms & Core",groups:["arms","core"],primary:"arms"}];return[{name:"Push A",groups:["chest","shoulders"],primary:"chest"},{name:"Pull A",groups:["back","arms"],primary:"back"},{name:"Legs A",groups:["legs","core"],primary:"legs"},{name:"Push B",groups:["chest","shoulders","arms"],primary:"shoulders"},{name:"Pull B",groups:["back","arms"],primary:"back"},{name:"Legs B",groups:["legs","core"],primary:"legs"}];}
+function mkSplit(a,d){
+const areas=a.length?a:["chest","back","legs","shoulders"];
+if(d===1)return[{name:"Full Body",groups:areas,primary:areas[0]}];
+const tpl={
+2:[{name:"Upper",groups:["chest","back","shoulders","arms"],primary:"chest"},{name:"Lower",groups:["legs","core"],primary:"legs"}],
+3:[{name:"Push",groups:["chest","shoulders","arms"],primary:"chest"},{name:"Pull",groups:["back","arms"],primary:"back"},{name:"Legs",groups:["legs","core"],primary:"legs"}],
+4:[{name:"Push",groups:["chest","shoulders","arms"],primary:"chest"},{name:"Pull",groups:["back","arms"],primary:"back"},{name:"Legs",groups:["legs","core"],primary:"legs"},{name:"Upper",groups:["chest","back","shoulders","arms"],primary:"chest"}],
+5:[{name:"Push",groups:["chest","shoulders"],primary:"chest"},{name:"Pull",groups:["back","arms"],primary:"back"},{name:"Legs",groups:["legs","core"],primary:"legs"},{name:"Upper Hyper",groups:["chest","back","shoulders"],primary:"shoulders"},{name:"Arms & Core",groups:["arms","core"],primary:"arms"}],
+6:[{name:"Push A",groups:["chest","shoulders"],primary:"chest"},{name:"Pull A",groups:["back","arms"],primary:"back"},{name:"Legs A",groups:["legs","core"],primary:"legs"},{name:"Push B",groups:["chest","shoulders","arms"],primary:"shoulders"},{name:"Pull B",groups:["back","arms"],primary:"back"},{name:"Legs B",groups:["legs","core"],primary:"legs"}]
+};
+const template=tpl[d]||tpl[3];
+const filtered=template.map(function(sp){
+const g=sp.groups.filter(function(x){return areas.includes(x)});
+const nm=g.length===0?sp.name:g.length===sp.groups.length?sp.name:g.map(function(x){return(AM[x]||CAT_META[x]||{l:x}).l}).join(" & ");
+const pr=areas.includes(sp.primary)?sp.primary:(g[0]||areas[0]);
+return{name:nm,groups:g,primary:pr};
+}).filter(function(sp){return sp.groups.length>0});
+var fi=0;
+while(filtered.length<d){
+var fa=areas[fi%areas.length];
+filtered.push({name:(AM[fa]||{l:fa}).l+" Focus",groups:[fa],primary:fa});
+fi++;
+}
+return filtered.slice(0,d);
+}
 function calcNutri(p){const bmr=10*p.weight+6.25*p.height-5*p.age+5;const am={1:1.3,2:1.4,3:1.45,4:1.55,5:1.65,6:1.75}[p.days]||1.5;const tdee=Math.round(bmr*am);const cal=tdee+(GM[p.goal]?.ca||0);const protein=Math.round(p.weight*(p.goal==="fat_loss"?2.2:p.goal==="muscle_gain"?2.0:1.8));const fat=Math.round(p.weight*1.0);const carbs=Math.max(Math.round((cal-protein*4-fat*9)/4),100);return{cal,protein,carbs,fat,tdee}}
 
 // ═══════ BODY COMPOSITION ANALYSIS ═══════
@@ -416,7 +440,8 @@ el.innerHTML=`<div class="p-cards"><div class="p-c"><div class="p-cn">${ent.leng
 `<div class="log-t">Session Log</div>`+(ent.length===0?`<div class="empty"><p class="empty-t">No sessions yet</p></div>`:ent.slice(0,10).map(([key,log])=>{const d=S.plan[log.dayIndex];const cs=Object.values(log.sets).reduce((a,s)=>a+s.filter(x=>x.done).length,0);const ts=Object.values(log.sets).reduce((a,s)=>a+s.length,0);return`<div class="log-c"><div><div style="font-size:11px;font-weight:600">${d?d.day:key}</div><div style="font-size:9px;color:var(--sub)">${new Date(log.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</div></div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">${EMO[log.rating]||""}</span><span style="font-size:10px;color:var(--sub)">${cs}/${ts}</span></div></div>`}).join(""))+
 // Profile settings
 `<div class="log-t" style="margin-top:16px">⚙️ Profile</div><div class="card">`+
-[{l:"Goal",v:`${GM[p.goal]?.e||""} ${GM[p.goal]?.l||"Not set"}`,k:"goal"},{l:"Focus Areas",v:(p.areas||[]).map(a=>AM[a]?.l).join(", ")||"Not set",k:"areas"},{l:"Body Stats",v:`Age ${p.age} · ${p.height}cm · ${p.weight}kg`,k:"body"},{l:"Training Days",v:`${p.days} day${p.days>1?'s':''}/week`,k:"days"},{l:"Calorie Target",v:`${S.nutri.cal} kcal · ${S.nutri.protein}g P · ${S.nutri.carbs}g C · ${S.nutri.fat}g F`,k:"nutri"}].map(item=>`<div style="margin-bottom:12px"><div class="set-label">${item.l}</div><div style="font-size:11px;color:var(--sub);margin-bottom:6px">${item.v}</div>${item.k!=="nutri"?`<button class="set-edit" onclick="editProfField('${item.k}')">Change</button>`:''}</div>`).join("")+`</div>`+
+[{l:"Goal",v:`${GM[p.goal]?.e||""} ${GM[p.goal]?.l||"Not set"}`,k:"goal"},{l:"Body Stats",v:`Age ${p.age} · ${p.height}cm · ${p.weight}kg`,k:"body"},{l:"Training Days",v:`${p.days} day${p.days>1?'s':''}/week`,k:"days"},{l:"Calorie Target",v:`${S.nutri.cal} kcal · ${S.nutri.protein}g P · ${S.nutri.carbs}g C · ${S.nutri.fat}g F`,k:"nutri"}].map(item=>`<div style="margin-bottom:12px"><div class="set-label">${item.l}</div><div style="font-size:11px;color:var(--sub);margin-bottom:6px">${item.v}</div>${item.k!=="nutri"?`<button class="set-edit" onclick="editProfField('${item.k}')">Change</button>`:''}</div>`).join("")+
+`<div style="margin-bottom:12px"><div class="set-label">Focus Areas</div><div style="font-size:10px;color:var(--sub);margin-bottom:8px">Tap to toggle. Plan regenerates automatically.</div><div class="ob-grid g3" style="margin-bottom:6px">${Object.entries(AM).map(([k,v])=>`<button class="ob-opt ${(p.areas||[]).includes(k)?'on':''}" style="padding:10px 6px" onclick="togArea('${k}')">${v.e}<span class="label" style="font-size:11px">${v.l}</span></button>`).join("")}</div><button class="ob-opt ${(p.areas||[]).length===6?'on':''}" style="padding:8px;font-size:11px" onclick="setAllAreas()"><span style="font-size:16px">🏋️</span> <span class="label" style="font-size:11px">Full Body</span></button></div>`+`</div>`+
 // Plan management
 `<div class="log-t">📋 Plan Management</div><button class="s-btn pri" onclick="if(confirm('Regenerate?')){S.plan=genPlan(S.user.profile);savPlan();updHdr();rSet()}">🔄 Regenerate Auto Plan</button><button class="s-btn grn" style="margin-top:6px" onclick="swTab('library')">📚 Build from Library</button>`+
 (S.customPlans.length?`<div style="margin-top:10px">${S.customPlans.map((cp,ci)=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:10px"><div><div style="font-weight:700;font-size:12px">${cp.day} 🔧</div><div style="font-size:9px;color:var(--sub)">${cp.exs.length} exercises</div></div><div style="display:flex;gap:4px"><button class="set-edit" style="font-size:9px;padding:5px 8px" onclick="S.plan.push({...S.customPlans[${ci}],day:'Day '+(S.plan.length+1)+' — '+S.customPlans[${ci}].day});savPlan();updHdr();rSet()">Add</button><button style="padding:5px 8px;border-radius:6px;font-size:9px;font-weight:700;border:1px solid var(--red);background:transparent;color:var(--red)" onclick="S.customPlans.splice(${ci},1);savCustom();rSet()">✕</button></div></div>`).join("")}</div>`:'')+
@@ -426,10 +451,11 @@ el.innerHTML=`<div class="p-cards"><div class="p-c"><div class="p-cn">${ent.leng
 function editProfField(k){
   const p=S.user.profile;
   if(k==="goal"){const opts=Object.entries(GM).map(([k,v])=>`${v.e} ${v.l}`).join("\n");const choice=prompt("Enter goal:\n1. Muscle Gain\n2. Fat Loss\n3. Recomp\n4. General Fitness","1");const map={1:"muscle_gain",2:"fat_loss",3:"recomp",4:"general"};if(map[choice]){p.goal=map[choice];updProfAndRegen()}}
-  else if(k==="areas"){const a=prompt("Enter areas (comma-separated):\nchest, back, shoulders, arms, legs, core","chest,back,shoulders,arms,legs,core");if(a){p.areas=a.split(",").map(x=>x.trim()).filter(x=>AM[x]);updProfAndRegen()}}
   else if(k==="body"){const age=prompt("Age:",p.age);const h=prompt("Height (cm):",p.height);const w=prompt("Weight (kg):",p.weight);if(age&&h&&w){p.age=+age;p.height=+h;p.weight=+w;updProfAndRegen()}}
   else if(k==="days"){const d=prompt("Days per week (1-6):",p.days);if(d&&+d>=1&&+d<=6){p.days=+d;updProfAndRegen()}}
 }
+function togArea(a){const p=S.user.profile;const i=(p.areas||[]).indexOf(a);if(i>=0){p.areas.splice(i,1)}else{if(!p.areas)p.areas=[];p.areas.push(a)}if(p.areas.length>0)updProfAndRegen()}
+function setAllAreas(){const p=S.user.profile;p.areas=["chest","back","shoulders","arms","legs","core"];updProfAndRegen()}
 function updProfAndRegen(){SS("sp-me",S.user);savProf(S.user);S.nutri=calcNutri(S.user.profile);SS("sp-nutri-"+S.user.id,S.nutri);S.plan=genPlan(S.user.profile);savPlan();updHdr();rSet()}
 
 // ═══════ UTILS ═══════
