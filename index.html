@@ -244,6 +244,42 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
+/* NOTES TAB */
+.notes-status{padding:10px 14px;border-radius:var(--rads);font-size:12px;margin-bottom:12px;font-weight:600}
+.notes-status.success{background:rgba(34,197,94,.12);color:var(--grn)}.notes-status.error{background:rgba(239,68,68,.12);color:var(--red)}
+.note-form{background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:var(--rad);padding:16px;margin-bottom:16px}
+.note-form label{display:block;font-size:11px;color:var(--sub);font-weight:600;margin-bottom:4px;letter-spacing:.04em;text-transform:uppercase}
+.note-form input,.note-form textarea{width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+.note-form input:focus,.note-form textarea:focus{border-color:var(--amb)}
+.note-form textarea{resize:vertical;min-height:70px;line-height:1.5}
+.mood-grid{display:flex;gap:6px;margin-bottom:12px}
+.mood-btn{padding:6px 12px;border-radius:8px;font-size:12px;border:1px solid var(--glass-border);background:var(--glass);color:var(--sub);transition:all .2s;cursor:pointer}
+.mood-btn:focus{outline:2px solid var(--amb);outline-offset:2px}
+.mood-btn.on{border-color:var(--amb);background:rgba(56,189,248,.12);color:var(--amb)}
+.note-actions{display:flex;gap:8px;margin-top:12px}
+.note-actions button{flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:700;border:none;transition:all .15s;cursor:pointer}
+.note-actions button:focus{outline:2px solid var(--amb);outline-offset:2px}
+.note-actions button:active{transform:scale(.98)}
+.note-save{background:var(--amb);color:#000}.note-cancel{background:var(--glass);color:var(--tx);border:1px solid var(--glass-border)!important}
+.note-item{background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border-radius:var(--rad);margin-bottom:10px;border:1px solid rgba(56,189,248,0.1);padding:14px;animation:fadeUp .3s ease both}
+.note-item-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.note-item-title{font-size:14px;font-weight:700;flex:1;margin-right:8px}
+.note-item-mood{font-size:14px}
+.note-item-body{font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:8px;white-space:pre-wrap;word-break:break-word}
+.note-item-date{font-size:10px;color:var(--sub);font-family:'JetBrains Mono',monospace}
+.note-item-btns{display:flex;gap:6px;margin-top:8px}
+.note-item-btns button{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:all .15s}
+.note-item-btns button:focus{outline:2px solid var(--amb);outline-offset:2px}
+.note-item-btns button:active{transform:scale(.95)}
+.note-edit-btn{background:rgba(56,189,248,.12);color:var(--amb)}.note-del-btn{background:rgba(239,68,68,.12);color:var(--red)}
+.note-add-btn{width:100%;padding:12px;border-radius:10px;font-size:13px;font-weight:700;border:2px dashed var(--glass-border);background:transparent;color:var(--amb);cursor:pointer;transition:all .2s;margin-bottom:16px}
+.note-add-btn:focus{outline:2px solid var(--amb);outline-offset:2px}
+.note-add-btn:hover,.note-add-btn:focus{border-color:var(--amb);background:rgba(56,189,248,.05)}
+.note-confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.note-confirm-box{background:var(--c1-solid);border:1px solid var(--glass-border);border-radius:var(--rad);padding:24px;max-width:320px;width:100%;text-align:center}
+.note-confirm-box p{font-size:14px;margin-bottom:16px;line-height:1.5}
+.note-confirm-box .note-actions{justify-content:center}
 </style>
 </head>
 <body>
@@ -252,7 +288,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 <div id="app" class="hide">
 <header class="header"><div class="hdr-top"><div><div class="brand">SHAWNSPOD<span> FITNESS</span></div><div class="usr-row" id="usrRow" onclick="doLogout()"></div></div><div class="wk-ctrl"><button onclick="chgWeek(-1)">◂</button><span class="wk-lbl" id="wkLbl">WK 1</span><button onclick="chgWeek(1)">▸</button></div></div><div class="stats-bar" id="statsBar"></div></header>
 <nav class="nav" id="nav"></nav>
-<div class="tab-c" id="tab-plan"></div><div class="tab-c" id="tab-library"></div><div class="tab-c" id="tab-food"></div><div class="tab-c" id="tab-track"></div><div class="tab-c" id="tab-leaders"></div><div class="tab-c" id="tab-body"></div><div class="tab-c" id="tab-settings"></div>
+<div class="tab-c" id="tab-plan"></div><div class="tab-c" id="tab-library"></div><div class="tab-c" id="tab-food"></div><div class="tab-c" id="tab-track"></div><div class="tab-c" id="tab-leaders"></div><div class="tab-c" id="tab-notes"></div><div class="tab-c" id="tab-body"></div><div class="tab-c" id="tab-settings"></div>
 </div>
 <script>
 // ═══════ EXPANDED EXERCISE DATABASE ═══════
@@ -407,10 +443,10 @@ function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("
 function doLogout(){SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
 // ═══════ APP SHELL ═══════
-const TABS=[{id:"plan",ico:"🏋️",lbl:"Plan"},{id:"library",ico:"📚",lbl:"Library"},{id:"food",ico:"🥗",lbl:"Food"},{id:"track",ico:"📋",lbl:"Track"},{id:"leaders",ico:"🏆",lbl:"Board"},{id:"body",ico:"📐",lbl:"Body"},{id:"settings",ico:"⚙️",lbl:"More"}];
+const TABS=[{id:"plan",ico:"🏋️",lbl:"Plan"},{id:"library",ico:"📚",lbl:"Library"},{id:"food",ico:"🥗",lbl:"Food"},{id:"track",ico:"📋",lbl:"Track"},{id:"leaders",ico:"🏆",lbl:"Board"},{id:"notes",ico:"📝",lbl:"Notes"},{id:"body",ico:"📐",lbl:"Body"},{id:"settings",ico:"⚙️",lbl:"More"}];
 function showApp(){document.getElementById("onboard").classList.add("hide");document.getElementById("app").classList.remove("hide");rNav();updHdr();swTab("plan")}
 function rNav(){document.getElementById("nav").innerHTML=TABS.map(t=>`<button class="${S.tab===t.id?'on':''}" onclick="swTab('${t.id}')">${t.ico}<span class="nl">${t.lbl}</span></button>`).join("")}
-function swTab(id){S.tab=id;rNav();TABS.forEach(t=>{const e=document.getElementById("tab-"+t.id);e&&(id===t.id?e.classList.add("active"):e.classList.remove("active"))});({plan:rPlan,library:rLib,food:rFood,body:rBody,track:rTrack,leaders:rLeaders,settings:rSet})[id]?.()}
+function swTab(id){S.tab=id;rNav();TABS.forEach(t=>{const e=document.getElementById("tab-"+t.id);e&&(id===t.id?e.classList.add("active"):e.classList.remove("active"))});({plan:rPlan,library:rLib,food:rFood,body:rBody,track:rTrack,leaders:rLeaders,notes:rNotes,settings:rSet})[id]?.()}
 function updHdr(){document.getElementById("usrRow").innerHTML=`<span class="usr-av">${S.user.avatar}</span><span class="usr-nm">${esc(S.user.name)}</span><span class="sw-h">switch ▸</span>`;document.getElementById("wkLbl").textContent="WK "+S.week;const wk=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const dl=S.flog[tdk()]||[];const dc=dl.reduce((a,m)=>a+m.cal,0);const dp=dl.reduce((a,m)=>a+m.p,0);document.getElementById("statsBar").innerHTML=`<div><span class="st-v">${wk}</span><span class="st-l">/ ${S.plan.length} wk</span></div><div><span class="st-v">${dc}</span><span class="st-l">/ ${S.nutri.cal} kcal</span></div><div><span class="st-v">${dp}g</span><span class="st-l">/ ${S.nutri.protein}g pro</span></div>`}
 function chgWeek(d){S.week=Math.max(1,S.week+d);SS("sp-week-"+S.user.id,S.week);updHdr();if(S.tab==="plan")rPlan()}
 // ═══════ PLAN TAB ═══════
@@ -642,6 +678,97 @@ const board=ids.map(id=>{const stats=calcUserStats(id);if(!stats)return null;sta
 board.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
 board.forEach((e,i)=>{e.rank=i+1});
 renderBoard(board,el)}
+
+// ═══════ NOTES TAB ═══════
+const MOODS=[{key:"great",emoji:"💪",label:"Great"},{key:"good",emoji:"👍",label:"Good"},{key:"okay",emoji:"😐",label:"Okay"},{key:"tough",emoji:"😤",label:"Tough"}];
+let _notesCache=[];let _notesLoading=false;let _notesEditId=null;
+
+function notesStatusHtml(msg,type){return `<div class="notes-status ${type}" role="status" aria-live="polite">${esc(msg)}</div>`}
+
+function noteFormHtml(note){
+const isEdit=!!note;const t=note?esc(note.title):"";const b=note?esc(note.body):"";const m=note?note.mood:"good";
+return `<form class="note-form" onsubmit="noteSubmit(event)" aria-label="${isEdit?'Edit note':'New note'}">
+<input type="hidden" id="noteFormId" value="${isEdit?note.id:''}">
+<div style="margin-bottom:10px"><label for="noteTitle">Title</label><input type="text" id="noteTitle" value="${t}" required maxlength="100" placeholder="e.g. Leg day reflections"></div>
+<div style="margin-bottom:10px"><label for="noteBody">Details</label><textarea id="noteBody" rows="3" placeholder="How did the workout go?">${b}</textarea></div>
+<div><label id="moodLabel">Mood</label><div class="mood-grid" role="radiogroup" aria-labelledby="moodLabel">${MOODS.map(mo=>`<button type="button" class="mood-btn${mo.key===m?' on':''}" role="radio" aria-checked="${mo.key===m}" onclick="pickMood(this,'${mo.key}')">${mo.emoji} ${mo.label}</button>`).join("")}</div></div>
+<div class="note-actions">${isEdit?`<button type="button" class="note-cancel" onclick="cancelNoteEdit()">Cancel</button>`:""}<button type="submit" class="note-save">${isEdit?"Save Changes":"Add Note"}</button></div>
+</form>`}
+
+function noteItemHtml(n){
+const mo=MOODS.find(m=>m.key===n.mood)||MOODS[1];
+const d=new Date(n.createdAt);const ds=d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+return `<article class="note-item" data-id="${n.id}">
+<div class="note-item-hdr"><div class="note-item-title">${esc(n.title)}</div><div class="note-item-mood" title="${mo.label}">${mo.emoji}</div></div>
+${n.body?`<div class="note-item-body">${esc(n.body)}</div>`:""}
+<div class="note-item-date">${ds}</div>
+<div class="note-item-btns"><button class="note-edit-btn" onclick="startEditNote('${n.id}')">Edit</button><button class="note-del-btn" onclick="confirmDeleteNote('${n.id}')">Delete</button></div>
+</article>`}
+
+async function rNotes(){
+const el=document.getElementById("tab-notes");
+el.innerHTML=`<div class="log-t">📝 Workout Notes</div><p class="intro">Record thoughts, reflections, and progress notes for your training sessions.</p><div id="notesStatus" aria-live="polite"></div><div id="notesFormArea"></div><button class="note-add-btn" id="notesAddBtn" onclick="showNoteForm()">+ New Note</button><div id="notesList"><div style="text-align:center;padding:30px 0"><div style="font-size:24px;margin-bottom:6px">📝</div><div style="font-size:12px;color:var(--sub)">Loading notes...</div></div></div>`;
+await loadNotes()}
+
+async function loadNotes(){
+if(_notesLoading)return;_notesLoading=true;
+try{
+const r=await fetch("/api/notes/");if(!r.ok)throw new Error("Failed to load");
+const data=await r.json();_notesCache=data.notes||[];renderNotesList()
+}catch(e){document.getElementById("notesList").innerHTML=`<div class="empty"><div class="empty-i">⚠️</div><p class="empty-t" style="font-size:12px;color:var(--sub)">Could not load notes</p></div>`;
+document.getElementById("notesStatus").innerHTML=notesStatusHtml("Failed to load notes. Please try again.","error")}
+finally{_notesLoading=false}}
+
+function renderNotesList(){
+const el=document.getElementById("notesList");
+if(!_notesCache.length){el.innerHTML=`<div class="empty" style="text-align:center;padding:30px 0"><div style="font-size:28px;margin-bottom:8px">📝</div><p style="font-size:12px;color:var(--sub)">No notes yet. Add your first workout note!</p></div>`;return}
+el.innerHTML=_notesCache.map(noteItemHtml).join("")}
+
+function showNoteForm(){
+_notesEditId=null;document.getElementById("notesFormArea").innerHTML=noteFormHtml(null);
+document.getElementById("notesAddBtn").classList.add("hide");document.getElementById("noteTitle").focus()}
+
+function cancelNoteEdit(){
+_notesEditId=null;document.getElementById("notesFormArea").innerHTML="";
+document.getElementById("notesAddBtn").classList.remove("hide")}
+
+function pickMood(btn,key){
+btn.closest(".mood-grid").querySelectorAll(".mood-btn").forEach(b=>{b.classList.remove("on");b.setAttribute("aria-checked","false")});
+btn.classList.add("on");btn.setAttribute("aria-checked","true")}
+
+async function noteSubmit(e){
+e.preventDefault();const id=document.getElementById("noteFormId").value;
+const title=document.getElementById("noteTitle").value.trim();
+const body=document.getElementById("noteBody").value.trim();
+const moodBtn=document.querySelector(".mood-btn.on");const mood=moodBtn?moodBtn.textContent.trim().split(" ").pop().toLowerCase():"good";
+const moodKey=MOODS.find(m=>m.label.toLowerCase()===mood)?.key||"good";
+const statusEl=document.getElementById("notesStatus");
+if(!title){statusEl.innerHTML=notesStatusHtml("Title is required.","error");return}
+try{
+let r;if(id){r=await fetch("/api/notes/"+id,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,body,mood:moodKey})})}
+else{r=await fetch("/api/notes/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId:S.user.id,title,body,mood:moodKey})})}
+if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.error||"Failed")}
+statusEl.innerHTML=notesStatusHtml(id?"Note updated!":"Note added!","success");
+cancelNoteEdit();await loadNotes();setTimeout(()=>{if(statusEl)statusEl.innerHTML=""},3000)}
+catch(err){statusEl.innerHTML=notesStatusHtml(err.message||"Something went wrong.","error")}}
+
+function startEditNote(id){
+const note=_notesCache.find(n=>n.id===id);if(!note)return;
+_notesEditId=id;document.getElementById("notesFormArea").innerHTML=noteFormHtml(note);
+document.getElementById("notesAddBtn").classList.add("hide");document.getElementById("noteTitle").focus()}
+
+function confirmDeleteNote(id){
+const note=_notesCache.find(n=>n.id===id);if(!note)return;
+const overlay=document.createElement("div");overlay.className="note-confirm-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","Confirm deletion");
+overlay.innerHTML=`<div class="note-confirm-box"><p>Delete "<strong>${esc(note.title)}</strong>"?<br><span style="font-size:12px;color:var(--sub)">This cannot be undone.</span></p><div class="note-actions"><button class="note-cancel" onclick="this.closest('.note-confirm-overlay').remove()">Cancel</button><button class="note-save" style="background:var(--red)" onclick="execDeleteNote('${id}')">Delete</button></div></div>`;
+document.body.appendChild(overlay);overlay.querySelector(".note-cancel").focus()}
+
+async function execDeleteNote(id){
+document.querySelector(".note-confirm-overlay")?.remove();
+const statusEl=document.getElementById("notesStatus");
+try{const r=await fetch("/api/notes/"+id,{method:"DELETE"});if(!r.ok)throw new Error("Failed");
+statusEl.innerHTML=notesStatusHtml("Note deleted.","success");await loadNotes();setTimeout(()=>{if(statusEl)statusEl.innerHTML=""},3000)}
+catch(err){statusEl.innerHTML=notesStatusHtml("Failed to delete note.","error")}}
 
 // ═══════ UTILS ═══════
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
