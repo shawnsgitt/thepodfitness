@@ -280,6 +280,31 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .note-confirm-box{background:var(--c1-solid);border:1px solid var(--glass-border);border-radius:var(--rad);padding:24px;max-width:320px;width:100%;text-align:center}
 .note-confirm-box p{font-size:14px;margin-bottom:16px;line-height:1.5}
 .note-confirm-box .note-actions{justify-content:center}
+
+/* GROCERY */
+.groc-cat-title{font-size:13px;font-weight:700;color:var(--amb);margin:14px 0 6px;display:flex;align-items:center;gap:6px}
+.groc-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:10px;margin-bottom:6px;transition:all .2s}
+.groc-item.checked{opacity:.5;text-decoration:line-through}
+.groc-chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--bdr);background:none;color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;flex-shrink:0;transition:all .2s}
+.groc-chk.on{background:var(--grn);border-color:var(--grn);color:#000}
+.groc-name{flex:1;font-size:13px;font-weight:500}
+.groc-del{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;opacity:.5;transition:opacity .2s;padding:4px}
+.groc-del:hover{opacity:1}
+.groc-add-row{display:flex;gap:8px;margin-bottom:14px}
+.groc-add-inp{flex:1;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-size:13px;outline:none;font-family:'Inter',sans-serif}
+.groc-add-inp:focus{border-color:var(--amb)}
+.groc-add-btn{padding:10px 16px;background:var(--amb);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.groc-tabs{display:flex;gap:0;margin-bottom:14px;background:var(--glass);border-radius:10px;overflow:hidden;border:1px solid var(--glass-border)}
+.groc-tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;background:none;border:none;color:var(--sub);transition:all .2s}
+.groc-tab.on{background:rgba(56,189,248,.15);color:var(--amb)}
+.meal-day{background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid rgba(56,189,248,0.1);border-radius:var(--rad);padding:14px;margin-bottom:10px}
+.meal-day-title{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--amb)}
+.meal-slot{margin-bottom:8px}
+.meal-slot-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);margin-bottom:3px}
+.meal-slot-text{font-size:12px;color:var(--tx);line-height:1.5}
+.meal-extras{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:var(--rad);padding:14px;margin-top:12px}
+.meal-extras-title{font-size:13px;font-weight:700;color:#F97316;margin-bottom:6px}
+.meal-extras-item{font-size:12px;color:var(--sub);padding:2px 0}
 </style>
 </head>
 <body>
@@ -288,7 +313,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 <div id="app" class="hide">
 <header class="header"><div class="hdr-top"><div><div class="brand">SHAWNSPOD<span> FITNESS</span></div><div class="usr-row" id="usrRow" onclick="doLogout()"></div></div><div class="wk-ctrl"><button onclick="chgWeek(-1)">◂</button><span class="wk-lbl" id="wkLbl">WK 1</span><button onclick="chgWeek(1)">▸</button></div></div><div class="stats-bar" id="statsBar"></div></header>
 <nav class="nav" id="nav"></nav>
-<div class="tab-c" id="tab-plan"></div><div class="tab-c" id="tab-library"></div><div class="tab-c" id="tab-food"></div><div class="tab-c" id="tab-track"></div><div class="tab-c" id="tab-leaders"></div><div class="tab-c" id="tab-notes"></div><div class="tab-c" id="tab-body"></div><div class="tab-c" id="tab-settings"></div>
+<div class="tab-c" id="tab-plan"></div><div class="tab-c" id="tab-library"></div><div class="tab-c" id="tab-food"></div><div class="tab-c" id="tab-grocery"></div><div class="tab-c" id="tab-track"></div><div class="tab-c" id="tab-leaders"></div><div class="tab-c" id="tab-notes"></div><div class="tab-c" id="tab-body"></div><div class="tab-c" id="tab-settings"></div>
 </div>
 <script>
 // ═══════ EXPANDED EXERCISE DATABASE ═══════
@@ -443,10 +468,10 @@ function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("
 function doLogout(){SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
 // ═══════ APP SHELL ═══════
-const TABS=[{id:"plan",ico:"🏋️",lbl:"Plan"},{id:"library",ico:"📚",lbl:"Library"},{id:"food",ico:"🥗",lbl:"Food"},{id:"track",ico:"📋",lbl:"Track"},{id:"leaders",ico:"🏆",lbl:"Board"},{id:"notes",ico:"📝",lbl:"Notes"},{id:"body",ico:"📐",lbl:"Body"},{id:"settings",ico:"⚙️",lbl:"More"}];
+const TABS=[{id:"plan",ico:"🏋️",lbl:"Plan"},{id:"library",ico:"📚",lbl:"Library"},{id:"food",ico:"🥗",lbl:"Food"},{id:"grocery",ico:"🛒",lbl:"Grocery"},{id:"track",ico:"📋",lbl:"Track"},{id:"leaders",ico:"🏆",lbl:"Board"},{id:"notes",ico:"📝",lbl:"Notes"},{id:"body",ico:"📐",lbl:"Body"},{id:"settings",ico:"⚙️",lbl:"More"}];
 function showApp(){document.getElementById("onboard").classList.add("hide");document.getElementById("app").classList.remove("hide");rNav();updHdr();swTab("plan")}
 function rNav(){document.getElementById("nav").innerHTML=TABS.map(t=>`<button class="${S.tab===t.id?'on':''}" onclick="swTab('${t.id}')">${t.ico}<span class="nl">${t.lbl}</span></button>`).join("")}
-function swTab(id){S.tab=id;rNav();TABS.forEach(t=>{const e=document.getElementById("tab-"+t.id);e&&(id===t.id?e.classList.add("active"):e.classList.remove("active"))});({plan:rPlan,library:rLib,food:rFood,body:rBody,track:rTrack,leaders:rLeaders,notes:rNotes,settings:rSet})[id]?.()}
+function swTab(id){S.tab=id;rNav();TABS.forEach(t=>{const e=document.getElementById("tab-"+t.id);e&&(id===t.id?e.classList.add("active"):e.classList.remove("active"))});({plan:rPlan,library:rLib,food:rFood,grocery:rGrocery,body:rBody,track:rTrack,leaders:rLeaders,notes:rNotes,settings:rSet})[id]?.()}
 function updHdr(){document.getElementById("usrRow").innerHTML=`<span class="usr-av">${S.user.avatar}</span><span class="usr-nm">${esc(S.user.name)}</span><span class="sw-h">switch ▸</span>`;document.getElementById("wkLbl").textContent="WK "+S.week;const wk=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const dl=S.flog[tdk()]||[];const dc=dl.reduce((a,m)=>a+m.cal,0);const dp=dl.reduce((a,m)=>a+m.p,0);document.getElementById("statsBar").innerHTML=`<div><span class="st-v">${wk}</span><span class="st-l">/ ${S.plan.length} wk</span></div><div><span class="st-v">${dc}</span><span class="st-l">/ ${S.nutri.cal} kcal</span></div><div><span class="st-v">${dp}g</span><span class="st-l">/ ${S.nutri.protein}g pro</span></div>`}
 function chgWeek(d){S.week=Math.max(1,S.week+d);SS("sp-week-"+S.user.id,S.week);updHdr();if(S.tab==="plan")rPlan()}
 // ═══════ PLAN TAB ═══════
@@ -769,6 +794,117 @@ const statusEl=document.getElementById("notesStatus");
 try{const r=await fetch("/api/notes/"+id,{method:"DELETE"});if(!r.ok)throw new Error("Failed");
 statusEl.innerHTML=notesStatusHtml("Note deleted.","success");await loadNotes();setTimeout(()=>{if(statusEl)statusEl.innerHTML=""},3000)}
 catch(err){statusEl.innerHTML=notesStatusHtml("Failed to delete note.","error")}}
+
+// ═══════ GROCERY TAB ═══════
+const GROCERY_CATEGORIES={
+"Bakery & Breakfast":["Bread","Doughnuts","Oats","Wheetabix","Pancake Mix","Granola"],
+"Beverages":["Juice","Milk","Water"],
+"Dairy & Eggs":["Butter","Cheese","Eggs","Cheddar Cheese","Cottage Cheese","Greek Yoghurt"],
+"Meat & Seafood":["Bacon","Lamb Chops","Salmon","Chicken Wings","Steak","Shrimps","Meat","Chicken Breast","Sausage"],
+"Fruits":["Lemon","Apples","Mango","Tangerines","Watermelon","Strawberry","Banana","Frozen Mixed Berries"],
+"Vegetables":["Kpakposhito","Tomatoes","Ginger","Onions","Spring Onions","Bell Pepper","Carrots","Corn","Peas","Plantain","Potatoes","Sweet Potatoes"],
+"Herbs & Spices":["Thyme","Garlic Powder","Parsley","Paprika","Chili Flakes"],
+"Pantry & Carbs":["Wraps","Pasta","Spaghetti","Rice","Indomie","Fries"],
+"Spreads & Condiments":["Syrup","Honey","Jam","Peanut Butter","Salad Cream","Ketchup","Lemon Juice","Soy Sauce","Pasta Cream"],
+"Oils & Cooking":["Olive Oil","Sunflower Oil","Sugar"],
+"Snacks":["Snacks"]
+};
+
+const MEAL_PLAN_DATA=[
+{day:"Monday",breakfast:"Oats with Frozen Mixed Berries, Honey & Milk",lunch:"Chicken Breast Wrap with Bell Pepper, Tomatoes, Salad Cream & Cheddar Cheese",dinner:"Spaghetti with Meat sauce (Onions, Tomatoes, Garlic Powder, Pasta Cream)",snack:"Greek Yoghurt with Granola & Banana"},
+{day:"Tuesday",breakfast:"Pancakes (Pancake Mix, Eggs, Milk) with Syrup & Strawberry",lunch:"Rice with Lamb Chops, Carrots, Peas & Thyme gravy",dinner:"Salmon with Sweet Potatoes & steamed Corn",snack:"Apple slices with Peanut Butter"},
+{day:"Wednesday",breakfast:"Eggs scrambled with Onions, Tomatoes, Kpakposhito & Bread toast with Butter",lunch:"Indomie stir-fry with Shrimps, Bell Pepper, Spring Onions, Soy Sauce & Chili Flakes",dinner:"Steak with Fries & a side of Carrots",snack:"Cottage Cheese with Mango slices"},
+{day:"Thursday",breakfast:"Wheetabix with Milk, Banana & Honey",lunch:"Pasta with Chicken Breast, Pasta Cream, Parsley & Cheddar Cheese",dinner:"Plantain with Eggs, Bacon & Ketchup",snack:"Doughnuts & Juice"},
+{day:"Friday",breakfast:"Bread with Jam, Peanut Butter & a glass of Milk",lunch:"Rice with Chicken Wings (Paprika, Garlic Powder, Lemon Juice, Olive Oil)",dinner:"Salmon Wrap with Spring Onions, Tomatoes & Salad Cream",snack:"Greek Yoghurt with Frozen Mixed Berries & Granola"},
+{day:"Saturday",breakfast:"Pancakes (Pancake Mix, Eggs, Milk) with Butter, Honey & Banana",lunch:"Spaghetti Bolognese with Meat, Onions, Tomatoes, Bell Pepper & Parsley",dinner:"Lamb Chops with Rice, Peas & Thyme",snack:"Watermelon & Tangerines"},
+{day:"Sunday",breakfast:"Oats with Mango, Honey & Milk",lunch:"Chicken Breast with Sweet Potatoes, Corn & Soy Sauce glaze",dinner:"Steak with Potatoes, Carrots & Onion gravy (Sunflower Oil, Garlic Powder)",snack:"Strawberry & Banana smoothie with Milk & Honey"}
+];
+
+const MEAL_PLAN_EXTRAS=["Salt","Black Pepper","Cooking Spray / Foil"];
+
+let _groceryCache=[];let _groceryLoading=false;let _groceryView="list";let _mealPlanCache=null;
+
+async function rGrocery(){
+const el=document.getElementById("tab-grocery");
+el.innerHTML=`<div class="log-t">🛒 Grocery List & Meal Plan</div>
+<div class="groc-tabs"><button class="groc-tab ${_groceryView==='list'?'on':''}" onclick="switchGrocView('list')">Grocery List</button><button class="groc-tab ${_groceryView==='meal'?'on':''}" onclick="switchGrocView('meal')">7-Day Meal Plan</button></div>
+<div id="grocContent"><div style="text-align:center;padding:30px 0"><div style="font-size:24px;margin-bottom:6px">🛒</div><div style="font-size:12px;color:var(--sub)">Loading...</div></div></div>`;
+await loadGroceries()}
+
+function switchGrocView(v){_groceryView=v;rGrocery()}
+
+async function loadGroceries(){
+if(_groceryLoading)return;_groceryLoading=true;
+try{
+const r=await fetch("/api/groceries/");if(!r.ok)throw new Error("Failed");
+const data=await r.json();_groceryCache=data.items||[];
+if(_groceryCache.length===0){await seedGroceries();return}
+renderGrocContent()
+}catch(e){document.getElementById("grocContent").innerHTML=`<div class="empty"><div class="empty-i">⚠️</div><p class="empty-t" style="font-size:12px;color:var(--sub)">Could not load groceries</p></div>`}
+finally{_groceryLoading=false}}
+
+async function seedGroceries(){
+const items=[];
+for(const[cat,names]of Object.entries(GROCERY_CATEGORIES)){for(const name of names){items.push({name,category:cat})}}
+try{
+const r=await fetch("/api/groceries/bulk",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items})});
+if(!r.ok)throw new Error("Seed failed");const data=await r.json();_groceryCache=data.items||[];
+await fetch("/api/groceries/meal-plan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({plan:{days:MEAL_PLAN_DATA,extras:MEAL_PLAN_EXTRAS}})});
+_mealPlanCache={days:MEAL_PLAN_DATA,extras:MEAL_PLAN_EXTRAS};
+renderGrocContent()
+}catch(e){document.getElementById("grocContent").innerHTML=`<div class="empty"><div class="empty-i">⚠️</div><p class="empty-t" style="font-size:12px;color:var(--sub)">Failed to set up groceries</p></div>`}
+finally{_groceryLoading=false}}
+
+function renderGrocContent(){
+const el=document.getElementById("grocContent");
+if(_groceryView==="list"){renderGrocList(el)}else{renderMealPlan(el)}}
+
+function renderGrocList(el){
+const cats={};_groceryCache.forEach(i=>{if(!cats[i.category])cats[i.category]=[];cats[i.category].push(i)});
+const checkedCount=_groceryCache.filter(i=>i.checked).length;
+const total=_groceryCache.length;
+let h=`<div class="groc-add-row"><input class="groc-add-inp" id="grocNewItem" placeholder="Add item..." onkeydown="if(event.key==='Enter')addGrocItem()"><button class="groc-add-btn" onclick="addGrocItem()">+ Add</button></div>`;
+h+=`<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${checkedCount} of ${total} items checked</div>`;
+const catOrder=Object.keys(GROCERY_CATEGORIES).concat(Object.keys(cats).filter(c=>!GROCERY_CATEGORIES[c]));
+const seen=new Set();
+for(const cat of catOrder){
+if(seen.has(cat)||!cats[cat])continue;seen.add(cat);
+h+=`<div class="groc-cat-title">${cat}</div>`;
+cats[cat].forEach(item=>{
+h+=`<div class="groc-item ${item.checked?'checked':''}"><button class="groc-chk ${item.checked?'on':''}" onclick="toggleGroc('${item.id}')" aria-label="Toggle ${esc(item.name)}">${item.checked?'✓':''}</button><span class="groc-name">${esc(item.name)}</span><button class="groc-del" onclick="delGroc('${item.id}')" aria-label="Delete ${esc(item.name)}">✕</button></div>`})}
+el.innerHTML=h}
+
+async function renderMealPlan(el){
+if(!_mealPlanCache){
+try{const r=await fetch("/api/groceries/meal-plan");const data=await r.json();_mealPlanCache=data.plan}catch(e){}}
+const plan=_mealPlanCache||{days:MEAL_PLAN_DATA,extras:MEAL_PLAN_EXTRAS};
+let h="";
+plan.days.forEach(d=>{
+h+=`<div class="meal-day"><div class="meal-day-title">${d.day}</div>
+<div class="meal-slot"><div class="meal-slot-label">🌅 Breakfast</div><div class="meal-slot-text">${d.breakfast}</div></div>
+<div class="meal-slot"><div class="meal-slot-label">☀️ Lunch</div><div class="meal-slot-text">${d.lunch}</div></div>
+<div class="meal-slot"><div class="meal-slot-label">🌙 Dinner</div><div class="meal-slot-text">${d.dinner}</div></div>
+<div class="meal-slot"><div class="meal-slot-label">🍿 Snack</div><div class="meal-slot-text">${d.snack}</div></div></div>`});
+if(plan.extras&&plan.extras.length){
+h+=`<div class="meal-extras"><div class="meal-extras-title">🛍️ Extras to Buy</div>${plan.extras.map(e=>`<div class="meal-extras-item">• ${e}</div>`).join("")}</div>`}
+el.innerHTML=h}
+
+async function toggleGroc(id){
+try{const r=await fetch("/api/groceries/"+id+"/toggle",{method:"PUT"});if(!r.ok)throw new Error();
+const item=await r.json();const idx=_groceryCache.findIndex(i=>i.id===id);if(idx>=0)_groceryCache[idx]=item;
+renderGrocContent()}catch(e){}}
+
+async function delGroc(id){
+if(!confirm("Remove this item?"))return;
+try{await fetch("/api/groceries/"+id,{method:"DELETE"});_groceryCache=_groceryCache.filter(i=>i.id!==id);
+renderGrocContent()}catch(e){}}
+
+async function addGrocItem(){
+const inp=document.getElementById("grocNewItem");const name=inp.value.trim();if(!name)return;
+try{const r=await fetch("/api/groceries/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,category:"Other"})});
+if(!r.ok)throw new Error();const item=await r.json();_groceryCache.push(item);
+_groceryCache.sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name));
+inp.value="";renderGrocContent()}catch(e){}}
 
 // ═══════ UTILS ═══════
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
