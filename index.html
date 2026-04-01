@@ -342,6 +342,26 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .eq-avail-tag{padding:2px 6px;border-radius:4px;font-size:8px;font-weight:600}
 .eq-avail-tag.wf{background:rgba(168,85,247,.1);color:var(--pur)}
 .eq-avail-tag.tgg{background:rgba(34,197,94,.1);color:var(--grn)}
+/* PROGRESSION RECOMMENDATIONS */
+.prog-section{margin-bottom:14px}
+.prog-title{font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.prog-hint{font-size:10px;color:var(--sub);margin-bottom:10px}
+.prog-card{background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--glass-border);animation:fadeUp .25s ease both}
+.prog-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.prog-icon{font-size:18px;flex-shrink:0}
+.prog-info{flex:1;min-width:0}
+.prog-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog-detail{font-size:9px;color:var(--sub);font-family:'JetBrains Mono';margin-top:1px}
+.prog-change{font-size:11px;font-weight:800;font-family:'JetBrains Mono';white-space:nowrap;flex-shrink:0}
+.prog-msg{font-size:10px;color:var(--sub);line-height:1.5}
+
+/* BODY GOAL GUIDANCE */
+.bg-section{background:linear-gradient(135deg,rgba(56,189,248,.04),rgba(6,182,212,.02));border:1px solid rgba(56,189,248,.12);border-radius:var(--rad);padding:14px;margin-bottom:12px}
+.bg-title{font-size:13px;font-weight:700;margin-bottom:8px}
+.bg-tip{font-size:11px;color:var(--sub);line-height:1.6;padding:8px 10px;border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--bdr)}
+.bg-tip:last-child{margin-bottom:0}
+.bg-tip.good{border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.04)}
+.bg-tip.warn{border-color:rgba(56,189,248,.2);background:rgba(56,189,248,.04)}
 
 </style>
 </head>
@@ -482,12 +502,12 @@ function savPlan(){if(S.user)SS("sp-plan-"+S.user.id,S.plan)}
 function tdk(){return new Date().toISOString().slice(0,10)}
 
 // ═══════ ONBOARDING (same as v3 with 1-6 days) ═══════
-let OB={step:0,goal:"",gender:"",areas:[],level:"intermediate",age:"",height:"",weight:"",days:4,name:"",avatar:"🦾",cardio:true};
+let OB={step:0,goal:"",gender:"",areas:[],level:"intermediate",age:"",height:"",weight:"",days:4,name:"",avatar:"🦾",cardio:true,gym:"any"};
 function init(){loadSt();setTimeout(()=>{document.getElementById("splash").classList.add("out");setTimeout(()=>{document.getElementById("splash").classList.add("hide");if(S.user&&S.plan.length)showApp();else showOB()},400)},600)}
-function showOB(){document.getElementById("app").classList.add("hide");document.getElementById("onboard").classList.remove("hide");loadU();OB={step:S.users.length?0:1,goal:"",gender:"",areas:[],level:"intermediate",age:"",height:"",weight:"",days:4,name:"",avatar:"🦾",cardio:true};rOB()}
+function showOB(){document.getElementById("app").classList.add("hide");document.getElementById("onboard").classList.remove("hide");loadU();OB={step:S.users.length?0:1,goal:"",gender:"",areas:[],level:"intermediate",age:"",height:"",weight:"",days:4,name:"",avatar:"🦾",cardio:true,gym:"any"};rOB()}
 function rOB(){const el=document.getElementById("onboard");const s=OB.step;
 let h=`<div class="ob-wrap"><div class="ob-logo"><div class="ic">⚡</div><h1>SHAWNSPOD<span> FITNESS</span></h1><p>Smart fitness coaching, personalised for you</p></div>`;
-if(s>0)h+=`<div class="ob-dots">${[1,2,3,4,5,6,7].map(i=>`<div class="ob-dot ${s>=i?'on':''}"></div>`).join("")}</div>`;
+if(s>0)h+=`<div class="ob-dots">${[1,2,3,4,5,6,7,8].map(i=>`<div class="ob-dot ${s>=i?'on':''}"></div>`).join("")}</div>`;
 if(s===0&&S.users.length){h+=`<div class="ob-q">Who's training today?</div>`;h+=S.users.map(u=>`<button class="usr-card" onclick="loginAs('${u.id}')"><span style="font-size:26px">${u.avatar}</span><div><div style="font-weight:700;font-size:14px">${esc(u.name)}</div><div style="font-size:10px;color:var(--sub)">${u.stats?.totalSessions||0} sessions · ${u.profile?.goal?GM[u.profile.goal]?.l:''}</div></div></button>`).join("");h+=`<div style="text-align:center;margin-top:14px"><button class="link-btn" onclick="OB.step=1;rOB()">+ Create new profile</button></div>`}
 else if(s===1){h+=`<div class="ob-q">What's your main goal?</div><div class="ob-hint">Shapes rep ranges, rest times, and calorie targets.</div><div class="ob-grid">${Object.entries(GM).map(([k,v])=>`<button class="ob-opt ${OB.goal===k?'on':''}" onclick="OB.goal='${k}';rOB()"><span class="emoji">${v.e}</span><span class="label">${v.l}</span><span class="desc">${v.d}</span></button>`).join("")}</div>`}
 else if(s===2){h+=`<div class="ob-q">What's your gender?</div><div class="ob-hint">Tailors workouts, calorie targets, and body composition estimates.</div><div class="ob-grid g2">${[{k:"male",e:"🙋‍♂️",l:"Male",d:"Male training profile"},{k:"female",e:"🙋‍♀️",l:"Female",d:"Female training profile"}].map(v=>`<button class="ob-opt ${OB.gender===v.k?'on':''}" onclick="OB.gender='${v.k}';${v.k==='female'?"if(!OB.areas.includes('glutes'))OB.areas.push('glutes');":""}rOB()"><span class="emoji">${v.e}</span><span class="label">${v.l}</span><span class="desc">${v.d}</span></button>`).join("")}</div>`}
@@ -495,13 +515,14 @@ else if(s===3){h+=`<div class="ob-q">What's your gym experience level?</div><div
 else if(s===4){h+=`<div class="ob-q">Focus areas?</div><div class="ob-hint">Select all that apply.${OB.gender==='female'?' Glutes auto-selected for you!':''}</div><div class="ob-grid g3">${Object.entries(AM).map(([k,v])=>`<button class="ob-opt ${OB.areas.includes(k)?'on':''}" onclick="togA('${k}')"><span class="emoji">${v.e}</span><span class="label">${v.l}</span></button>`).join("")}</div><button class="ob-opt ${OB.areas.length===7?'on':''}" onclick="OB.areas=['chest','back','shoulders','arms','legs','glutes','core'];rOB()" style="margin-top:8px"><span class="emoji">🏋️</span><span class="label">Full Body</span></button>`}
 else if(s===5){h+=`<div class="ob-q">Your body stats</div><div class="ob-hint">For calorie and body composition calculations.</div><div class="ob-inp-row"><div class="ob-inp-grp"><label>Age</label><input class="ob-inp" type="number" inputmode="numeric" placeholder="25" value="${OB.age}" oninput="OB.age=this.value;chkOB()"></div><div class="ob-inp-grp"><label>Height (cm)</label><input class="ob-inp" type="number" inputmode="numeric" placeholder="178" value="${OB.height}" oninput="OB.height=this.value;chkOB()"></div><div class="ob-inp-grp"><label>Weight (kg)</label><input class="ob-inp" type="number" inputmode="decimal" placeholder="70" value="${OB.weight}" oninput="OB.weight=this.value;chkOB()"></div></div>`}
 else if(s===6){h+=`<div class="ob-q">Training days per week?</div><div class="ob-grid g3">${[1,2,3,4,5,6].map(d=>`<button class="ob-opt ${OB.days===d?'on':''}" onclick="OB.days=${d};rOB()"><span class="emoji">${d<=2?'🌿':d<=4?'⚡':d===5?'🔥':'💀'}</span><span class="label">${d} Day${d>1?'s':''}</span><span class="desc">${{1:'Full body',2:'Upper/Lower',3:'PPL',4:'PPL+Upper',5:'PPL+extras',6:'PPL×2'}[d]}</span></button>`).join("")}</div><div style="margin-top:16px"><div class="ob-hint">Include cardio in your workout plan?</div><button class="ob-opt ${OB.cardio?'on':''}" onclick="OB.cardio=!OB.cardio;rOB()" style="margin-top:8px;max-width:200px"><span class="emoji">🏃</span><span class="label">${OB.cardio?'Cardio On':'Cardio Off'}</span></button></div>`}
-else if(s===7){h+=`<div class="ob-q">Avatar and name</div><div class="av-grid">${AVATARS.map(a=>`<button class="av-btn ${OB.avatar===a?'on':''}" onclick="OB.avatar='${a}';rOB()">${a}</button>`).join("")}</div><input class="ob-name" placeholder="Your name..." maxlength="20" value="${esc(OB.name)}" oninput="OB.name=this.value;chkOB()">`}
-if(s>=1){const cn=s===1?OB.goal:s===2?OB.gender:s===3?OB.level:s===4?OB.areas.length:s===5?(OB.age&&OB.height&&OB.weight):s===6?OB.days:s===7?OB.name.trim():false;
-h+=`<div class="ob-nav">${s>1?`<button class="ob-back" onclick="OB.step--;rOB()">← Back</button>`:''}${s<7?`<button class="ob-next" ${cn?'':'disabled'} onclick="OB.step++;rOB()">Next →</button>`:`<button class="ob-next" ${cn?'':'disabled'} onclick="createU()">Build My Plan →</button>`}</div>`;if(S.users.length&&s===1)h+=`<div style="text-align:center;margin-top:10px"><button class="link-btn" onclick="OB.step=0;rOB()">← Existing members</button></div>`}
+else if(s===7){h+=`<div class="ob-q">Where do you train?</div><div class="ob-hint">Your plan and equipment will be tailored to your gym's available machines.</div><div class="ob-grid">${[{k:"wf",e:"🏋️",l:"Wembley Fitness",d:"Equipment at Wembley Fitness"},{k:"tgg",e:"💪",l:"The Gym Group",d:"Equipment at The Gym Group"},{k:"any",e:"🌍",l:"Any / Both",d:"Show all exercises & equipment"}].map(v=>`<button class="ob-opt ${OB.gym===v.k?'on':''}" onclick="OB.gym='${v.k}';rOB()"><span class="emoji">${v.e}</span><span class="label">${v.l}</span><span class="desc">${v.d}</span></button>`).join("")}</div>`}
+else if(s===8){h+=`<div class="ob-q">Avatar and name</div><div class="av-grid">${AVATARS.map(a=>`<button class="av-btn ${OB.avatar===a?'on':''}" onclick="OB.avatar='${a}';rOB()">${a}</button>`).join("")}</div><input class="ob-name" placeholder="Your name..." maxlength="20" value="${esc(OB.name)}" oninput="OB.name=this.value;chkOB()">`}
+if(s>=1){const cn=s===1?OB.goal:s===2?OB.gender:s===3?OB.level:s===4?OB.areas.length:s===5?(OB.age&&OB.height&&OB.weight):s===6?OB.days:s===7?OB.gym:s===8?OB.name.trim():false;
+h+=`<div class="ob-nav">${s>1?`<button class="ob-back" onclick="OB.step--;rOB()">← Back</button>`:''}${s<8?`<button class="ob-next" ${cn?'':'disabled'} onclick="OB.step++;rOB()">Next →</button>`:`<button class="ob-next" ${cn?'':'disabled'} onclick="createU()">Build My Plan →</button>`}</div>`;if(S.users.length&&s===1)h+=`<div style="text-align:center;margin-top:10px"><button class="link-btn" onclick="OB.step=0;rOB()">← Existing members</button></div>`}
 h+=`</div>`;el.innerHTML=h}
 function togA(a){const i=OB.areas.indexOf(a);i>=0?OB.areas.splice(i,1):OB.areas.push(a);rOB()}
-function chkOB(){const s=OB.step;const cn=s===5?(OB.age&&OB.height&&OB.weight):s===7?OB.name.trim():false;const btn=document.querySelector('.ob-next');if(btn){btn.disabled=!cn;btn.style.background=cn?'var(--amb)':'rgba(255,255,255,.06)';btn.style.color=cn?'#000':'var(--sub)'}}
-function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const prof={goal:OB.goal,gender:OB.gender,areas:OB.areas,level:OB.level,age:+OB.age,height:+OB.height,weight:+OB.weight,days:OB.days,cardio:OB.cardio!==false};S.user={id,name:OB.name.trim(),avatar:OB.avatar,joined:new Date().toISOString(),profile:prof,stats:{totalSessions:0,totalSets:0,avgRating:0,lastSession:null}};S.logs={};S.week=1;S.plan=genPlan(prof);S.nutri=calcNutri(prof);S.flog={};S.customPlans=[];S.customMeals=[];SS("sp-me",S.user);savProf(S.user);SS("sp-plan-"+S.user.id,S.plan);SS("sp-nutri-"+S.user.id,S.nutri);SS("sp-flog-"+S.user.id,{});SS("sp-custom-"+S.user.id,[]);SS("sp-cmeals-"+S.user.id,[]);showApp();syncLeaderboard()}
+function chkOB(){const s=OB.step;const cn=s===5?(OB.age&&OB.height&&OB.weight):s===8?OB.name.trim():false;const btn=document.querySelector('.ob-next');if(btn){btn.disabled=!cn;btn.style.background=cn?'var(--amb)':'rgba(255,255,255,.06)';btn.style.color=cn?'#000':'var(--sub)'}}
+function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const prof={goal:OB.goal,gender:OB.gender,areas:OB.areas,level:OB.level,age:+OB.age,height:+OB.height,weight:+OB.weight,days:OB.days,cardio:OB.cardio!==false,gym:OB.gym||"any"};S.user={id,name:OB.name.trim(),avatar:OB.avatar,joined:new Date().toISOString(),profile:prof,stats:{totalSessions:0,totalSets:0,avgRating:0,lastSession:null}};S.logs={};S.week=1;S.plan=genPlan(prof);S.nutri=calcNutri(prof);S.flog={};S.customPlans=[];S.customMeals=[];SS("sp-me",S.user);savProf(S.user);SS("sp-plan-"+S.user.id,S.plan);SS("sp-nutri-"+S.user.id,S.nutri);SS("sp-flog-"+S.user.id,{});SS("sp-custom-"+S.user.id,[]);SS("sp-cmeals-"+S.user.id,[]);showApp();syncLeaderboard()}
 function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];SS("sp-me",u);syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
 function doLogout(){SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
@@ -535,7 +556,9 @@ const circ=2*Math.PI*34;
 const greetHour=new Date().getHours();const greet=greetHour<12?"Good morning":greetHour<17?"Good afternoon":"Good evening";
 el.innerHTML=`<div class="plan-hero"><div class="ph-greeting">${greet}</div><div class="ph-name">${esc(S.user.name)} <span>${S.user.avatar}</span></div><div class="ph-rings"><div class="ph-ring"><svg viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" stroke="var(--amb)" stroke-dasharray="${circ}" stroke-dashoffset="${circ-(circ*wkPct/100)}"/></svg><div class="ph-ring-label"><div class="ph-ring-val" style="color:var(--amb)">${wkDone}/${wkTotal}</div><div class="ph-ring-txt">Week</div></div></div><div class="ph-ring"><svg viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" stroke="var(--grn)" stroke-dasharray="${circ}" stroke-dashoffset="${circ-(circ*calPct/100)}"/></svg><div class="ph-ring-label"><div class="ph-ring-val" style="color:var(--grn)">${calPct}%</div><div class="ph-ring-txt">Calories</div></div></div></div><div class="ph-stats"><div class="ph-stat"><div class="ph-stat-val">${totalSessions}</div><div class="ph-stat-lbl">Total Sessions</div></div><div class="ph-stat"><div class="ph-stat-val">${streak}</div><div class="ph-stat-lbl">Wk Streak</div></div><div class="ph-stat"><div class="ph-stat-val">${GM[gk]?.e||""}</div><div class="ph-stat-lbl">${GM[gk]?.l||""}</div></div></div></div>`+
 `<div class="rec-card"><div class="rt">💡 ${recs.t}</div>${recs.tips.map(t=>`<div class="rb">• ${t}</div>`).join("")}</div>`+
-`<p class="intro">${S.user.profile?.gender==='female'?'♀ Female':'♂ Male'} · ${GM[gk]?.l||""} · ${S.plan.length} day${S.plan.length>1?'s':''}/week · ${({beginner:'🌱 Beginner',intermediate:'💪 Intermediate',veteran:'🏆 Veteran'})[S.user.profile?.level]||'💪 Intermediate'}</p>`+
+getBodyGoalGuidance()+
+renderProgressionCards()+
+`<p class="intro">${S.user.profile?.gender==='female'?'♀ Female':'♂ Male'} · ${GM[gk]?.l||""} · ${S.plan.length} day${S.plan.length>1?'s':''}/week · ${({beginner:'🌱 Beginner',intermediate:'💪 Intermediate',veteran:'🏆 Veteran'})[S.user.profile?.level]||'💪 Intermediate'}${S.user.profile?.gym&&S.user.profile.gym!=='any'?' · '+({wf:'Wembley Fitness',tgg:'The Gym Group'})[S.user.profile.gym]:''}</p>`+
 S.plan.map((d,i)=>{const dn=S.logs["w"+S.week+"-d"+i];return`<div class="card" id="dc${i}"><div class="day-head" onclick="togDay(${i})"><div><div class="day-t">${d.day}${d.custom?' 🔧':''}</div><div class="day-m">${d.sched} · ${d.sub} · ${d.dur}</div></div><div style="display:flex;align-items:center;gap:6px">${dn?'<div class="done-b">✓</div>':''}<span class="chv">▸</span></div></div><div class="day-body"><div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>`<div class="ex-r"><div class="ex-n">${j+1}</div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div><div class="ex-nt">${e.note||""}</div></div><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>`).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn ${dn?'out':'pri'}" onclick="startWO(${i})">${dn?'Redo':'Start Session →'}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button></div></div>`}).join("")+
 `<button class="s-btn blu" style="margin-top:4px" onclick="swTab('library')">📚 Browse Exercise Library</button>`}
 function togDay(i){document.getElementById("dc"+i).classList.toggle("open")}
@@ -548,18 +571,28 @@ function addExToDay(di,cat,idx){const e=EX_DB[cat][idx];const g=GM[S.user.profil
 function rAddExPicker(di){const lv=S.user.profile?.level||"intermediate";let pool=Object.entries(EX_DB).flatMap(([cat,exs])=>exs.map((e,i)=>({...e,cat,idx:i})));if(addExFilter!=="all")pool=pool.filter(e=>e.cat===addExFilter);return`<div class="add-ex-sec"><div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--amb)">+ Add Exercise to This Day</div><div class="pills" style="margin-bottom:8px"><button class="pill ${addExFilter==='all'?'on':''}" onclick="event.stopPropagation();addExFilter='all';rPlan();setTimeout(()=>document.getElementById('dc${di}')?.classList.add('open'),10)">All</button>${Object.entries(CAT_META).map(([k,v])=>`<button class="pill ${addExFilter===k?'on':''}" onclick="event.stopPropagation();addExFilter='${k}';rPlan();setTimeout(()=>document.getElementById('dc${di}')?.classList.add('open'),10)">${v.e} ${v.l}</button>`).join("")}</div><div class="add-ex-list">${pool.slice(0,20).map(e=>{const cm=CAT_META[e.cat]||{e:"🏋️",l:e.cat};const lvl=e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate";return`<div style="display:flex;align-items:center;gap:8px;padding:6px;margin-bottom:4px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid var(--bdr)"><span style="font-size:14px">${cm.e}</span><div style="flex:1"><div style="font-size:11px;font-weight:600">${e.n}</div><div style="font-size:9px;color:var(--sub)">${cm.l} · ${lvl} · ${e.t}</div></div><button class="ex-add-btn" onclick="event.stopPropagation();addExToDay(${di},'${e.cat}',${e.idx})">+ Add</button></div>`}).join("")}</div><button class="s-btn out" style="margin-top:8px" onclick="event.stopPropagation();closeAddEx()">Cancel</button></div>`}
 
 // ═══════ EXERCISE LIBRARY ═══════
+function exAvailableAtGym(exName,gym){
+if(!gym||gym==="any")return true;
+// Check if any equipment at the selected gym lists this exercise
+return EQUIP_DB.some(cat=>cat.items.some(item=>item.gyms.includes(gym)&&item.exercises.some(e=>exName.toLowerCase().includes(e.toLowerCase().split('(')[0].trim())||e.toLowerCase().includes(exName.toLowerCase().split('(')[0].trim()))));
+}
+let libGymFilter="";
 function rLib(){const el=document.getElementById("tab-library");
+const userGym=S.user?.profile?.gym||"any";
+if(!libGymFilter)libGymFilter=userGym==="any"?"all":userGym;
 const allExs=Object.entries(EX_DB).flatMap(([cat,exs])=>exs.map((e,i)=>({...e,cat,idx:i})));
 const filtered=allExs.filter(e=>{
   if(S.libFilter!=="all"&&e.cat!==S.libFilter)return false;
   if(S.libSearch&&!e.n.toLowerCase().includes(S.libSearch.toLowerCase()))return false;
+  if(libGymFilter!=="all"&&!exAvailableAtGym(e.n,libGymFilter))return false;
   return true;
 });
-el.innerHTML=`<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" placeholder="Search exercises..." value="${esc(S.libSearch)}" oninput="S.libSearch=this.value;rLib()"></div>`+
-`<div class="pills"><button class="pill ${S.libFilter==='all'?'on':''}" onclick="S.libFilter='all';rLib()">All (${allExs.length})</button>${Object.entries(CAT_META).map(([k,v])=>{const cnt=EX_DB[k]?.length||0;return`<button class="pill ${S.libFilter===k?'on':''}" onclick="S.libFilter='${k}';rLib()">${v.e} ${v.l} (${cnt})</button>`}).join("")}</div>`+
+el.innerHTML=`<div style="margin-bottom:10px"><div class="pills"><button class="pill ${libGymFilter==='all'?'on':''}" onclick="libGymFilter='all';rLib()" style="font-size:10px">🌍 All Gyms</button><button class="pill ${libGymFilter==='wf'?'on':''}" onclick="libGymFilter='wf';rLib()" style="font-size:10px">🏋️ Wembley</button><button class="pill ${libGymFilter==='tgg'?'on':''}" onclick="libGymFilter='tgg';rLib()" style="font-size:10px">💪 Gym Group</button></div></div>`+
+`<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" placeholder="Search exercises..." value="${esc(S.libSearch)}" oninput="S.libSearch=this.value;rLib()"></div>`+
+`<div class="pills"><button class="pill ${S.libFilter==='all'?'on':''}" onclick="S.libFilter='all';rLib()">All (${allExs.filter(e=>libGymFilter==='all'||exAvailableAtGym(e.n,libGymFilter)).length})</button>${Object.entries(CAT_META).map(([k,v])=>{const cnt=allExs.filter(e=>e.cat===k&&(libGymFilter==='all'||exAvailableAtGym(e.n,libGymFilter))).length;return`<button class="pill ${S.libFilter===k?'on':''}" onclick="S.libFilter='${k}';rLib()">${v.e} ${v.l} (${cnt})</button>`}).join("")}</div>`+
 `<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} exercise${filtered.length!==1?'s':''} found</div>`+
 filtered.map(e=>{const cm=CAT_META[e.cat]||{l:e.cat,e:"🏋️"};const typeClass=e.t==="compound"?"compound":e.t==="isolation"?"isolation":e.t;
-return`<div class="ex-card"><div class="ex-badge ${e.cat}">${cm.e}</div><div class="ex-info"><div class="ex-nm">${e.n}</div><div class="ex-meta">${cm.l} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div><span class="ex-type ${typeClass}">${e.t}</span><div style="font-size:9px;color:var(--sub);margin-top:3px">${e.nt}</div></div><button class="ex-add-btn" onclick="addLibEx('${e.cat}',${e.idx})">+ Add</button></div>`}).join("")+
+return`<div class="ex-card"><div class="ex-badge ${e.cat}">${cm.e}</div><div class="ex-info"><div class="ex-nm">${e.n}</div><div class="ex-meta">${cm.l} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div><span class="ex-type ${typeClass}">${e.t}</span>${(()=>{const gyms=[];EQUIP_DB.forEach(cat=>cat.items.forEach(item=>{if(item.exercises.some(ex=>e.n.toLowerCase().includes(ex.toLowerCase().split('(')[0].trim())||ex.toLowerCase().includes(e.n.toLowerCase().split('(')[0].trim()))){item.gyms.forEach(g=>{if(!gyms.includes(g))gyms.push(g)})}}));return gyms.length?`<div class="eq-avail" style="margin-top:3px">${gyms.includes('wf')?'<span class="eq-avail-tag wf">Wembley</span>':''}${gyms.includes('tgg')?'<span class="eq-avail-tag tgg">Gym Group</span>':''}</div>`:''})()}<div style="font-size:9px;color:var(--sub);margin-top:3px">${e.nt}</div></div><button class="ex-add-btn" onclick="addLibEx('${e.cat}',${e.idx})">+ Add</button></div>`}).join("")+
 (filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No exercises found</p><p class="empty-s">Try a different search or filter.</p></div>`:'')+
 `<div style="margin-top:16px"><div class="log-t">📋 Quick Custom Workout</div><p class="intro">Add exercises above to build a custom workout day, then save it.</p><div id="libCart"></div></div>`;
 rLibCart();}
@@ -646,18 +679,21 @@ const EQUIP_DB=[
 
 const EQ_CAT_META={cardio:{l:"Cardio Machines",e:"🏃",c:"#EC4899"},chest:{l:"Chest Equipment",e:"🫁",c:"#EF4444"},back:{l:"Back Equipment",e:"🔙",c:"#3B82F6"},shoulders:{l:"Shoulder Equipment",e:"🏔️",c:"#A855F7"},arms:{l:"Arm Equipment",e:"💪",c:"#38BDF8"},legs:{l:"Leg Equipment",e:"🦵",c:"#22C55E"},glutes:{l:"Glute Equipment",e:"🍑",c:"#F472B6"},core:{l:"Core Equipment",e:"🎯",c:"#06B6D4"},functional:{l:"Functional & HIIT",e:"⚡",c:"#F97316"}};
 
-let eqFilter="all";let eqSearch="";let eqExpanded={};
+let eqFilter="all";let eqSearch="";let eqExpanded={};let eqGymFilter="";
 function rEquip(){const el=document.getElementById("tab-equip");
+const userGym=S.user?.profile?.gym||"any";
+if(!eqGymFilter)eqGymFilter=userGym==="any"?"all":userGym;
 const allItems=EQUIP_DB.flatMap(c=>c.items.map(i=>({...i,cat:c.cat})));
-const filtered=allItems.filter(i=>{
+const gymFiltered=eqGymFilter==="all"?allItems:allItems.filter(i=>i.gyms.includes(eqGymFilter));
+const filtered=gymFiltered.filter(i=>{
 if(eqFilter!=="all"&&i.cat!==eqFilter)return false;
 if(eqSearch&&!i.n.toLowerCase().includes(eqSearch.toLowerCase())&&!i.desc.toLowerCase().includes(eqSearch.toLowerCase()))return false;
 return true;
 });
-const totalEquip=allItems.length;
-el.innerHTML=`<div class="eq-hero"><div class="eq-h-title">MY <span>GYM EQUIPMENT</span></div><div class="eq-h-sub">${totalEquip} pieces of equipment available at your gyms.<br>Tap any item to see exercises you can do with it.</div><div class="eq-gym-tags"><span class="eq-gym-tag">Wembley Fitness</span><span class="eq-gym-tag">The Gym Group</span></div></div>`+
+const totalEquip=gymFiltered.length;
+el.innerHTML=`<div class="eq-hero"><div class="eq-h-title">MY <span>GYM EQUIPMENT</span></div><div class="eq-h-sub">${totalEquip} pieces of equipment${eqGymFilter!=='all'?' at your selected gym':''}.<br>Tap any item to see exercises you can do with it.</div><div class="eq-gym-tags" style="margin-top:8px"><button class="pill ${eqGymFilter==='all'?'on':''}" onclick="eqGymFilter='all';rEquip()" style="font-size:10px">🌍 All Gyms</button><button class="pill ${eqGymFilter==='wf'?'on':''}" onclick="eqGymFilter='wf';rEquip()" style="font-size:10px">🏋️ Wembley Fitness</button><button class="pill ${eqGymFilter==='tgg'?'on':''}" onclick="eqGymFilter='tgg';rEquip()" style="font-size:10px">💪 The Gym Group</button></div></div>`+
 `<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" placeholder="Search equipment..." value="${esc(eqSearch)}" oninput="eqSearch=this.value;rEquip()"></div>`+
-`<div class="pills"><button class="pill ${eqFilter==='all'?'on':''}" onclick="eqFilter='all';rEquip()">All (${totalEquip})</button>${EQUIP_DB.map(c=>{const m=EQ_CAT_META[c.cat];return`<button class="pill ${eqFilter===c.cat?'on':''}" onclick="eqFilter='${c.cat}';rEquip()">${m.e} ${m.l.replace(' Equipment','').replace(' Machines','')} (${c.items.length})</button>`}).join("")}</div>`+
+`<div class="pills"><button class="pill ${eqFilter==='all'?'on':''}" onclick="eqFilter='all';rEquip()">All (${totalEquip})</button>${EQUIP_DB.map(c=>{const m=EQ_CAT_META[c.cat];const catCount=gymFiltered.filter(i=>i.cat===c.cat).length;if(!catCount)return'';return`<button class="pill ${eqFilter===c.cat?'on':''}" onclick="eqFilter='${c.cat}';rEquip()">${m.e} ${m.l.replace(' Equipment','').replace(' Machines','')} (${catCount})</button>`}).join("")}</div>`+
 `<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} item${filtered.length!==1?'s':''} found</div>`+
 (eqFilter==="all"?EQUIP_DB.map(c=>{const m=EQ_CAT_META[c.cat];const catItems=filtered.filter(i=>i.cat===c.cat);if(!catItems.length)return'';return`<div class="eq-cat-hdr" style="color:${m.c}">${m.e} ${m.l}</div>`+catItems.map(i=>eqCard(i)).join("")}).join(""):filtered.map(i=>eqCard(i)).join(""))+
 (filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No equipment found</p><p class="empty-s">Try a different search or filter.</p></div>`:'')
@@ -734,15 +770,120 @@ el.innerHTML=`<div class="log-t">📐 Body Composition Analysis</div><p class="i
 `<div class="bc-card"><div class="bc-title">📊 7-Day Average</div><div class="bc-row"><div class="bc-label">Avg daily intake</div><div class="bc-val">${bc.weekAvgCal||'—'} kcal</div></div><div class="bc-row"><div class="bc-label">Goal alignment</div><div class="bc-val" style="color:${S.user.profile.goal==='fat_loss'?(bc.weekAvgCal<S.nutri.cal?'var(--grn)':'var(--red)'):(bc.weekAvgCal>S.nutri.cal*0.9?'var(--grn)':'var(--amb)')}">${bc.weekAvgCal?((bc.weekAvgCal<S.nutri.cal?'Deficit':'Surplus')+' avg'):'No data'}</div></div></div>`;
 }
 
+// ═══════ WEIGHT PROGRESSION & SMART RECOMMENDATIONS ═══════
+function analyzeProgression(){
+const logs=S.logs;const plan=S.plan;const profile=S.user?.profile;if(!profile||!plan.length)return[];
+const goal=profile.goal||"general";const level=profile.level||"intermediate";
+// Collect per-exercise weight history across all weeks
+const exHistory={};
+Object.entries(logs).forEach(([key,log])=>{
+const wm=key.match(/^w(\d+)-d(\d+)$/);if(!wm)return;
+const week=+wm[1];const dayIdx=+wm[2];const day=plan[dayIdx];if(!day)return;
+Object.entries(log.sets).forEach(([ei,sets])=>{
+const ex=day.exs[+ei];if(!ex)return;const name=ex.n;
+if(!exHistory[name])exHistory[name]=[];
+const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);
+const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);
+const completedSets=sets.filter(s=>s.done).length;const totalSets=sets.length;
+if(weights.length)exHistory[name].push({week,date:log.date,avgWeight:+(weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1),maxWeight:Math.max(...weights),avgReps:reps.length?+(reps.reduce((a,b)=>a+b,0)/reps.length).toFixed(1):0,completedSets,totalSets})
+})});
+// Generate recommendations per exercise
+const recs=[];
+Object.entries(exHistory).forEach(([name,entries])=>{
+if(entries.length<2){recs.push({name,status:"tracking",msg:"Keep logging — need at least 2 sessions to track progress.",icon:"📊",color:"var(--sub)"});return}
+entries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+const recent=entries.slice(-2);const prev=recent[0];const curr=recent[1];
+const weeksBetween=Math.max(1,curr.week-prev.week);
+const weightChange=curr.avgWeight-prev.avgWeight;const repChange=curr.avgReps-prev.avgReps;
+const completionRate=curr.completedSets/curr.totalSets;
+// Determine increment based on exercise type and goal
+const isCompound=["Bench Press","Squat","Deadlift","Row","Press","Thrust","Lunge"].some(w=>name.includes(w));
+const increment=isCompound?2.5:1.25;
+const goalMult=goal==="muscle_gain"?1:goal==="fat_loss"?0.5:0.75;
+const recIncrement=+(increment*goalMult).toFixed(2);
+if(completionRate>=0.9&&curr.avgReps>=10&&weightChange>=0){
+recs.push({name,status:"increase",msg:`Great progress! Increase weight by ${recIncrement} kg next session. You've been hitting ${curr.avgReps} reps consistently at ${curr.avgWeight} kg.`,icon:"⬆️",color:"var(--grn)",change:`+${recIncrement} kg`,detail:`${prev.avgWeight} kg → ${curr.avgWeight} kg (${weightChange>=0?'+':''}${weightChange.toFixed(1)} kg over ${weeksBetween} wk${weeksBetween>1?'s':''})`})
+}else if(completionRate>=0.8&&weightChange>0){
+recs.push({name,status:"maintain",msg:`Good work! Maintain ${curr.avgWeight} kg and focus on hitting all reps cleanly before increasing.`,icon:"✊",color:"var(--amb)",change:"Maintain",detail:`${prev.avgWeight} kg → ${curr.avgWeight} kg · ${curr.avgReps} avg reps`})
+}else if(completionRate<0.6||curr.avgReps<6){
+const dropWeight=Math.max(0,+(curr.avgWeight-increment).toFixed(1));
+recs.push({name,status:"reduce",msg:`Form check needed. Consider dropping to ${dropWeight} kg and building back up with solid form. You completed only ${Math.round(completionRate*100)}% of sets.`,icon:"⬇️",color:"var(--red)",change:`Drop to ${dropWeight} kg`,detail:`Completed ${curr.completedSets}/${curr.totalSets} sets · ${curr.avgReps} avg reps`})
+}else if(weightChange===0&&repChange>0){
+recs.push({name,status:"increase",msg:`Rep progress! You're getting stronger at ${curr.avgWeight} kg (${prev.avgReps} → ${curr.avgReps} reps). Ready to add ${recIncrement} kg.`,icon:"⬆️",color:"var(--grn)",change:`+${recIncrement} kg`,detail:`Same weight, more reps: ${prev.avgReps} → ${curr.avgReps}`})
+}else if(weeksBetween>=2&&weightChange===0&&repChange<=0){
+recs.push({name,status:"plateau",msg:`Plateau detected at ${curr.avgWeight} kg for ${weeksBetween} weeks. Try: change rep tempo, add a drop set, or switch to a variation.`,icon:"⚠️",color:"var(--amb)",change:"Change stimulus",detail:`Stuck at ${curr.avgWeight} kg for ${weeksBetween} weeks`})
+}else{
+recs.push({name,status:"maintain",msg:`Keep training at ${curr.avgWeight} kg. Focus on form and hitting your rep targets.`,icon:"✊",color:"var(--amb)",change:"Maintain",detail:`${curr.avgWeight} kg · ${curr.avgReps} reps · ${Math.round(completionRate*100)}% completion`})
+}
+});
+return recs;
+}
+
+function getBodyGoalGuidance(){
+const p=S.user?.profile;if(!p)return"";
+const goal=p.goal||"general";const logs=S.logs;const totalSessions=Object.keys(logs).length;
+const weeks=S.week;const sessionsPerWeek=weeks?+(totalSessions/weeks).toFixed(1):0;
+const targetDays=p.days||4;const adherence=targetDays?Math.min(100,Math.round(sessionsPerWeek/targetDays*100)):0;
+// Analyze weight trends
+const recs=analyzeProgression();
+const increasing=recs.filter(r=>r.status==="increase").length;
+const plateaus=recs.filter(r=>r.status==="plateau").length;
+const reducing=recs.filter(r=>r.status==="reduce").length;
+const maintaining=recs.filter(r=>r.status==="maintain").length;
+let guidance=[];
+if(goal==="muscle_gain"){
+guidance.push(`<div class="bg-section"><div class="bg-title">💪 Muscle Gain Progress Report</div>`);
+if(totalSessions<4)guidance.push(`<div class="bg-tip">📅 Just getting started — focus on learning movements with good form. The first 2-3 weeks should be about technique, not max weights.</div>`);
+else if(increasing>plateaus&&adherence>=70)guidance.push(`<div class="bg-tip good">🔥 Excellent! You're progressing on ${increasing} exercise${increasing>1?'s':''}. Keep your surplus at 200-400 kcal and sleep 7-9 hours for max recovery.</div>`);
+else if(plateaus>1)guidance.push(`<div class="bg-tip warn">⚠️ Plateau on ${plateaus} exercise${plateaus>1?'s':''}. Try: deload for a week at 60% weight, increase calories by 100-200 kcal, or swap exercises for fresh stimulus.</div>`);
+if(adherence<60)guidance.push(`<div class="bg-tip warn">📊 Training ${sessionsPerWeek} days/week vs your target of ${targetDays}. Consistency is the #1 driver of muscle growth — try to hit at least ${Math.ceil(targetDays*0.8)} sessions/week.</div>`);
+else guidance.push(`<div class="bg-tip good">✅ Training adherence: ${adherence}% — great consistency!</div>`);
+guidance.push(`<div class="bg-tip">📏 Aim to gain 0.25-0.5 kg bodyweight per week. If the scale isn't moving after 2 weeks, add 150-200 extra kcal per day.</div></div>`);
+}else if(goal==="fat_loss"){
+guidance.push(`<div class="bg-section"><div class="bg-title">🔥 Fat Loss Progress Report</div>`);
+if(reducing>0)guidance.push(`<div class="bg-tip warn">⚠️ Strength dropping on ${reducing} exercise${reducing>1?'s':''}. In a deficit, maintaining weight on the bar is the goal. Don't cut calories too aggressively — max 500 kcal deficit.</div>`);
+else if(maintaining+increasing>0)guidance.push(`<div class="bg-tip good">✅ Great — maintaining or increasing strength while in a deficit. You're preserving muscle effectively!</div>`);
+if(adherence>=70)guidance.push(`<div class="bg-tip good">🏃 Good adherence (${adherence}%). Add 2-3 walks per week (20-30 min) for extra fat burning without affecting recovery.</div>`);
+else guidance.push(`<div class="bg-tip warn">📊 Training ${sessionsPerWeek}x/week. Try to maintain ${targetDays}x to preserve muscle while cutting.</div>`);
+guidance.push(`<div class="bg-tip">📏 Aim for 0.5-1% bodyweight loss per week (${(p.weight*0.005).toFixed(1)}-${(p.weight*0.01).toFixed(1)} kg/week). Faster = muscle loss risk.</div></div>`);
+}else if(goal==="recomp"){
+guidance.push(`<div class="bg-section"><div class="bg-title">⚡ Recomp Progress Report</div>`);
+if(increasing>0)guidance.push(`<div class="bg-tip good">💪 Progressing on ${increasing} exercise${increasing>1?'s':''}! In a recomp, strength gains = muscle being built while fat comes off slowly.</div>`);
+else if(totalSessions>6)guidance.push(`<div class="bg-tip warn">📊 No weight increases detected yet. Recomp is slow — be patient. Focus on getting stronger in the 8-12 rep range.</div>`);
+guidance.push(`<div class="bg-tip">📏 Recomp success is measured by how clothes fit and strength gains, not the scale. Take progress photos monthly. Expect visible changes in 3-6 months.</div></div>`);
+}else{
+guidance.push(`<div class="bg-section"><div class="bg-title">🎯 Fitness Progress Report</div>`);
+if(totalSessions>=4)guidance.push(`<div class="bg-tip good">✅ ${totalSessions} sessions completed. You're building a solid foundation!</div>`);
+guidance.push(`<div class="bg-tip">📏 Focus on progressive overload — small, consistent weight increases over time. Even 1.25 kg more per week compounds over months.</div></div>`);
+}
+return guidance.join("");
+}
+
+function renderProgressionCards(){
+const recs=analyzeProgression();
+if(!recs.length)return'';
+const sorted=[...recs].sort((a,b)=>{const order={increase:0,plateau:1,reduce:2,maintain:3,tracking:4};return(order[a.status]||5)-(order[b.status]||5)});
+return`<div class="prog-section"><div class="prog-title">📈 Weight Progression Recommendations</div><div class="prog-hint">Based on your logged workout data across weeks</div>${sorted.map(r=>`<div class="prog-card" style="border-left:3px solid ${r.color}"><div class="prog-top"><span class="prog-icon">${r.icon}</span><div class="prog-info"><div class="prog-name">${r.name}</div>${r.detail?`<div class="prog-detail">${r.detail}</div>`:''}</div>${r.change?`<div class="prog-change" style="color:${r.color}">${r.change}</div>`:''}</div><div class="prog-msg">${r.msg}</div></div>`).join("")}</div>`;
+}
+
 // ═══════ TRACKER ═══════
 function startWO(i){S.aw=i;S.rat=null;S.cs={};S.plan[i].exs.forEach((e,ei)=>{S.cs[ei]=Array.from({length:e.s},()=>({w:"",r:"",d:false}))});swTab("track")}
 function rTrack(){const el=document.getElementById("tab-track");if(S.aw===null){el.innerHTML=`<div class="empty"><div class="empty-i">📋</div><p class="empty-t">No active session</p><p class="empty-s">Go to Plan → Start Session.</p></div>`;return}
 const w=S.plan[S.aw];if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
 el.innerHTML=`<div style="margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:5px">${w.day}</div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
-w.exs.map((e,ei)=>`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div><div style="font-size:10px;color:var(--sub);margin-bottom:6px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div><div class="s-hdr"><span>Set</span><span>kg</span><span>Reps</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><input class="s-inp" type="number" inputmode="decimal" placeholder="0" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><input class="s-inp" type="number" inputmode="numeric" placeholder="0" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`).join("")+
+w.exs.map((e,ei)=>{
+// Find previous session data for this exercise
+const prevData=(()=>{const entries=[];Object.entries(S.logs).forEach(([k,log])=>{const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;const di=+wm[2];const day=S.plan[di];if(!day)return;Object.entries(log.sets).forEach(([sei,sets])=>{const ex=day.exs[+sei];if(ex&&ex.n===e.n){const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);if(weights.length)entries.push({date:log.date,avgW:+(weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1),maxW:Math.max(...weights),avgR:reps.length?+(reps.reduce((a,b)=>a+b,0)/reps.length).toFixed(0):0})}})});entries.sort((a,b)=>new Date(b.date)-new Date(a.date));return entries[0]||null})();
+const rec=analyzeProgression().find(r=>r.name===e.n);
+return`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div><div style="font-size:10px;color:var(--sub);margin-bottom:4px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div>${prevData?`<div style="font-size:9px;padding:4px 8px;background:rgba(56,189,248,.06);border-radius:6px;margin-bottom:6px;border:1px solid rgba(56,189,248,.1)"><span style="color:var(--amb);font-weight:600">Last session:</span> <span style="color:var(--sub);font-family:'JetBrains Mono'">${prevData.avgW} kg avg · ${prevData.avgR} reps</span>${rec&&rec.change?` <span style="color:${rec.color};font-weight:700;margin-left:4px">${rec.icon} ${rec.change}</span>`:''}</div>`:''}<div class="s-hdr"><span>Set</span><span>kg</span><span>Reps</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><input class="s-inp" type="number" inputmode="decimal" placeholder="${prevData?prevData.avgW:'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><input class="s-inp" type="number" inputmode="numeric" placeholder="0" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`}).join("")+
 `<div style="margin-top:16px;text-align:center"><div style="font-size:12px;font-weight:600;margin-bottom:8px">How did this session feel?</div><div style="display:flex;justify-content:center;gap:8px;margin-bottom:12px">${[1,2,3,4,5].map(r=>`<button class="r-btn ${S.rat===r?'on':''}" onclick="setRat(${r})">${EMO[r]}</button>`).join("")}</div><button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>Save & Finish Session</button></div>`}
 function updS(ei,si,f,v){S.cs[ei][si][f]=v}function togS(ei,si){S.cs[ei][si].d=!S.cs[ei][si].d;rTrack()}function setRat(r){S.rat=r;rTrack()}
-function finWO(){const key="w"+S.week+"-d"+S.aw;const mapped={};Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:s.w,reps:s.r,done:s.d}))});S.logs[key]={sets:mapped,rating:S.rat,date:new Date().toISOString(),dayIndex:S.aw};savLogs();S.aw=null;S.cs={};S.rat=null;updHdr();syncLeaderboard();swTab("plan")}
+function finWO(){const key="w"+S.week+"-d"+S.aw;const mapped={};Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:s.w,reps:s.r,done:s.d}))});S.logs[key]={sets:mapped,rating:S.rat,date:new Date().toISOString(),dayIndex:S.aw};savLogs();
+// Show post-workout progression summary
+const postRecs=analyzeProgression();const day=S.plan[S.aw];
+if(postRecs.length&&day){const dayExNames=day.exs.map(e=>e.n);const relevantRecs=postRecs.filter(r=>dayExNames.includes(r.name));
+if(relevantRecs.length){const msgs=relevantRecs.map(r=>`${r.icon} ${r.name}: ${r.change||r.status}`).join('\n');alert('Workout Complete! 💪\n\nWeight Recommendations:\n'+msgs+'\n\nCheck the Plan tab for full details.')}}
+S.aw=null;S.cs={};S.rat=null;updHdr();syncLeaderboard();swTab("plan")}
 
 // ═══════ SETTINGS TAB ═══════
 function rSet(){const el=document.getElementById("tab-settings");const p=S.user.profile||{};
@@ -752,7 +893,7 @@ el.innerHTML=`<div class="p-cards"><div class="p-c"><div class="p-cn">${ent.leng
 `<div class="log-t">Session Log</div>`+(ent.length===0?`<div class="empty"><p class="empty-t">No sessions yet</p></div>`:ent.slice(0,10).map(([key,log])=>{const d=S.plan[log.dayIndex];const cs=Object.values(log.sets).reduce((a,s)=>a+s.filter(x=>x.done).length,0);const ts=Object.values(log.sets).reduce((a,s)=>a+s.length,0);return`<div class="log-c"><div><div style="font-size:11px;font-weight:600">${d?d.day:key}</div><div style="font-size:9px;color:var(--sub)">${new Date(log.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</div></div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">${EMO[log.rating]||""}</span><span style="font-size:10px;color:var(--sub)">${cs}/${ts}</span></div></div>`}).join(""))+
 // Profile settings
 `<div class="log-t" style="margin-top:16px">⚙️ Profile</div><div class="card">`+
-[{l:"Gender",v:`${p.gender==='female'?'🙋‍♀️ Female':p.gender==='male'?'🙋‍♂️ Male':'Not set'}`,k:"gender"},{l:"Goal",v:`${GM[p.goal]?.e||""} ${GM[p.goal]?.l||"Not set"}`,k:"goal"},{l:"Gym Level",v:`${({beginner:'🌱 Beginner',intermediate:'💪 Intermediate',veteran:'🏆 Veteran'})[p.level]||'💪 Intermediate'}`,k:"level"},{l:"Body Stats",v:`Age ${p.age} · ${p.height}cm · ${p.weight}kg`,k:"body"},{l:"Training Days",v:`${p.days} day${p.days>1?'s':''}/week`,k:"days"},{l:"Cardio",v:`${p.cardio!==false?'🏃 Included':'Off'}`,k:"cardio"},{l:"Calorie Target",v:`${S.nutri.cal} kcal · ${S.nutri.protein}g P · ${S.nutri.carbs}g C · ${S.nutri.fat}g F`,k:"nutri"}].map(item=>`<div style="margin-bottom:12px"><div class="set-label">${item.l}</div><div style="font-size:11px;color:var(--sub);margin-bottom:6px">${item.v}</div>${item.k!=="nutri"?`<button class="set-edit" onclick="editProfField('${item.k}')">Change</button>`:''}</div>`).join("")+
+[{l:"Gender",v:`${p.gender==='female'?'🙋‍♀️ Female':p.gender==='male'?'🙋‍♂️ Male':'Not set'}`,k:"gender"},{l:"Goal",v:`${GM[p.goal]?.e||""} ${GM[p.goal]?.l||"Not set"}`,k:"goal"},{l:"Gym Level",v:`${({beginner:'🌱 Beginner',intermediate:'💪 Intermediate',veteran:'🏆 Veteran'})[p.level]||'💪 Intermediate'}`,k:"level"},{l:"Gym",v:`${({wf:'🏋️ Wembley Fitness',tgg:'💪 The Gym Group',any:'🌍 Any / Both'})[p.gym||'any']||'🌍 Any / Both'}`,k:"gym"},{l:"Body Stats",v:`Age ${p.age} · ${p.height}cm · ${p.weight}kg`,k:"body"},{l:"Training Days",v:`${p.days} day${p.days>1?'s':''}/week`,k:"days"},{l:"Cardio",v:`${p.cardio!==false?'🏃 Included':'Off'}`,k:"cardio"},{l:"Calorie Target",v:`${S.nutri.cal} kcal · ${S.nutri.protein}g P · ${S.nutri.carbs}g C · ${S.nutri.fat}g F`,k:"nutri"}].map(item=>`<div style="margin-bottom:12px"><div class="set-label">${item.l}</div><div style="font-size:11px;color:var(--sub);margin-bottom:6px">${item.v}</div>${item.k!=="nutri"?`<button class="set-edit" onclick="editProfField('${item.k}')">Change</button>`:''}</div>`).join("")+
 `<div style="margin-bottom:12px"><div class="set-label">Focus Areas</div><div style="font-size:10px;color:var(--sub);margin-bottom:8px">Tap to toggle. Plan regenerates automatically.</div><div class="ob-grid g3" style="margin-bottom:6px">${Object.entries(AM).map(([k,v])=>`<button class="ob-opt ${(p.areas||[]).includes(k)?'on':''}" style="padding:10px 6px" onclick="togArea('${k}')">${v.e}<span class="label" style="font-size:11px">${v.l}</span></button>`).join("")}</div><button class="ob-opt ${(p.areas||[]).length===7?'on':''}" style="padding:8px;font-size:11px" onclick="setAllAreas()"><span style="font-size:16px">🏋️</span> <span class="label" style="font-size:11px">Full Body</span></button></div>`+`</div>`+
 // Plan management
 `<div class="log-t">📋 Plan Management</div><button class="s-btn pri" onclick="if(confirm('Regenerate?')){S.plan=genPlan(S.user.profile);savPlan();updHdr();rSet()}">🔄 Regenerate Auto Plan</button><button class="s-btn grn" style="margin-top:6px" onclick="swTab('library')">📚 Build from Library</button>`+
@@ -793,6 +934,7 @@ function editProfField(k){
   else if(k==="body"){const age=prompt("Age:",p.age);const h=prompt("Height (cm):",p.height);const w=prompt("Weight (kg):",p.weight);if(age&&h&&w){p.age=+age;p.height=+h;p.weight=+w;updProfAndRegen()}}
   else if(k==="days"){const d=prompt("Days per week (1-6):",p.days);if(d&&+d>=1&&+d<=6){p.days=+d;updProfAndRegen()}}
   else if(k==="cardio"){p.cardio=p.cardio===false?true:false;updProfAndRegen()}
+  else if(k==="gym"){const choice=prompt("Select your gym:\n1. Wembley Fitness\n2. The Gym Group\n3. Any / Both","3");const map={1:"wf",2:"tgg",3:"any"};if(map[choice]){p.gym=map[choice];updProfAndRegen()}}
 }
 function togArea(a){const p=S.user.profile;const i=(p.areas||[]).indexOf(a);if(i>=0){p.areas.splice(i,1)}else{if(!p.areas)p.areas=[];p.areas.push(a)}if(p.areas.length>0)updProfAndRegen()}
 function setAllAreas(){const p=S.user.profile;p.areas=["chest","back","shoulders","arms","legs","glutes","core"];updProfAndRegen()}
