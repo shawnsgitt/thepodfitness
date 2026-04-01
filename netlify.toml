@@ -4,3 +4,20 @@
 
 [functions]
   node_bundler = "esbuild"
+
+# Ensure service worker is never cached by the browser so updates are always picked up
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Short cache for HTML so returning visitors get fresh content quickly
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
