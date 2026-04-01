@@ -318,6 +318,31 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .note-confirm-box p{font-size:14px;margin-bottom:16px;line-height:1.5}
 .note-confirm-box .note-actions{justify-content:center}
 
+/* EQUIPMENT */
+.eq-hero{background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(6,182,212,.06));border:1px solid rgba(56,189,248,.15);border-radius:var(--rad);padding:16px;margin-bottom:14px;text-align:center}
+.eq-hero .eq-h-title{font-family:'Archivo Black';font-size:16px;letter-spacing:.02em;margin-bottom:4px}.eq-hero .eq-h-title span{color:var(--amb)}
+.eq-hero .eq-h-sub{font-size:11px;color:var(--sub);line-height:1.5}
+.eq-gym-tags{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.eq-gym-tag{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:600;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--amb)}
+.eq-cat-hdr{font-size:13px;font-weight:700;margin:16px 0 8px;display:flex;align-items:center;gap:6px;color:var(--tx)}
+.eq-card{background:var(--glass);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--glass-border);animation:fadeUp .25s ease both}
+.eq-card .eq-top{display:flex;gap:10px;align-items:flex-start}
+.eq-card .eq-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.eq-card .eq-info{flex:1}
+.eq-card .eq-nm{font-size:13px;font-weight:600;margin-bottom:2px}
+.eq-card .eq-desc{font-size:10px;color:var(--sub);line-height:1.4;margin-bottom:4px}
+.eq-card .eq-muscles{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px}
+.eq-muscle{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;background:rgba(56,189,248,.1);color:var(--amb)}
+.eq-card .eq-exercises{margin-top:6px;padding-top:6px;border-top:1px solid var(--bdr)}
+.eq-card .eq-ex-title{font-size:10px;font-weight:700;color:var(--grn);margin-bottom:4px}
+.eq-ex-item{font-size:10px;color:var(--sub);padding:2px 0;display:flex;align-items:center;gap:4px}
+.eq-ex-item::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--amb);flex-shrink:0}
+.eq-toggle{background:none;border:none;color:var(--amb);font-size:10px;font-weight:600;padding:2px 0;cursor:pointer}
+.eq-avail{display:flex;gap:4px;margin-top:4px}
+.eq-avail-tag{padding:2px 6px;border-radius:4px;font-size:8px;font-weight:600}
+.eq-avail-tag.wf{background:rgba(168,85,247,.1);color:var(--pur)}
+.eq-avail-tag.tgg{background:rgba(34,197,94,.1);color:var(--grn)}
+
 </style>
 </head>
 <body>
@@ -326,7 +351,7 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 <div id="app" class="hide">
 <header class="header"><div class="hdr-top"><div><div class="brand">SHAWNSPOD<span> FITNESS</span></div><div class="usr-row" id="usrRow" onclick="doLogout()"></div></div><div class="wk-ctrl"><button onclick="chgWeek(-1)">◂</button><span class="wk-lbl" id="wkLbl">WK 1</span><button onclick="chgWeek(1)">▸</button></div></div><div class="stats-bar" id="statsBar"></div></header>
 <nav class="nav" id="nav"></nav>
-<div class="tab-c" id="tab-plan"></div><div class="tab-c" id="tab-library"></div><div class="tab-c" id="tab-food"></div><div class="tab-c" id="tab-track"></div><div class="tab-c" id="tab-leaders"></div><div class="tab-c" id="tab-notes"></div><div class="tab-c" id="tab-body"></div><div class="tab-c" id="tab-settings"></div>
+<div class="tab-c" id="tab-plan"></div><div class="tab-c" id="tab-library"></div><div class="tab-c" id="tab-food"></div><div class="tab-c" id="tab-track"></div><div class="tab-c" id="tab-equip"></div><div class="tab-c" id="tab-leaders"></div><div class="tab-c" id="tab-notes"></div><div class="tab-c" id="tab-body"></div><div class="tab-c" id="tab-settings"></div>
 </div>
 <script>
 // ═══════ EXPANDED EXERCISE DATABASE ═══════
@@ -481,10 +506,10 @@ function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("
 function doLogout(){SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
 // ═══════ APP SHELL ═══════
-const TABS=[{id:"plan",ico:"🏋️",lbl:"Plan"},{id:"library",ico:"📚",lbl:"Library"},{id:"food",ico:"🥗",lbl:"Food"},{id:"track",ico:"📋",lbl:"Track"},{id:"leaders",ico:"🏆",lbl:"Board"},{id:"notes",ico:"📝",lbl:"Notes"},{id:"body",ico:"📐",lbl:"Body"},{id:"settings",ico:"⚙️",lbl:"More"}];
+const TABS=[{id:"plan",ico:"🏋️",lbl:"Plan"},{id:"library",ico:"📚",lbl:"Library"},{id:"food",ico:"🥗",lbl:"Food"},{id:"track",ico:"📋",lbl:"Track"},{id:"equip",ico:"🔧",lbl:"Equip"},{id:"leaders",ico:"🏆",lbl:"Board"},{id:"notes",ico:"📝",lbl:"Notes"},{id:"body",ico:"📐",lbl:"Body"},{id:"settings",ico:"⚙️",lbl:"More"}];
 function showApp(){document.getElementById("onboard").classList.add("hide");document.getElementById("app").classList.remove("hide");rNav();updHdr();swTab("plan")}
 function rNav(){document.getElementById("nav").innerHTML=TABS.map(t=>`<button class="${S.tab===t.id?'on':''}" onclick="swTab('${t.id}')">${t.ico}<span class="nl">${t.lbl}</span></button>`).join("")}
-function swTab(id){S.tab=id;rNav();TABS.forEach(t=>{const e=document.getElementById("tab-"+t.id);e&&(id===t.id?e.classList.add("active"):e.classList.remove("active"))});({plan:rPlan,library:rLib,food:rFood,body:rBody,track:rTrack,leaders:rLeaders,notes:rNotes,settings:rSet})[id]?.()}
+function swTab(id){S.tab=id;rNav();TABS.forEach(t=>{const e=document.getElementById("tab-"+t.id);e&&(id===t.id?e.classList.add("active"):e.classList.remove("active"))});({plan:rPlan,library:rLib,food:rFood,body:rBody,track:rTrack,leaders:rLeaders,notes:rNotes,settings:rSet,equip:rEquip})[id]?.()}
 function updHdr(){document.getElementById("usrRow").innerHTML=`<span class="usr-av">${S.user.avatar}</span><span class="usr-nm">${esc(S.user.name)}</span><span class="sw-h">switch ▸</span>`;document.getElementById("wkLbl").textContent="WK "+S.week;const wk=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const dl=S.flog[tdk()]||[];const dc=dl.reduce((a,m)=>a+m.cal,0);const dp=dl.reduce((a,m)=>a+m.p,0);document.getElementById("statsBar").innerHTML=`<div><span class="st-v">${wk}</span><span class="st-l">/ ${S.plan.length} wk</span></div><div><span class="st-v">${dc}</span><span class="st-l">/ ${S.nutri.cal} kcal</span></div><div><span class="st-v">${dp}g</span><span class="st-l">/ ${S.nutri.protein}g pro</span></div>`}
 function chgWeek(d){S.week=Math.max(1,S.week+d);SS("sp-week-"+S.user.id,S.week);updHdr();if(S.tab==="plan")rPlan()}
 // ═══════ PLAN TAB ═══════
@@ -537,6 +562,97 @@ el.innerHTML=libCart.length?libCart.map((e,i)=>`<div style="display:flex;align-i
 `<input class="cw-day-name" id="libWOName" placeholder="Workout name..." style="margin-top:8px" value="${esc(libWONameVal)}" oninput="libWONameVal=this.value"><button class="s-btn grn" onclick="saveLibWO()">💾 Save as Custom Workout</button>`
 :`<div style="font-size:11px;color:var(--sub);text-align:center;padding:16px">Tap <b>+ Add</b> on exercises above to build a workout.</div>`;}
 function saveLibWO(){const nm=libWONameVal.trim();if(!libCart.length){alert("Add exercises first!");return}if(!nm){alert("Enter a workout name!");document.getElementById("libWOName")?.focus();return}const wo={day:nm,sub:nm,sched:"Flexible",dur:`~${Math.round(libCart.reduce((a,e)=>a+(e.s||1)*2,10))} min`,warm:"5 min cardio · dynamic stretches",exs:libCart.map(e=>({n:e.n,s:e.s,r:e.r,rest:e.rest,note:e.note})),cool:"Full stretch · 5 min",prog:"Progressive overload.",custom:true};S.customPlans.push(wo);savCustom();S.plan.push({...wo,day:`Day ${S.plan.length+1} — ${wo.day}`});savPlan();updHdr();libCart=[];libWONameVal="";rLib();alert("Workout saved and added to your plan!")}
+
+// ═══════ GYM EQUIPMENT DATABASE ═══════
+const EQUIP_DB=[
+{cat:"cardio",items:[
+{n:"Treadmill",ico:"🏃",desc:"Running and walking. Adjustable speed and incline for steady-state or interval training.",muscles:["Legs","Glutes","Core"],gyms:["wf","tgg"],exercises:["Treadmill Run (Steady State)","Incline Treadmill Walk","Sprint Intervals (Treadmill)"]},
+{n:"Elliptical Machine",ico:"🔄",desc:"Low-impact full-body cardio. Great for warming up or steady-state sessions.",muscles:["Legs","Arms","Core"],gyms:["wf","tgg"],exercises:["Steady State Cardio (20-30 min)"]},
+{n:"Rowing Machine",ico:"🚣",desc:"Full-body cardio and conditioning. Pull with your legs first, then back, then arms.",muscles:["Back","Legs","Arms","Core"],gyms:["wf","tgg"],exercises:["Rowing Machine","Rowing Intervals"]},
+{n:"Upright Bike",ico:"🚴",desc:"Stationary cycling for cardio. Adjustable resistance for easy or intense sessions.",muscles:["Legs","Glutes"],gyms:["wf","tgg"],exercises:["Stationary Bike (Moderate)"]},
+{n:"Stairmaster",ico:"🪜",desc:"Continuous stair climbing. Excellent for glutes, quads, and cardiovascular endurance.",muscles:["Legs","Glutes","Core"],gyms:["wf","tgg"],exercises:["Stairmaster"]},
+{n:"Assault Bike",ico:"💨",desc:"Arms and legs powered air bike. Brutal for HIIT conditioning.",muscles:["Full Body"],gyms:["wf","tgg"],exercises:["Assault Bike"]}
+]},
+{cat:"chest",items:[
+{n:"Flat Bench + Barbell",ico:"🏋️",desc:"The foundation for chest pressing. Use for flat barbell bench press and dumbbell work.",muscles:["Chest","Shoulders","Triceps"],gyms:["wf","tgg"],exercises:["Flat Barbell Bench Press","Dumbbell Flys","Close-Grip Bench Press"]},
+{n:"Incline Bench",ico:"📐",desc:"Angled bench for upper chest emphasis. Use with barbell or dumbbells.",muscles:["Upper Chest","Shoulders","Triceps"],gyms:["wf","tgg"],exercises:["Incline Dumbbell Press","Incline Barbell Bench"]},
+{n:"Decline Bench",ico:"⬇️",desc:"Decline angle targets lower chest fibres. Barbell or dumbbell.",muscles:["Lower Chest","Triceps"],gyms:["wf","tgg"],exercises:["Decline Bench Press"]},
+{n:"Chest Press Machine",ico:"🔧",desc:"Guided pressing motion. Great for beginners or finishing sets safely.",muscles:["Chest","Shoulders","Triceps"],gyms:["wf","tgg"],exercises:["Machine Chest Press"]},
+{n:"Cable Crossover Machine",ico:"🔗",desc:"Dual adjustable cables for flys, crossovers, and constant tension work.",muscles:["Chest","Shoulders"],gyms:["wf","tgg"],exercises:["Cable Flys (Mid)"]},
+{n:"Pec Deck / Fly Machine",ico:"🦋",desc:"Isolation machine for chest. Controlled fly motion with fixed path.",muscles:["Chest"],gyms:["wf","tgg"],exercises:["Dumbbell Flys (machine alternative)"]}
+]},
+{cat:"back",items:[
+{n:"Lat Pulldown Machine",ico:"⬇️",desc:"Cable pulldown for lats. Wide, neutral, or close grip variations.",muscles:["Lats","Biceps","Rear Delts"],gyms:["wf","tgg"],exercises:["Lat Pulldown (Wide)","Lat Pulldown (Neutral)"]},
+{n:"Seated Row Machine",ico:"🔙",desc:"Horizontal pulling for mid-back thickness. Keep chest up, squeeze blades.",muscles:["Mid Back","Lats","Biceps"],gyms:["wf","tgg"],exercises:["Seated Cable Row"]},
+{n:"T-Bar Row Station",ico:"🔺",desc:"Barbell in landmine for heavy rowing. Builds back thickness.",muscles:["Mid Back","Lats","Rear Delts"],gyms:["wf","tgg"],exercises:["T-Bar Row","Meadows Row"]},
+{n:"Cable Station (Low Row)",ico:"🔗",desc:"Adjustable cable for seated rows, face pulls, and various pulls.",muscles:["Back","Rear Delts","Biceps"],gyms:["wf","tgg"],exercises:["Seated Cable Row","Face Pulls"]},
+{n:"Pull-Up / Chin-Up Bar",ico:"💪",desc:"Bodyweight vertical pulling. Wide grip for lats, chin-up for biceps.",muscles:["Lats","Biceps","Core"],gyms:["wf","tgg"],exercises:["Hanging Leg Raises"]}
+]},
+{cat:"shoulders",items:[
+{n:"Shoulder Press Station",ico:"🏔️",desc:"Seated overhead press with barbell or dumbbells. Core stabilisation.",muscles:["Shoulders","Triceps","Upper Chest"],gyms:["wf","tgg"],exercises:["Seated Dumbbell OHP","Arnold Press","Barbell OHP (Standing)"]},
+{n:"Cable Machine (Lateral)",ico:"🔗",desc:"Single cable for lateral raises, front raises, and rear delt work.",muscles:["Side Delts","Rear Delts"],gyms:["wf","tgg"],exercises:["Cable Lateral Raises","Face Pulls"]},
+{n:"Reverse Pec Deck",ico:"🔄",desc:"Targets rear delts. Sit facing the pad and pull handles back.",muscles:["Rear Delts","Upper Back"],gyms:["wf","tgg"],exercises:["Reverse Pec Deck"]},
+{n:"Dumbbell Rack",ico:"🏋️",desc:"Full range of dumbbells for lateral raises, front raises, and pressing.",muscles:["Shoulders"],gyms:["wf","tgg"],exercises:["DB Lateral Raises","Lu Raises","Seated Dumbbell OHP"]}
+]},
+{cat:"arms",items:[
+{n:"EZ Curl Bar",ico:"〰️",desc:"Angled barbell for bicep curls and skull crushers. Easier on wrists.",muscles:["Biceps","Triceps"],gyms:["wf","tgg"],exercises:["Barbell Curl","EZ Bar Skull Crushers"]},
+{n:"Preacher Curl Machine",ico:"💪",desc:"Isolates biceps with arm pad support. No cheating possible.",muscles:["Biceps"],gyms:["wf","tgg"],exercises:["Preacher Curl (Machine)"]},
+{n:"Tricep Rope / Cable",ico:"🔗",desc:"Cable attachment for pushdowns, overhead extensions, and curls.",muscles:["Triceps","Biceps"],gyms:["wf","tgg"],exercises:["Tricep Rope Pushdowns","Overhead Tricep Extension","Hammer Curls"]},
+{n:"Arm Curl Machine",ico:"💪",desc:"Machine-guided bicep curl. Fixed path for strict isolation.",muscles:["Biceps"],gyms:["tgg"],exercises:["Barbell Curl (machine alternative)"]},
+{n:"Dip Station",ico:"⬇️",desc:"Parallel bars for bodyweight or weighted dips. Triceps and chest.",muscles:["Triceps","Chest","Shoulders"],gyms:["wf","tgg"],exercises:["Dips (Weighted)"]},
+{n:"Dumbbells",ico:"🏋️",desc:"Free weights for curls, hammer curls, kickbacks, and all arm work.",muscles:["Biceps","Triceps"],gyms:["wf","tgg"],exercises:["Incline DB Curl","Hammer Curls","Spider Curls"]}
+]},
+{cat:"legs",items:[
+{n:"Squat Rack / Power Rack",ico:"🏗️",desc:"The centrepiece for squats, front squats, and rack pulls. Safety bars included.",muscles:["Quads","Glutes","Hamstrings","Core"],gyms:["wf","tgg"],exercises:["Barbell Back Squat","Bulgarian Split Squats"]},
+{n:"Leg Press Machine",ico:"🦵",desc:"Compound leg pressing with back support. Adjust foot position for emphasis.",muscles:["Quads","Glutes","Hamstrings"],gyms:["wf","tgg"],exercises:["Leg Press"]},
+{n:"Hack Squat Machine",ico:"📐",desc:"Fixed-path squat variation. Excellent for quad isolation with less back strain.",muscles:["Quads","Glutes"],gyms:["wf","tgg"],exercises:["Hack Squat (Machine)"]},
+{n:"Leg Extension Machine",ico:"🦵",desc:"Isolates quads. Slow controlled reps, squeeze at top.",muscles:["Quads"],gyms:["wf","tgg"],exercises:["Leg Extension"]},
+{n:"Leg Curl Machine",ico:"🦵",desc:"Isolates hamstrings. Lying or seated. Hold peak contraction.",muscles:["Hamstrings"],gyms:["wf","tgg"],exercises:["Leg Curl (Machine)"]},
+{n:"Smith Machine",ico:"🔧",desc:"Guided barbell on rails. Good for squats, lunges, calf raises, and presses.",muscles:["Full Body"],gyms:["wf","tgg"],exercises:["Barbell Back Squat","Standing Calf Raises","Hip Thrust (BB)"]},
+{n:"Calf Raise Machine",ico:"🦶",desc:"Seated or standing calf raise. Full stretch at bottom, squeeze at top.",muscles:["Calves"],gyms:["wf","tgg"],exercises:["Standing Calf Raises","Seated Calf Raises"]}
+]},
+{cat:"glutes",items:[
+{n:"Hip Thrust Bench",ico:"🍑",desc:"Padded bench setup for barbell hip thrusts. The king of glute builders.",muscles:["Glutes","Hamstrings"],gyms:["wf","tgg"],exercises:["Barbell Hip Thrust","Glute Bridge (Weighted)"]},
+{n:"Hip Abductor Machine",ico:"🍑",desc:"Push knees outward against resistance. Targets outer glutes and hip stability.",muscles:["Glutes","Hip Abductors"],gyms:["wf","tgg"],exercises:["Cable Kickbacks (alternative)"]},
+{n:"Cable Machine (Low)",ico:"🔗",desc:"Ankle strap attachment for kickbacks and pull-throughs.",muscles:["Glutes","Hamstrings"],gyms:["wf","tgg"],exercises:["Cable Kickbacks"]},
+{n:"Step-Up Platform",ico:"📦",desc:"Adjustable height platform for weighted step-ups and box jumps.",muscles:["Glutes","Quads"],gyms:["wf","tgg"],exercises:["Step-Ups (Weighted)","Box Jumps"]}
+]},
+{cat:"core",items:[
+{n:"Ab Wheel",ico:"🎡",desc:"Roll out for deep core activation. Brace hard, don't let hips sag.",muscles:["Core","Shoulders"],gyms:["wf","tgg"],exercises:["Ab Wheel Rollout"]},
+{n:"Cable Station (Core)",ico:"🔗",desc:"Adjustable cable for woodchops, pallof press, and cable crunches.",muscles:["Core","Obliques"],gyms:["wf","tgg"],exercises:["Cable Woodchops","Pallof Press"]},
+{n:"Hanging Bar",ico:"🔩",desc:"Hang for leg raises, knee raises, and windshield wipers.",muscles:["Lower Abs","Hip Flexors"],gyms:["wf","tgg"],exercises:["Hanging Leg Raises"]},
+{n:"Exercise Balls",ico:"⚽",desc:"Stability ball for planks, crunches, and balance work. Low impact.",muscles:["Core","Stability"],gyms:["wf","tgg"],exercises:["Plank variations","Russian Twists"]}
+]},
+{cat:"functional",items:[
+{n:"Battle Ropes",ico:"🪢",desc:"Heavy ropes for alternating waves, slams, and spirals. Arms + core HIIT.",muscles:["Arms","Core","Shoulders"],gyms:["wf","tgg"],exercises:["Battle Ropes (Alternating)"]},
+{n:"Kettlebells",ico:"🔔",desc:"Cast iron weights for swings, cleans, goblet squats, and Turkish get-ups.",muscles:["Full Body"],gyms:["wf","tgg"],exercises:["Kettlebell Swings","Goblet Squat"]},
+{n:"Medicine Balls",ico:"🏀",desc:"Weighted balls for slams, throws, and rotational core work.",muscles:["Core","Full Body"],gyms:["wf","tgg"],exercises:["Medicine Ball Slams"]},
+{n:"Plyo Box",ico:"📦",desc:"Adjustable height box for box jumps, step-ups, and depth jumps.",muscles:["Legs","Power"],gyms:["wf","tgg"],exercises:["Box Jumps","Depth Jumps","Step-Ups (Weighted)"]},
+{n:"Sled",ico:"🛷",desc:"Push/pull sled for full-body conditioning. No eccentric = less soreness.",muscles:["Full Body"],gyms:["wf"],exercises:["Sled Push/Pull"]},
+{n:"Stretching Area + Mats",ico:"🧘",desc:"Designated area with mats for mobility, stretching, and bodyweight work.",muscles:["Flexibility"],gyms:["wf","tgg"],exercises:["World's Greatest Stretch","90/90 Hip Stretch","Pigeon Pose","Cat-Cow (Spinal)"]}
+]}
+];
+
+const EQ_CAT_META={cardio:{l:"Cardio Machines",e:"🏃",c:"#EC4899"},chest:{l:"Chest Equipment",e:"🫁",c:"#EF4444"},back:{l:"Back Equipment",e:"🔙",c:"#3B82F6"},shoulders:{l:"Shoulder Equipment",e:"🏔️",c:"#A855F7"},arms:{l:"Arm Equipment",e:"💪",c:"#38BDF8"},legs:{l:"Leg Equipment",e:"🦵",c:"#22C55E"},glutes:{l:"Glute Equipment",e:"🍑",c:"#F472B6"},core:{l:"Core Equipment",e:"🎯",c:"#06B6D4"},functional:{l:"Functional & HIIT",e:"⚡",c:"#F97316"}};
+
+let eqFilter="all";let eqSearch="";let eqExpanded={};
+function rEquip(){const el=document.getElementById("tab-equip");
+const allItems=EQUIP_DB.flatMap(c=>c.items.map(i=>({...i,cat:c.cat})));
+const filtered=allItems.filter(i=>{
+if(eqFilter!=="all"&&i.cat!==eqFilter)return false;
+if(eqSearch&&!i.n.toLowerCase().includes(eqSearch.toLowerCase())&&!i.desc.toLowerCase().includes(eqSearch.toLowerCase()))return false;
+return true;
+});
+const totalEquip=allItems.length;
+el.innerHTML=`<div class="eq-hero"><div class="eq-h-title">MY <span>GYM EQUIPMENT</span></div><div class="eq-h-sub">${totalEquip} pieces of equipment available at your gyms.<br>Tap any item to see exercises you can do with it.</div><div class="eq-gym-tags"><span class="eq-gym-tag">Wembley Fitness</span><span class="eq-gym-tag">The Gym Group</span></div></div>`+
+`<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" placeholder="Search equipment..." value="${esc(eqSearch)}" oninput="eqSearch=this.value;rEquip()"></div>`+
+`<div class="pills"><button class="pill ${eqFilter==='all'?'on':''}" onclick="eqFilter='all';rEquip()">All (${totalEquip})</button>${EQUIP_DB.map(c=>{const m=EQ_CAT_META[c.cat];return`<button class="pill ${eqFilter===c.cat?'on':''}" onclick="eqFilter='${c.cat}';rEquip()">${m.e} ${m.l.replace(' Equipment','').replace(' Machines','')} (${c.items.length})</button>`}).join("")}</div>`+
+`<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} item${filtered.length!==1?'s':''} found</div>`+
+(eqFilter==="all"?EQUIP_DB.map(c=>{const m=EQ_CAT_META[c.cat];const catItems=filtered.filter(i=>i.cat===c.cat);if(!catItems.length)return'';return`<div class="eq-cat-hdr" style="color:${m.c}">${m.e} ${m.l}</div>`+catItems.map(i=>eqCard(i)).join("")}).join(""):filtered.map(i=>eqCard(i)).join(""))+
+(filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No equipment found</p><p class="empty-s">Try a different search or filter.</p></div>`:'')
+}
+function eqCard(i){const m=EQ_CAT_META[i.cat]||{e:"🔧",c:"#888"};const key=i.n.replace(/\s/g,'_');const exp=eqExpanded[key];
+return`<div class="eq-card"><div class="eq-top"><div class="eq-ico" style="background:${m.c}22">${i.ico}</div><div class="eq-info"><div class="eq-nm">${i.n}</div><div class="eq-desc">${i.desc}</div><div class="eq-muscles">${i.muscles.map(m=>`<span class="eq-muscle">${m}</span>`).join("")}</div><div class="eq-avail">${i.gyms.includes('wf')?'<span class="eq-avail-tag wf">Wembley</span>':''}${i.gyms.includes('tgg')?'<span class="eq-avail-tag tgg">Gym Group</span>':''}</div></div></div>${i.exercises.length?`<button class="eq-toggle" onclick="eqExpanded['${key}']=!eqExpanded['${key}'];rEquip()">${exp?'▾ Hide':'▸ Show'} ${i.exercises.length} exercise${i.exercises.length>1?'s':''}</button>`:''}${exp?`<div class="eq-card eq-exercises" style="margin:6px 0 0;padding:8px;background:rgba(255,255,255,.02)"><div class="eq-ex-title">Exercises you can do:</div>${i.exercises.map(e=>`<div class="eq-ex-item">${e}</div>`).join("")}</div>`:''}</div>`}
 
 // ═══════ DIET CONSISTENCY ═══════
 function calcDietConsistency(){const target=S.nutri.cal;const tolerance=0.15;const flog=S.flog;const today=new Date();today.setHours(0,0,0,0);
