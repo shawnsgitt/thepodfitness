@@ -43,6 +43,12 @@ export default async (req) => {
 
     // Admin action: verify PIN and perform admin operations
     if (body.adminAction) {
+      // Allow self-delete without admin PIN
+      if (body.adminAction === "deleteUser" && body.pin === "__self__" && body.userId) {
+        await store.delete(`user/${body.userId}`);
+        return new Response(JSON.stringify({ success: true, deleted: body.userId }), { headers: corsHeaders });
+      }
+
       if (body.pin !== ADMIN_PIN) {
         return new Response(JSON.stringify({ error: "Invalid admin PIN" }), { status: 403, headers: corsHeaders });
       }

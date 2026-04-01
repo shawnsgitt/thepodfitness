@@ -505,6 +505,17 @@ function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(3
 function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];SS("sp-me",u);syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
 function doLogout(){SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
+async function deleteMyProfile(){if(!confirm('Delete your profile? This removes all local data and your leaderboard entry.'))return;
+const userId=S.user?.id;
+// Remove from leaderboard
+if(userId){try{await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({adminAction:"deleteUser",pin:"__self__",userId})})}catch(e){}}
+// Remove all local data
+const ids=LS('sp-user-ids')||[];
+['sp-prof-','sp-logs-','sp-week-','sp-plan-','sp-nutri-','sp-flog-','sp-custom-','sp-cmeals-','sp-notes-'].forEach(prefix=>{try{localStorage.removeItem(prefix+userId)}catch(e){}});
+SS('sp-user-ids',ids.filter(x=>x!==userId));
+localStorage.removeItem('sp-me');
+doLogout()}
+
 // ═══════ APP SHELL ═══════
 const TABS=[{id:"plan",ico:"🏋️",lbl:"Plan"},{id:"library",ico:"📚",lbl:"Library"},{id:"food",ico:"🥗",lbl:"Food"},{id:"track",ico:"📋",lbl:"Track"},{id:"equip",ico:"🔧",lbl:"Equip"},{id:"leaders",ico:"🏆",lbl:"Board"},{id:"notes",ico:"📝",lbl:"Notes"},{id:"body",ico:"📐",lbl:"Body"},{id:"settings",ico:"⚙️",lbl:"More"}];
 function showApp(){document.getElementById("onboard").classList.add("hide");document.getElementById("app").classList.remove("hide");rNav();updHdr();swTab("plan")}
@@ -747,7 +758,7 @@ el.innerHTML=`<div class="p-cards"><div class="p-c"><div class="p-cn">${ent.leng
 `<div class="log-t">📋 Plan Management</div><button class="s-btn pri" onclick="if(confirm('Regenerate?')){S.plan=genPlan(S.user.profile);savPlan();updHdr();rSet()}">🔄 Regenerate Auto Plan</button><button class="s-btn grn" style="margin-top:6px" onclick="swTab('library')">📚 Build from Library</button>`+
 (S.customPlans.length?`<div style="margin-top:10px">${S.customPlans.map((cp,ci)=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:10px"><div><div style="font-weight:700;font-size:12px">${cp.day} 🔧</div><div style="font-size:9px;color:var(--sub)">${cp.exs.length} exercises</div></div><div style="display:flex;gap:4px"><button class="set-edit" style="font-size:9px;padding:5px 8px" onclick="S.plan.push({...S.customPlans[${ci}],day:'Day '+(S.plan.length+1)+' — '+S.customPlans[${ci}].day});savPlan();updHdr();rSet()">Add</button><button style="padding:5px 8px;border-radius:6px;font-size:9px;font-weight:700;border:1px solid var(--red);background:transparent;color:var(--red)" onclick="S.customPlans.splice(${ci},1);savCustom();rSet()">✕</button></div></div>`).join("")}</div>`:'')+
 // Data management
-`<div class="log-t" style="margin-top:16px">🗑️ Data</div><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset logs?')){S.logs={};savLogs();updHdr();rSet()}">Reset Workout Logs</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset food?')){S.flog={};savFlog();updHdr();rSet()}">Reset Food Log</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset saved meals?')){S.customMeals=[];savCMeals();rSet()}">Reset Saved Meals</button><button class="rst-btn" style="margin:0" onclick="if(confirm('Delete profile?')){localStorage.removeItem('sp-me');const ids=LS('sp-user-ids')||[];SS('sp-user-ids',ids.filter(x=>x!==S.user.id));doLogout()}">Delete Profile</button>`+
+`<div class="log-t" style="margin-top:16px">🗑️ Data</div><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset logs?')){S.logs={};savLogs();updHdr();rSet()}">Reset Workout Logs</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset food?')){S.flog={};savFlog();updHdr();rSet()}">Reset Food Log</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset saved meals?')){S.customMeals=[];savCMeals();rSet()}">Reset Saved Meals</button><button class="rst-btn" style="margin:0" onclick="deleteMyProfile()">Delete Profile</button>`+
 // Admin panel
 `<div class="log-t" style="margin-top:16px">🔐 Admin</div><div id="adminArea"></div>`;rAdminArea()}
 
