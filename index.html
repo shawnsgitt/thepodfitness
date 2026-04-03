@@ -406,6 +406,7 @@ html.light input,html.light select,html.light textarea{color:#1A202C}
 .theme-toggle .toggle-thumb{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--amb);transition:transform .2s}
 html.light .theme-toggle .toggle-thumb{transform:translateX(20px)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div id="splash"><div class="ic">⚡</div><div class="nm">SHAWNSPOD<span> FITNESS</span></div></div>
@@ -535,7 +536,7 @@ function calcBodyComp(profile,nutri,flog){
 let S={user:null,week:1,tab:"plan",aw:null,cs:{},rat:null,restTimer:null,restPref:60,woStartTime:null,theme:"dark",bodyMeasurements:[],logs:{},users:[],plan:[],nutri:{cal:2500,protein:150,carbs:300,fat:70},flog:{},customPlans:[],customMeals:[],libFilter:"all",libSearch:""};
 const LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
 function loadSt(){S.user=LS("sp-me");if(S.user){S.logs=LS("sp-logs-"+S.user.id)||{};S.week=LS("sp-week-"+S.user.id)||1;S.plan=LS("sp-plan-"+S.user.id)||[];S.nutri=LS("sp-nutri-"+S.user.id)||S.nutri;S.flog=LS("sp-flog-"+S.user.id)||{};S.customPlans=LS("sp-custom-"+S.user.id)||[];S.customMeals=LS("sp-cmeals-"+S.user.id)||[];S.bodyMeasurements=LS("sp-meas-"+S.user.id)||[]}loadU()}
-loadTheme();processOfflineQueue();
+loadTheme();setTimeout(processOfflineQueue,0);
 function loadU(){const ids=LS("sp-user-ids")||[];S.users=ids.map(id=>LS("sp-prof-"+id)).filter(Boolean)}
 function savProf(u){SS("sp-prof-"+u.id,u);const ids=LS("sp-user-ids")||[];if(!ids.includes(u.id)){ids.push(u.id);SS("sp-user-ids",ids)}}
 function savLogs(){if(!S.user)return;SS("sp-logs-"+S.user.id,S.logs);const tot=Object.keys(S.logs).length;const sets=Object.values(S.logs).reduce((a,l)=>a+Object.values(l.sets).reduce((b,s)=>b+s.filter(x=>x.done).length,0),0);const rats=Object.values(S.logs).map(l=>l.rating).filter(Boolean);const avg=rats.length?+(rats.reduce((a,b)=>a+b,0)/rats.length).toFixed(1):0;S.user.stats={totalSessions:tot,totalSets:sets,avgRating:avg,lastSession:Object.values(S.logs).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]?.date||null};SS("sp-me",S.user);savProf(S.user);loadU()}
