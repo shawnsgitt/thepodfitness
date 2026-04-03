@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shawnspod-v6';
+const CACHE_NAME = 'shawnspod-v7';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
