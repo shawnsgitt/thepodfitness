@@ -544,7 +544,8 @@ function savFlog(){if(S.user)SS("sp-flog-"+S.user.id,S.flog)}
 function savCustom(){if(S.user)SS("sp-custom-"+S.user.id,S.customPlans)}
 function savCMeals(){if(S.user)SS("sp-cmeals-"+S.user.id,S.customMeals)}
 function savPlan(){if(S.user)SS("sp-plan-"+S.user.id,S.plan)}
-function tdk(){return new Date().toISOString().slice(0,10)}
+function localDS(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function tdk(){return localDS(new Date())}
 
 // ═══════ ONBOARDING (same as v3 with 1-6 days) ═══════
 let OB={step:0,goal:"",gender:"",areas:[],level:"intermediate",age:"",height:"",weight:"",days:4,name:"",avatar:"🦾",cardio:true,gym:"any"};
@@ -611,7 +612,7 @@ let addExDay=null;let addExFilter="all";
 function openAddEx(di){addExDay=di;addExFilter="all";rPlan();setTimeout(()=>{const el=document.getElementById("dc"+di);if(el){el.classList.add("open");el.scrollIntoView({behavior:"smooth",block:"center"})}},50)}
 function closeAddEx(){addExDay=null;rPlan()}
 function rmPlanEx(di,ei){if(S.plan[di].exs.length<=1){alert("Can't remove the last exercise. Remove the whole day instead.");return}S.plan[di].exs.splice(ei,1);savPlan();rPlan();setTimeout(()=>{document.getElementById("dc"+di)?.classList.add("open")},10)}
-function rmPlanDay(di){if(!confirm("Remove this day from your plan?"))return;S.plan.splice(di,1);S.logs.forEach(function(l){if(l.dayIndex===di)l.dayIndex=-1;else if(l.dayIndex>di)l.dayIndex--});S.plan.forEach((d,i)=>{const parts=d.day.split(' — ');if(parts.length>1)d.day=`Day ${i+1} — ${parts.slice(1).join(' — ')}`;else d.day=`Day ${i+1} — ${d.day}`});savPlan();updHdr();rPlan()}
+function rmPlanDay(di){if(!confirm("Remove this day from your plan?"))return;S.plan.splice(di,1);Object.values(S.logs).forEach(function(l){if(l.dayIndex===di)l.dayIndex=-1;else if(l.dayIndex>di)l.dayIndex--});S.plan.forEach((d,i)=>{const parts=d.day.split(' — ');if(parts.length>1)d.day=`Day ${i+1} — ${parts.slice(1).join(' — ')}`;else d.day=`Day ${i+1} — ${d.day}`});savPlan();updHdr();rPlan()}
 function addExToDay(di,cat,idx){const e=EX_DB[cat][idx];const g=GM[S.user.profile?.goal]||GM.general;const lv=S.user.profile?.level||"intermediate";const sAdj=lv==="beginner"?{s:2,r:"10-12",rest:"2-3 min"}:lv==="veteran"?{s:4,r:g.rm,rest:"90s"}:{s:3,r:g.rm,rest:g.rstm};S.plan[di].exs.push({n:e.n,s:e.t==="cardio"||e.t==="stretch"?1:sAdj.s,r:e.t==="cardio"?"20 min":e.t==="stretch"?"30s hold":e.t==="hiit"?"30s on/30s off":e.t==="plyo"?"8-10":sAdj.r,rest:e.t==="cardio"?"—":e.t==="stretch"?"—":sAdj.rest,note:e.nt});savPlan();addExDay=null;rPlan();setTimeout(()=>{document.getElementById("dc"+di)?.classList.add("open")},10)}
 function rAddExPicker(di){const lv=S.user.profile?.level||"intermediate";let pool=Object.entries(EX_DB).flatMap(([cat,exs])=>exs.map((e,i)=>({...e,cat,idx:i})));if(addExFilter!=="all")pool=pool.filter(e=>e.cat===addExFilter);return`<div class="add-ex-sec"><div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--amb)">+ Add Exercise to This Day</div><div class="pills" style="margin-bottom:8px"><button class="pill ${addExFilter==='all'?'on':''}" onclick="event.stopPropagation();addExFilter='all';rPlan();setTimeout(()=>document.getElementById('dc${di}')?.classList.add('open'),10)">All</button>${Object.entries(CAT_META).map(([k,v])=>`<button class="pill ${addExFilter===k?'on':''}" onclick="event.stopPropagation();addExFilter='${k}';rPlan();setTimeout(()=>document.getElementById('dc${di}')?.classList.add('open'),10)">${v.e} ${v.l}</button>`).join("")}</div><div class="add-ex-list">${pool.slice(0,20).map(e=>{const cm=CAT_META[e.cat]||{e:"🏋️",l:e.cat};const lvl=e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate";return`<div style="display:flex;align-items:center;gap:8px;padding:6px;margin-bottom:4px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid var(--bdr)"><span style="font-size:14px">${cm.e}</span><div style="flex:1"><div style="font-size:11px;font-weight:600">${e.n}</div><div style="font-size:9px;color:var(--sub)">${cm.l} · ${lvl} · ${e.t}</div></div><button class="ex-add-btn" onclick="event.stopPropagation();addExToDay(${di},'${e.cat}',${e.idx})">+ Add</button></div>`}).join("")}</div><button class="s-btn out" style="margin-top:8px" onclick="event.stopPropagation();closeAddEx()">Cancel</button></div>`}
 
@@ -768,13 +769,13 @@ return`<div class="eq-card"><div class="eq-top"><div class="eq-ico" style="backg
 function calcDietConsistency(){const target=S.nutri.cal;const tolerance=0.15;const flog=S.flog;const today=new Date();today.setHours(0,0,0,0);
 // Last 7 days
 const weekData=[];const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);const k=d.toISOString().slice(0,10);const items=flog[k]||[];const cal=items.reduce((a,m)=>a+m.cal,0);const isToday=i===0;weekData.push({key:k,name:dayNames[d.getDay()],cal,logged:items.length>0,isToday,withinTarget:cal>0&&cal<=target*(1+tolerance),over:cal>target*(1+tolerance)})}
+for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);const k=localDS(d);const items=flog[k]||[];const cal=items.reduce((a,m)=>a+m.cal,0);const isToday=i===0;weekData.push({key:k,name:dayNames[d.getDay()],cal,logged:items.length>0,isToday,withinTarget:cal>0&&cal<=target*(1+tolerance),over:cal>target*(1+tolerance)})}
 // Calculate streak (consecutive days within target calorie range)
-let streak=0;const allDates=Object.keys(flog).sort().reverse();
-for(const dk of allDates){const items=flog[dk]||[];const cal=items.reduce((a,m)=>a+m.cal,0);if(cal>0&&cal<=target*(1+tolerance)){streak++}else{break}}
+var streak=0;
+for(var si=0;si<365;si++){var sd=new Date();sd.setDate(sd.getDate()-si);var sk=localDS(sd);var sitems=flog[sk]||[];var scal=sitems.reduce(function(a,m){return a+(m.cal||0)},0);if(scal>0&&scal<=target*(1+tolerance))streak++;else if(si>0)break;}
 // Last 30 days stats
 let daysLogged=0,daysOnTarget=0,daysOver=0,totalCal=0;
-for(let i=0;i<30;i++){const d=new Date(today);d.setDate(d.getDate()-i);const k=d.toISOString().slice(0,10);const items=flog[k]||[];if(items.length>0){const cal=items.reduce((a,m)=>a+m.cal,0);daysLogged++;totalCal+=cal;if(cal<=target*(1+tolerance))daysOnTarget++;else daysOver++}}
+for(let i=0;i<30;i++){const d=new Date(today);d.setDate(d.getDate()-i);const k=localDS(d);const items=flog[k]||[];if(items.length>0){const cal=items.reduce((a,m)=>a+m.cal,0);daysLogged++;totalCal+=cal;if(cal<=target*(1+tolerance))daysOnTarget++;else daysOver++}}
 const avgCal=daysLogged?Math.round(totalCal/daysLogged):0;
 const consistencyPct=daysLogged?Math.round(daysOnTarget/daysLogged*100):0;
 return{weekData,streak,daysLogged,daysOnTarget,daysOver,avgCal,consistencyPct,target}}
@@ -816,7 +817,7 @@ function rFH(){const days=Object.keys(S.flog).filter(k=>k!==tdk()).sort().revers
 function ring(v,mx,col,lbl,u){const p=Math.min(100,Math.round(v/mx*100)),r=22,ci=2*Math.PI*r,off=ci-(p/100)*ci;return`<div class="mac-i"><svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3.5"/><circle cx="26" cy="26" r="${r}" fill="none" stroke="${col}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${ci}" stroke-dashoffset="${off}" transform="rotate(-90 26 26)" style="transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)"/><text x="26" y="24" text-anchor="middle" fill="white" font-size="10" font-weight="700" font-family="JetBrains Mono">${v}</text><text x="26" y="34" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="7">${u}</text></svg><div class="mac-l">${lbl}</div></div>`}
 
 // ═══════ BODY COMPOSITION TAB ═══════
-function rBody(){const el=document.getElementById("tab-body");const p=S.user.profile;if(!p){el.innerHTML=`<div class="empty"><p class="empty-t">No profile</p></div>`;return}
+function rBody(){Object.keys(_chartInstances).forEach(function(k){try{_chartInstances[k].destroy()}catch(e){}delete _chartInstances[k]});const el=document.getElementById("tab-body");const p=S.user.profile;if(!p){el.innerHTML=`<div class="empty"><p class="empty-t">No profile</p></div>`;return}
 const bc=calcBodyComp(p,S.nutri,S.flog);
 el.innerHTML=`<div class="log-t">📐 Body Composition Analysis</div><p class="intro">Based on your stats: ${p.gender==='female'?'♀':'♂'} ${p.age}yrs · ${p.height}cm · ${p.weight}kg</p>`+
 // BMI
@@ -990,7 +991,7 @@ function getSupersetGroup(ei){return supersetGroups.find(g=>g.includes(ei))}
 function isCircuitMode(){return supersetGroups.some(g=>g.length>=3)}
 
 // ═══════ TRACKER ═══════
-function startWO(i){S.aw=i;S.rat=null;S.cs={};S.plan[i].exs.forEach((e,ei)=>{S.cs[ei]=Array.from({length:e.s},()=>({w:"",r:"",d:false,rpe:""}))});var savedCs=LS('sp-cs-'+S.user.id);if(savedCs)S.cs=savedCs;swTab("track");startWOTimer()}
+function startWO(i){S.aw=i;S.rat=null;S.cs={};S.plan[i].exs.forEach((e,ei)=>{S.cs[ei]=Array.from({length:e.s},()=>({w:"",r:"",d:false,rpe:""}))});var savedSession=LS('sp-cs-'+S.user.id);if(savedSession&&savedSession.aw===i)S.cs=savedSession.cs;swTab("track");startWOTimer()}
 function rTrack(){const el=document.getElementById("tab-track");if(S.aw===null){el.innerHTML=`<div class="empty"><div class="empty-i">📋</div><p class="empty-t">No active session</p><p class="empty-s">Go to Plan → Start Session.</p></div>`;return}
 const w=S.plan[S.aw];if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
 el.innerHTML=`<div style="margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:5px">${w.day}</div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
@@ -1000,7 +1001,7 @@ const prevData=(()=>{const entries=[];Object.entries(S.logs).forEach(([k,log])=>
 const rec=analyzeProgression().find(r=>r.name===e.n);
 return`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div>${getSupersetGroup(ei)?'<span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--amb);color:#000;font-size:8px;font-weight:800">'+(getSupersetGroup(ei).length>=3?'CIRCUIT':'SUPERSET')+'</span>':''}<button onclick="toggleSuperset(${ei})" style="float:right;padding:1px 6px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg);color:var(--sub);font-size:8px;cursor:pointer">${getSupersetGroup(ei)?'Unlink':'Link SS'}</button><div style="font-size:10px;color:var(--sub);margin-bottom:4px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div>${prevData?`<div style="font-size:9px;padding:4px 8px;background:rgba(56,189,248,.06);border-radius:6px;margin-bottom:6px;border:1px solid rgba(56,189,248,.1)"><span style="color:var(--amb);font-weight:600">Last session:</span> <span style="color:var(--sub);font-family:'JetBrains Mono'">${prevData.avgW} kg avg · ${prevData.avgR} reps</span>${rec&&rec.change?` <span style="color:${rec.color};font-weight:700;margin-left:4px">${rec.icon} ${rec.change}</span>`:''}</div>`:''}<div class="s-hdr"><span>Set</span><span>kg</span><span>Reps</span><span>RPE</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><input class="s-inp" type="number" inputmode="decimal" placeholder="${prevData?prevData.avgW:'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><input class="s-inp" type="number" inputmode="numeric" placeholder="0" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><select class="rpe-sel" onchange="updS(${ei},${si},'rpe',this.value)"><option value="">-</option>${[6,6.5,7,7.5,8,8.5,9,9.5,10].map(v=>`<option value="${v}" ${s.rpe==v?'selected':''}>${v}</option>`).join('')}</select><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`}).join("")+
 `<div style="margin-top:16px;text-align:center"><div style="font-size:12px;font-weight:600;margin-bottom:8px">How did this session feel?</div>${(()=>{const alerts=getOverloadAlerts();const dayExNames=w.exs.map(e=>e.n);const relevant=alerts.filter(a=>dayExNames.includes(a.name));if(!relevant.length)return'';return'<div style="margin:8px 0">'+relevant.map(a=>'<div class="overload-alert">💪 <strong>'+a.name+'</strong>: Ready to increase! Try <strong>'+a.suggestedW+'kg</strong> (+2.5kg)</div>').join('')+'</div>'})()}<div style="display:flex;justify-content:center;gap:8px;margin-bottom:12px">${[1,2,3,4,5].map(r=>`<button class="r-btn ${S.rat===r?'on':''}" onclick="setRat(${r})">${EMO[r]}</button>`).join("")}</div><button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>Save & Finish Session</button></div>`}
-function updS(ei,si,f,v){S.cs[ei][si][f]=v;SS('sp-cs-'+S.user.id,S.cs)}function togS(ei,si){const wasUndone=!S.cs[ei][si].d;S.cs[ei][si].d=!S.cs[ei][si].d;if(wasUndone&&S.restPref>0)startRestTimer(S.restPref);SS('sp-cs-'+S.user.id,S.cs);rTrack()}function setRat(r){S.rat=r;rTrack()}
+function updS(ei,si,f,v){S.cs[ei][si][f]=v;SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw})}function togS(ei,si){const wasUndone=!S.cs[ei][si].d;S.cs[ei][si].d=!S.cs[ei][si].d;if(wasUndone&&S.restPref>0)startRestTimer(S.restPref);SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw});rTrack()}function setRat(r){S.rat=r;rTrack()}
 function finWO(){clearRestTimer();const key="w"+S.week+"-d"+S.aw;const mapped={};Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:s.w,reps:s.r,done:s.d,rpe:s.rpe||""}))});const woDuration=stopWOTimer();S.logs[key]={sets:mapped,rating:S.rat,duration:woDuration,date:new Date().toISOString(),dayIndex:S.aw};savLogs();
 // Show post-workout progression summary
 const postRecs=analyzeProgression();const day=S.plan[S.aw];
@@ -1223,7 +1224,7 @@ document.getElementById("notesAddBtn").classList.add("hide");document.getElement
 function confirmDeleteNote(id){
 const note=_notesCache.find(n=>n.id===id);if(!note)return;
 const overlay=document.createElement("div");overlay.className="note-confirm-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","Confirm deletion");
-overlay.innerHTML=`<div class="note-confirm-box"><p>Delete "<strong>${esc(note.title)}</strong>"?<br><span style="font-size:12px;color:var(--sub)">This cannot be undone.</span></p><div class="note-actions"><button class="note-cancel" onclick="this.closest('.note-confirm-overlay').remove()">Cancel</button><button class="note-save" style="background:var(--red)" onclick="execDeleteNote('${id}')">Delete</button></div></div>`;
+overlay.innerHTML=`<div class="note-confirm-box"><p>Delete "<strong>${esc(note.title)}</strong>"?<br><span style="font-size:12px;color:var(--sub)">This cannot be undone.</span></p><div class="note-actions"><button class="note-cancel" onclick="this.closest('.note-confirm-overlay').remove()">Cancel</button><button class="note-save" style="background:var(--red)" onclick="execDeleteNote('${id.replace(/'/g,"&#39;").replace(/\\/g,"\\\\")}')">Delete</button></div></div>`;
 document.body.appendChild(overlay);overlay.querySelector(".note-cancel").focus()}
 
 async function execDeleteNote(id){
@@ -1375,6 +1376,7 @@ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=
 // ═══════ BODY MEASUREMENTS ═══════
 function savBodyMeasurements(){if(!S.user)return;SS('sp-meas-'+S.user.id,S.bodyMeasurements)}
 function addMeasurement(data){
+if(!data.weight&&!data.bf&&!data.chest&&!data.waist&&!data.hips&&!data.bicep&&!data.thigh&&!data.calf)return;
 data.date=new Date().toISOString().split('T')[0];
 S.bodyMeasurements.push(data);
 savBodyMeasurements();
