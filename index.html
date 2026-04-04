@@ -535,7 +535,7 @@ function calcBodyComp(profile,nutri,flog){
 // ═══════ STATE ═══════
 let S={user:null,week:1,tab:"plan",aw:null,cs:{},rat:null,restTimer:null,restPref:60,woStartTime:null,theme:"dark",bodyMeasurements:[],logs:{},users:[],plan:[],nutri:{cal:2500,protein:150,carbs:300,fat:70},flog:{},customPlans:[],customMeals:[],libFilter:"all",libSearch:""};
 const LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
-function loadSt(){S.user=LS("sp-me");if(S.user){S.logs=LS("sp-logs-"+S.user.id)||{};S.week=LS("sp-week-"+S.user.id)||1;S.plan=LS("sp-plan-"+S.user.id)||[];S.nutri=LS("sp-nutri-"+S.user.id)||S.nutri;S.flog=LS("sp-flog-"+S.user.id)||{};S.customPlans=LS("sp-custom-"+S.user.id)||[];S.customMeals=LS("sp-cmeals-"+S.user.id)||[];S.bodyMeasurements=LS("sp-meas-"+S.user.id)||[]}loadTheme();loadU()}
+function loadSt(){S.user=LS("sp-me");if(S.user){S.logs=LS("sp-logs-"+S.user.id)||{};S.week=LS("sp-week-"+S.user.id)||1;S.plan=LS("sp-plan-"+S.user.id)||[];S.nutri=LS("sp-nutri-"+S.user.id)||S.nutri;S.flog=LS("sp-flog-"+S.user.id)||{};S.customPlans=LS("sp-custom-"+S.user.id)||[];S.customMeals=LS("sp-cmeals-"+S.user.id)||[];S.bodyMeasurements=LS("sp-meas-"+S.user.id)||[];S.restPref=LS('sp-rest-'+S.user.id)||60}loadTheme();loadU()}
 setTimeout(processOfflineQueue,0);
 function loadU(){const ids=LS("sp-user-ids")||[];S.users=ids.map(id=>LS("sp-prof-"+id)).filter(Boolean)}
 function savProf(u){SS("sp-prof-"+u.id,u);const ids=LS("sp-user-ids")||[];if(!ids.includes(u.id)){ids.push(u.id);SS("sp-user-ids",ids)}}
@@ -568,8 +568,8 @@ h+=`</div>`;el.innerHTML=h}
 function togA(a){const i=OB.areas.indexOf(a);i>=0?OB.areas.splice(i,1):OB.areas.push(a);rOB()}
 function chkOB(){const s=OB.step;const cn=s===5?(OB.age&&OB.height&&OB.weight):s===8?OB.name.trim():false;const btn=document.querySelector('.ob-next');if(btn){btn.disabled=!cn;btn.style.background=cn?'var(--amb)':'rgba(255,255,255,.06)';btn.style.color=cn?'#000':'var(--sub)'}}
 function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const prof={goal:OB.goal,gender:OB.gender,areas:OB.areas,level:OB.level,age:+OB.age,height:+OB.height,weight:+OB.weight,days:OB.days,cardio:OB.cardio!==false,gym:OB.gym||"any"};S.user={id,name:OB.name.trim(),avatar:OB.avatar,joined:new Date().toISOString(),profile:prof,stats:{totalSessions:0,totalSets:0,avgRating:0,lastSession:null}};S.logs={};S.week=1;S.plan=genPlan(prof);S.nutri=calcNutri(prof);S.flog={};S.customPlans=[];S.customMeals=[];SS("sp-me",S.user);savProf(S.user);SS("sp-plan-"+S.user.id,S.plan);SS("sp-nutri-"+S.user.id,S.nutri);SS("sp-flog-"+S.user.id,{});SS("sp-custom-"+S.user.id,[]);SS("sp-cmeals-"+S.user.id,[]);showApp();syncLeaderboard()}
-function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];S.bodyMeasurements=LS("sp-meas-"+id)||[];SS("sp-me",u);loadTheme();syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
-function doLogout(){SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
+function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;stopWOTimer();S.aw=null;S.cs={};S.rat=null;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];S.bodyMeasurements=LS("sp-meas-"+id)||[];S.restPref=LS('sp-rest-'+id)||60;SS("sp-me",u);loadTheme();syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
+function doLogout(){stopWOTimer();SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
 async function deleteMyProfile(){if(!confirm('Delete your profile? This removes all local data and your leaderboard entry.'))return;
 const userId=S.user?.id;
@@ -577,7 +577,7 @@ const userId=S.user?.id;
 if(userId){try{await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({adminAction:"deleteUser",pin:"__self__",userId})})}catch(e){}}
 // Remove all local data
 const ids=LS('sp-user-ids')||[];
-['sp-prof-','sp-logs-','sp-week-','sp-plan-','sp-nutri-','sp-flog-','sp-custom-','sp-cmeals-','sp-notes-'].forEach(prefix=>{try{localStorage.removeItem(prefix+userId)}catch(e){}});
+['sp-prof-','sp-logs-','sp-week-','sp-plan-','sp-nutri-','sp-flog-','sp-custom-','sp-cmeals-','sp-notes-','sp-meas-','sp-theme-','sp-cs-','sp-rest-'].forEach(prefix=>{try{localStorage.removeItem(prefix+userId)}catch(e){}});
 SS('sp-user-ids',ids.filter(x=>x!==userId));
 localStorage.removeItem('sp-me');
 doLogout()}
@@ -611,7 +611,7 @@ let addExDay=null;let addExFilter="all";
 function openAddEx(di){addExDay=di;addExFilter="all";rPlan();setTimeout(()=>{const el=document.getElementById("dc"+di);if(el){el.classList.add("open");el.scrollIntoView({behavior:"smooth",block:"center"})}},50)}
 function closeAddEx(){addExDay=null;rPlan()}
 function rmPlanEx(di,ei){if(S.plan[di].exs.length<=1){alert("Can't remove the last exercise. Remove the whole day instead.");return}S.plan[di].exs.splice(ei,1);savPlan();rPlan();setTimeout(()=>{document.getElementById("dc"+di)?.classList.add("open")},10)}
-function rmPlanDay(di){if(!confirm("Remove this day from your plan?"))return;S.plan.splice(di,1);S.plan.forEach((d,i)=>{const parts=d.day.split(' — ');if(parts.length>1)d.day=`Day ${i+1} — ${parts.slice(1).join(' — ')}`;else d.day=`Day ${i+1} — ${d.day}`});savPlan();updHdr();rPlan()}
+function rmPlanDay(di){if(!confirm("Remove this day from your plan?"))return;S.plan.splice(di,1);S.logs.forEach(function(l){if(l.dayIndex===di)l.dayIndex=-1;else if(l.dayIndex>di)l.dayIndex--});S.plan.forEach((d,i)=>{const parts=d.day.split(' — ');if(parts.length>1)d.day=`Day ${i+1} — ${parts.slice(1).join(' — ')}`;else d.day=`Day ${i+1} — ${d.day}`});savPlan();updHdr();rPlan()}
 function addExToDay(di,cat,idx){const e=EX_DB[cat][idx];const g=GM[S.user.profile?.goal]||GM.general;const lv=S.user.profile?.level||"intermediate";const sAdj=lv==="beginner"?{s:2,r:"10-12",rest:"2-3 min"}:lv==="veteran"?{s:4,r:g.rm,rest:"90s"}:{s:3,r:g.rm,rest:g.rstm};S.plan[di].exs.push({n:e.n,s:e.t==="cardio"||e.t==="stretch"?1:sAdj.s,r:e.t==="cardio"?"20 min":e.t==="stretch"?"30s hold":e.t==="hiit"?"30s on/30s off":e.t==="plyo"?"8-10":sAdj.r,rest:e.t==="cardio"?"—":e.t==="stretch"?"—":sAdj.rest,note:e.nt});savPlan();addExDay=null;rPlan();setTimeout(()=>{document.getElementById("dc"+di)?.classList.add("open")},10)}
 function rAddExPicker(di){const lv=S.user.profile?.level||"intermediate";let pool=Object.entries(EX_DB).flatMap(([cat,exs])=>exs.map((e,i)=>({...e,cat,idx:i})));if(addExFilter!=="all")pool=pool.filter(e=>e.cat===addExFilter);return`<div class="add-ex-sec"><div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--amb)">+ Add Exercise to This Day</div><div class="pills" style="margin-bottom:8px"><button class="pill ${addExFilter==='all'?'on':''}" onclick="event.stopPropagation();addExFilter='all';rPlan();setTimeout(()=>document.getElementById('dc${di}')?.classList.add('open'),10)">All</button>${Object.entries(CAT_META).map(([k,v])=>`<button class="pill ${addExFilter===k?'on':''}" onclick="event.stopPropagation();addExFilter='${k}';rPlan();setTimeout(()=>document.getElementById('dc${di}')?.classList.add('open'),10)">${v.e} ${v.l}</button>`).join("")}</div><div class="add-ex-list">${pool.slice(0,20).map(e=>{const cm=CAT_META[e.cat]||{e:"🏋️",l:e.cat};const lvl=e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate";return`<div style="display:flex;align-items:center;gap:8px;padding:6px;margin-bottom:4px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid var(--bdr)"><span style="font-size:14px">${cm.e}</span><div style="flex:1"><div style="font-size:11px;font-weight:600">${e.n}</div><div style="font-size:9px;color:var(--sub)">${cm.l} · ${lvl} · ${e.t}</div></div><button class="ex-add-btn" onclick="event.stopPropagation();addExToDay(${di},'${e.cat}',${e.idx})">+ Add</button></div>`}).join("")}</div><button class="s-btn out" style="margin-top:8px" onclick="event.stopPropagation();closeAddEx()">Cancel</button></div>`}
 
@@ -619,16 +619,17 @@ function rAddExPicker(di){const lv=S.user.profile?.level||"intermediate";let poo
 // ═══════ WEEKLY VOLUME DISPLAY ═══════
 function renderWeeklyVolume(){
 const el=document.getElementById('tab-plan');if(!el)return;
+var existingVol=document.getElementById('weeklyVolumeSection');if(existingVol)existingVol.remove();
 const vol=calcWeeklyVolume();
 const entries=Object.entries(vol).sort((a,b)=>b[1]-a[1]);
 if(!entries.length)return;
 const maxVol=Math.max(...entries.map(e=>e[1]));
-let html='<div class="log-t" style="margin-top:16px">📊 Weekly Volume by Muscle Group</div><div class="card" style="margin-top:8px">';
+let html='<div id="weeklyVolumeSection"><div class="log-t" style="margin-top:16px">📊 Weekly Volume by Muscle Group</div><div class="card" style="margin-top:8px">';
 entries.forEach(([group,sets])=>{
 const pct=Math.round(sets/maxVol*100);
 html+='<div class="vol-card"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;text-transform:capitalize">'+group+'</span><span style="font-size:11px;font-family:\'JetBrains Mono\';color:var(--amb)">'+sets+' sets</span></div><div class="vol-bar"><div class="vol-fill" style="width:'+pct+'%"></div></div></div>';
 });
-html+='</div>';
+html+='</div></div>';
 el.insertAdjacentHTML('beforeend',html);
 }
 
@@ -973,6 +974,7 @@ return`<div class="prog-section"><div class="prog-title">📈 Weight Progression
 // ═══════ SUPERSET & CIRCUIT SUPPORT ═══════
 let supersetGroups=[];
 function toggleSuperset(ei){
+if(ei===0&&!supersetGroups.some(function(g){return g.includes(ei)}))return;
 const existing=supersetGroups.findIndex(g=>g.includes(ei));
 if(existing>=0){
 supersetGroups[existing]=supersetGroups[existing].filter(i=>i!==ei);
@@ -1022,7 +1024,7 @@ el.innerHTML=`<div class="p-cards"><div class="p-c"><div class="p-cn">${ent.leng
 // Data management
 `<div class="log-t" style="margin-top:16px">🗑️ Data</div><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset logs?')){S.logs={};savLogs();updHdr();rSet()}">Reset Workout Logs</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset food?')){S.flog={};savFlog();updHdr();rSet()}">Reset Food Log</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset saved meals?')){S.customMeals=[];savCMeals();rSet()}">Reset Saved Meals</button><button class="rst-btn" style="margin:0" onclick="deleteMyProfile()">Delete Profile</button>`+
 // Admin panel
-`<div class="log-t" style="margin-top:16px">🎨 Appearance</div><div class="card" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px">Theme</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--sub)">${S.theme==='dark'?'🌙 Dark':'☀️ Light'}</span><button class="theme-toggle" onclick="toggleTheme();rSet()"><div class="toggle-thumb"></div></button></div></div></div><div class="log-t" style="margin-top:16px">📤 Data Export</div><div class="card" style="margin-top:8px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportWorkoutCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📋 Workout Log</button><button class="btn" onclick="exportMeasurementsCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📏 Measurements</button><button class="btn" onclick="exportNutritionCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">🍎 Nutrition</button></div></div><div class="log-t" style="margin-top:16px">⏱ Rest Timer</div><div class="card" style="margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--sub)">Default rest:</span><select style="padding:4px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);font-size:12px" onchange="S.restPref=+this.value">${[0,15,30,45,60,90,120,180].map(v=>`<option value="${v}" ${S.restPref===v?'selected':''}>${v===0?'Off':v<60?v+'s':v/60+'m'}</option>`).join('')}</select></div><div style="font-size:10px;color:var(--sub);margin-top:4px">Timer starts automatically after completing a set</div></div><div class="log-t" style="margin-top:16px">🔐 Admin</div><div id="adminArea"></div>`;rAdminArea()}
+`<div class="log-t" style="margin-top:16px">🎨 Appearance</div><div class="card" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px">Theme</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--sub)">${S.theme==='dark'?'🌙 Dark':'☀️ Light'}</span><button class="theme-toggle" onclick="toggleTheme();rSet()"><div class="toggle-thumb"></div></button></div></div></div><div class="log-t" style="margin-top:16px">📤 Data Export</div><div class="card" style="margin-top:8px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportWorkoutCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📋 Workout Log</button><button class="btn" onclick="exportMeasurementsCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📏 Measurements</button><button class="btn" onclick="exportNutritionCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">🍎 Nutrition</button></div></div><div class="log-t" style="margin-top:16px">⏱ Rest Timer</div><div class="card" style="margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--sub)">Default rest:</span><select style="padding:4px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);font-size:12px" onchange="S.restPref=+this.value;SS('sp-rest-'+S.user.id,S.restPref)">${[0,15,30,45,60,90,120,180].map(v=>`<option value="${v}" ${S.restPref===v?'selected':''}>${v===0?'Off':v<60?v+'s':v/60+'m'}</option>`).join('')}</select></div><div style="font-size:10px;color:var(--sub);margin-top:4px">Timer starts automatically after completing a set</div></div><div class="log-t" style="margin-top:16px">🔐 Admin</div><div id="adminArea"></div>`;rAdminArea()}
 
 let adminVerified=false;let adminPinVal="";
 function rAdminArea(){const el=document.getElementById("adminArea");if(!el)return;
@@ -1245,7 +1247,7 @@ if(S.restTimer.remaining<=0){clearRestTimer();try{new Audio('data:audio/wav;base
 renderRestTimer();
 }
 function clearRestTimer(){if(_rtInterval)clearInterval(_rtInterval);_rtInterval=null;S.restTimer=null;const el=document.getElementById('rest-timer-float');if(el)el.remove()}
-function adjustRestTimer(delta){if(S.restTimer){S.restTimer.remaining=Math.max(0,S.restTimer.remaining+delta);S.restTimer.total=Math.max(5,S.restTimer.total+delta);renderRestTimer()}}
+function adjustRestTimer(delta){if(S.restTimer){S.restTimer.remaining=Math.max(0,S.restTimer.remaining+delta);renderRestTimer()}}
 function renderRestTimer(){
 let el=document.getElementById('rest-timer-float');
 if(!S.restTimer){if(el)el.remove();return}
@@ -1257,7 +1259,7 @@ el.innerHTML=`<div style="font-size:10px;color:var(--sub);margin-bottom:4px">RES
 
 // ═══════ 1RM CALCULATOR ═══════
 function calc1RM(w,r){if(!w||!r||r<1)return 0;if(r===1)return w;return Math.round(w*(1+r/30)*10)/10}
-function get1RMTable(w,r){const orm=calc1RM(w,r);if(!orm)return[];return[1,2,3,4,5,6,8,10,12,15].map(rep=>({reps:rep,weight:rep===1?orm:Math.round(orm*(1-rep/30)*10)/10,pct:rep===1?100:Math.round((1-rep/30)*1000)/10}))}
+function get1RMTable(w,r){const orm=calc1RM(w,r);if(!orm)return[];return[1,2,3,4,5,6,8,10,12,15].map(rep=>({reps:rep,weight:rep===1?orm:Math.round(orm/(1+rep/30)*10)/10,pct:rep===1?100:Math.round(1/(1+rep/30)*1000)/10}))}
 function getBest1RM(exName){
 let best={w:0,r:0,orm:0};
 Object.values(S.logs).forEach(log=>{
@@ -1367,7 +1369,7 @@ downloadCSV('nutrition-log.csv',csv);
 }
 function downloadCSV(name,content){
 const blob=new Blob([content],{type:'text/csv'});
-const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
 }
 
 // ═══════ BODY MEASUREMENTS ═══════
@@ -1555,12 +1557,7 @@ function esc(s){const d=document.createElement("div");d.textContent=s;return d.i
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(reg=>{
     setInterval(()=>reg.update(),60000);
-    reg.addEventListener('updatefound',()=>{
-      const nw=reg.installing;
-      if(nw)nw.addEventListener('statechange',()=>{
-        if(nw.state==='activated')window.location.reload();
-      });
-    });
+    reg.addEventListener('updatefound',()=>{});
   }).catch(()=>{});
   let refreshing=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
