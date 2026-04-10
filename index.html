@@ -575,7 +575,7 @@ function doLogout(){stopWOTimer();SS("sp-me",null);S.user=null;S.aw=null;S.tab="
 async function deleteMyProfile(){if(!confirm('Delete your profile? This removes all local data and your leaderboard entry.'))return;
 const userId=S.user?.id;
 // Remove from leaderboard
-if(userId){try{await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({adminAction:"deleteUser",pin:"__self__",userId})})}catch(e){}}
+if(userId){try{const board=LS("sp-leaderboard")||[];SS("sp-leaderboard",board.filter(e=>e.userId!==userId))}catch(e){}}
 // Remove all local data
 const ids=LS('sp-user-ids')||[];
 ['sp-prof-','sp-logs-','sp-week-','sp-plan-','sp-nutri-','sp-flog-','sp-custom-','sp-cmeals-','sp-notes-','sp-meas-','sp-theme-','sp-cs-','sp-rest-'].forEach(prefix=>{try{localStorage.removeItem(prefix+userId)}catch(e){}});
@@ -1034,21 +1034,21 @@ else{loadAdminPanel()}}
 
 async function verifyAdmin(){const pin=document.getElementById("adminPin").value;const err=document.getElementById("adminErr");
 if(!pin){err.textContent="Enter a PIN";return}
-try{const res=await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({adminAction:"verify",pin})});const data=await res.json();
-if(data.verified){adminVerified=true;adminPinVal=pin;rAdminArea()}else{err.textContent="Invalid PIN"}}catch(e){err.textContent="Could not verify — check connection"}}
+try{const storedPin=LS("sp-admin-pin")||"1234";
+if(pin===storedPin){adminVerified=true;adminPinVal=pin;rAdminArea()}else{err.textContent="Invalid PIN"}}catch(e){err.textContent="Could not verify"}}
 
 async function loadAdminPanel(){const el=document.getElementById("adminArea");
 el.innerHTML=`<div class="admin-panel"><div class="ap-title">🔐 Admin Panel</div><div class="ap-hint">Manage all user profiles on the leaderboard</div><div id="adminUsers" style="margin-bottom:8px"><div style="text-align:center;padding:16px;font-size:10px;color:var(--sub)">Loading profiles...</div></div><button class="admin-del-all" onclick="adminDeleteAll()">🗑️ Delete All Profiles from Leaderboard</button><button class="admin-logout" onclick="adminVerified=false;rAdminArea()">Lock Admin</button></div>`;
-try{const res=await fetch("/api/leaderboard");const data=await res.json();const board=data.leaderboard||[];const cont=document.getElementById("adminUsers");
+try{const board=LS("sp-leaderboard")||[];const cont=document.getElementById("adminUsers");
 if(!board.length){cont.innerHTML=`<div style="text-align:center;padding:16px;font-size:11px;color:var(--sub)">No profiles on leaderboard</div>`;return}
 cont.innerHTML=board.map(u=>`<div class="admin-user"><div style="font-size:22px;flex-shrink:0">${u.avatar}</div><div class="au-info"><div class="au-name">${esc(u.name)}${u.userId===S.user?.id?' (You)':''}</div><div class="au-meta">${u.sessions} sessions · ${u.score} pts · Last: ${u.lastSession?new Date(u.lastSession).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'Never'}</div></div><button class="admin-del" onclick="adminDeleteUser('${u.userId}','${esc(u.name)}')">Delete</button></div>`).join("")}catch(e){document.getElementById("adminUsers").innerHTML=`<div style="color:var(--red);font-size:10px">Failed to load profiles</div>`}}
 
 async function adminDeleteUser(userId,name){if(!confirm('Delete '+name+' from leaderboard?'))return;
-try{await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({adminAction:"deleteUser",pin:adminPinVal,userId})});loadAdminPanel()}catch(e){alert("Failed to delete")}}
+try{const board=LS("sp-leaderboard")||[];SS("sp-leaderboard",board.filter(e=>e.userId!==userId));loadAdminPanel()}catch(e){alert("Failed to delete")}}
 
 async function adminDeleteAll(){if(!confirm('Delete ALL profiles from leaderboard? This cannot be undone.'))return;
 if(!confirm('Are you really sure? This deletes everyone.'))return;
-try{await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({adminAction:"deleteAll",pin:adminPinVal})});loadAdminPanel()}catch(e){alert("Failed to delete")}}
+try{SS("sp-leaderboard",[]);loadAdminPanel()}catch(e){alert("Failed to delete")}}
 
 function editProfField(k){
   const p=S.user.profile;
@@ -1097,10 +1097,14 @@ async function syncLeaderboard(){
 if(!S.user)return;
 const stats=calcUserStats(S.user.id);
 if(!stats)return;
-try{await fetch("/api/leaderboard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(stats)})}catch(e){console.log("Leaderboard sync offline")}}
+try{const board=LS("sp-leaderboard")||[];const idx=board.findIndex(e=>e.userId===stats.userId);
+stats.score=calcScoreLocal(stats);
+if(idx>=0){board[idx]=stats}else{board.push(stats)}
+board.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
+board.forEach((e,i)=>{e.rank=i+1});SS("sp-leaderboard",board)}catch(e){console.log("Leaderboard sync failed")}}
 
 async function fetchLeaderboard(){
-try{const res=await fetch("/api/leaderboard");if(!res.ok)throw new Error("fetch failed");const data=await res.json();return data.leaderboard||[]}catch(e){return null}}
+try{const board=LS("sp-leaderboard")||[];return board}catch(e){return null}}
 
 function renderBoard(board,el){
 const medals=["🥇","🥈","🥉"];
@@ -1177,8 +1181,7 @@ await loadNotes()}
 async function loadNotes(){
 if(_notesLoading)return;_notesLoading=true;
 try{
-const r=await fetch("/api/notes/");if(!r.ok)throw new Error("Failed to load");
-const data=await r.json();_notesCache=data.notes||[];renderNotesList()
+const key="sp-notes-"+(S.user?.id||"unknown");_notesCache=LS(key)||[];renderNotesList()
 }catch(e){document.getElementById("notesList").innerHTML=`<div class="empty"><div class="empty-i">⚠️</div><p class="empty-t" style="font-size:12px;color:var(--sub)">Could not load notes</p></div>`;
 document.getElementById("notesStatus").innerHTML=notesStatusHtml("Failed to load notes. Please try again.","error")}
 finally{_notesLoading=false}}
@@ -1209,9 +1212,11 @@ const moodKey=MOODS.find(m=>m.label.toLowerCase()===mood)?.key||"good";
 const statusEl=document.getElementById("notesStatus");
 if(!title){statusEl.innerHTML=notesStatusHtml("Title is required.","error");return}
 try{
-let r;if(id){r=await fetch("/api/notes/"+id,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,body,mood:moodKey})})}
-else{r=await fetch("/api/notes/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId:S.user.id,title,body,mood:moodKey})})}
-if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.error||"Failed")}
+const key="sp-notes-"+(S.user?.id||"unknown");const notes=LS(key)||[];
+if(id){const idx=notes.findIndex(n=>n.id===id);if(idx===-1)throw new Error("Note not found");
+notes[idx].title=title;notes[idx].body=body;notes[idx].mood=moodKey;notes[idx].updatedAt=new Date().toISOString()}
+else{notes.unshift({id:String(Date.now()),userId:S.user.id,title,body,mood:moodKey,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()})}
+SS(key,notes);
 statusEl.innerHTML=notesStatusHtml(id?"Note updated!":"Note added!","success");
 cancelNoteEdit();await loadNotes();setTimeout(()=>{if(statusEl)statusEl.innerHTML=""},3000)}
 catch(err){statusEl.innerHTML=notesStatusHtml(err.message||"Something went wrong.","error")}}
@@ -1230,7 +1235,9 @@ document.body.appendChild(overlay);overlay.querySelector(".note-cancel").focus()
 async function execDeleteNote(id){
 document.querySelector(".note-confirm-overlay")?.remove();
 const statusEl=document.getElementById("notesStatus");
-try{const r=await fetch("/api/notes/"+id,{method:"DELETE"});if(!r.ok)throw new Error("Failed");
+try{const key="sp-notes-"+(S.user?.id||"unknown");const notes=LS(key)||[];
+const filtered=notes.filter(n=>n.id!==id);if(filtered.length===notes.length)throw new Error("Not found");
+SS(key,filtered);
 statusEl.innerHTML=notesStatusHtml("Note deleted.","success");await loadNotes();setTimeout(()=>{if(statusEl)statusEl.innerHTML=""},3000)}
 catch(err){statusEl.innerHTML=notesStatusHtml("Failed to delete note.","error")}}
 
