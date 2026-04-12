@@ -73,8 +73,6 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .card:nth-child(2){animation-delay:.03s}.card:nth-child(3){animation-delay:.06s}.card:nth-child(4){animation-delay:.09s}
 
 /* RECOMMENDATION */
-.rec-card{background:var(--card);border:1px solid rgba(52,211,153,.15);border-radius:var(--rad);padding:14px;margin-bottom:12px}
-.rec-card .rt{font-size:12px;font-weight:700;color:var(--grn);margin-bottom:6px}.rec-card .rb{font-size:11px;color:var(--sub);line-height:1.5;margin-bottom:3px}
 
 /* ANIMATED PROGRESS BAR */
 .apb{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative}
@@ -215,24 +213,62 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .admin-del-all{width:100%;padding:10px;border-radius:100px;font-size:11px;font-weight:700;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:var(--red);margin-top:8px}
 .admin-logout{width:100%;padding:8px;border-radius:100px;font-size:10px;font-weight:600;border:1px solid var(--card-border);background:transparent;color:var(--sub);margin-top:6px}
 
-/* PLAN HERO */
-.plan-hero{background:var(--card);border:1px solid var(--card-border);border-radius:var(--rad);padding:24px 20px;margin-bottom:16px;position:relative;overflow:hidden}
-.plan-hero::before{content:'';position:absolute;top:-60%;right:-40%;width:180%;height:180%;background:radial-gradient(circle at 70% 30%,rgba(191,255,0,0.04),transparent 50%);pointer-events:none}
-.ph-greeting{font-size:13px;color:var(--sub);margin-bottom:4px}
-.ph-name{font-family:'Archivo Black';font-size:28px;letter-spacing:.01em;margin-bottom:18px;line-height:1.2}
-.ph-name span{color:var(--amb)}
-.ph-rings{display:flex;justify-content:center;gap:24px;margin-bottom:16px}
-.ph-ring{position:relative;width:80px;height:80px}
-.ph-ring svg{width:80px;height:80px;transform:rotate(-90deg)}
-.ph-ring .ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:6}
-.ph-ring .ring-fill{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)}
-.ph-ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ph-ring-val{font-family:'JetBrains Mono';font-size:16px;font-weight:700}
-.ph-ring-txt{font-size:8px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em}
-.ph-stats{display:flex;gap:8px}
-.ph-stat{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:var(--rads);padding:10px;text-align:center}
-.ph-stat-val{font-family:'JetBrains Mono';font-size:14px;font-weight:700;color:var(--amb)}
-.ph-stat-lbl{font-size:8px;color:var(--sub);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+/* Dashboard Greeting */
+.dash-greeting{padding:24px 4px 0;margin-bottom:20px}
+.dash-hello{font-size:14px;color:var(--sub);margin-bottom:2px}
+.dash-name{font-family:'Archivo Black';font-size:32px;letter-spacing:-.01em;line-height:1.1}
+
+/* Weekly Calendar Strip */
+.cal-strip{display:flex;gap:4px;margin-bottom:20px;padding:0 4px}
+.cal-day{flex:1;text-align:center;padding:10px 4px;border-radius:12px;background:var(--card);border:1px solid var(--card-border);cursor:default;transition:all .2s}
+.cal-day-name{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.cal-day-num{font-size:14px;font-weight:700}
+.cal-day.today{background:var(--amb);color:#0D0D0D;border-color:var(--amb)}
+.cal-day.today .cal-day-name{color:rgba(0,0,0,.5)}
+.cal-day.done:not(.today){border-color:var(--grn)}
+.cal-dot{width:4px;height:4px;border-radius:50%;background:var(--grn);margin:4px auto 0}
+.cal-day.today .cal-dot{background:#0D0D0D}
+
+/* Progress Summary */
+.progress-bar-section{display:flex;gap:8px;margin-bottom:24px;padding:0 4px}
+.prog-item{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:12px 8px;text-align:center}
+.prog-ring{position:relative;width:40px;height:40px;margin:0 auto 6px}
+.prog-ring svg{width:40px;height:40px}
+.prog-ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.prog-num{font-size:18px;font-weight:800;color:var(--amb);margin-bottom:4px}
+.prog-label{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em}
+
+/* Section Titles */
+.sec-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--sub);padding:0 4px;margin-bottom:10px}
+
+/* Week Navigation */
+.wk-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 4px}
+.wk-nav button{background:none;border:1px solid var(--card-border);color:var(--tx);padding:6px 14px;border-radius:100px;font-size:11px;font-weight:600}
+.wk-nav span{font-size:12px;font-weight:700;color:var(--sub)}
+
+/* TODAY'S WORKOUT HERO CARD */
+.hero-card{border-radius:20px;overflow:hidden;margin-bottom:16px;cursor:pointer;position:relative;min-height:200px}
+.hero-overlay{padding:28px 24px;display:flex;flex-direction:column;justify-content:flex-end;min-height:200px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,0.7) 100%)}
+.hero-badge{display:inline-block;background:var(--amb);color:#0D0D0D;font-size:9px;font-weight:800;letter-spacing:.1em;padding:4px 10px;border-radius:100px;margin-bottom:12px;width:fit-content}
+.hero-title{font-family:'Archivo Black';font-size:24px;line-height:1.15;margin-bottom:8px}
+.hero-meta{display:flex;gap:6px;align-items:center;font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:16px;flex-wrap:wrap}
+.hero-cta{background:var(--amb);color:#0D0D0D;border:none;padding:14px 32px;border-radius:100px;font-size:14px;font-weight:800;letter-spacing:.02em;width:100%;cursor:pointer;transition:all .2s}
+.hero-cta:active{transform:scale(.98);opacity:.85}
+.hero-card .day-body{display:none;padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);background:var(--card)}
+.hero-card.open .day-body{display:block}
+
+/* WORKOUT SCHEDULE CARDS */
+.wo-card{border-radius:16px;overflow:hidden;margin-bottom:10px;border:1px solid var(--card-border)}
+.wo-card.completed{opacity:.7}
+.wo-card-head{cursor:pointer;position:relative;min-height:100px}
+.wo-card-overlay{padding:16px 20px;min-height:100px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,0.65) 100%)}
+.wo-badge{display:inline-block;font-size:8px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:100px;margin-bottom:6px;width:fit-content}
+.wo-badge.done{background:var(--grn);color:#0D0D0D}
+.wo-badge.next{background:var(--amb);color:#0D0D0D}
+.wo-card-title{font-family:'Archivo Black';font-size:16px;line-height:1.2;margin-bottom:4px}
+.wo-card-meta{font-size:10px;color:rgba(255,255,255,0.6)}
+.wo-card .day-body{display:none;padding:14px 18px;background:var(--card)}
+.wo-card.open .day-body{display:block}
 
 .tips-t{font-weight:700;font-size:12px;margin-bottom:6px;color:var(--amb)}.tip-r{display:flex;gap:6px;font-size:10px;color:var(--sub);line-height:1.5;margin-bottom:3px}
 .cw-day-name{width:100%;padding:10px;background:var(--input);border:1px solid rgba(255,255,255,.1);border-radius:var(--rads);color:var(--tx);font-size:14px;font-family:'Inter';outline:none;margin-bottom:10px}
@@ -600,6 +636,10 @@ function swTab(id){S.tab=id;rNav();ALL_TAB_IDS.forEach(t=>{const e=document.getE
 function updHdr(){document.getElementById("usrRow").innerHTML=`<span class="usr-av">${S.user.avatar}</span><span class="usr-nm">${esc(S.user.name)}</span><span class="sw-h">switch ▸</span>`;document.getElementById("wkLbl").textContent="WK "+S.week;const wk=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const dl=S.flog[tdk()]||[];const dc=dl.reduce((a,m)=>a+m.cal,0);const dp=dl.reduce((a,m)=>a+m.p,0);document.getElementById("statsBar").innerHTML=`<div><span class="st-v">${wk}</span><span class="st-l">/ ${S.plan.length} wk</span></div><div><span class="st-v">${dc}</span><span class="st-l">/ ${S.nutri.cal} kcal</span></div><div><span class="st-v">${dp}g</span><span class="st-l">/ ${S.nutri.protein}g pro</span></div>`}
 function chgWeek(d){S.week=Math.max(1,S.week+d);SS("sp-week-"+S.user.id,S.week);updHdr();if(S.tab==="plan")rPlan()}
 // ═══════ PLAN TAB ═══════
+function renderDayBody(d, i){
+  const dn=S.logs["w"+S.week+"-d"+i];
+  return `<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>`<div class="ex-r"><div class="ex-n">${j+1}</div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div><div class="ex-nt">${e.note||""}</div></div><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>`).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn ${dn?'out':'pri'}" onclick="startWO(${i})">${dn?'Redo':'Start Session →'}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
+}
 function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
 // Calculate progress stats for hero
@@ -607,15 +647,54 @@ const wkDone=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;
 const dl=S.flog[tdk()]||[];const todayCal=dl.reduce((a,m)=>a+m.cal,0);const calTarget=S.nutri.cal;const calPct=calTarget?Math.min(100,Math.round(todayCal/calTarget*100)):0;
 const totalSessions=Object.keys(S.logs).length;
 const streak=(()=>{const dates=Object.values(S.logs).map(l=>l.date).filter(Boolean).sort();if(!dates.length)return 0;const logDates=new Set(dates.map(d=>new Date(d).toISOString().slice(0,10)));const today=new Date();today.setHours(0,0,0,0);let s=0,check=new Date(today);for(let w=0;w<52;w++){const ws=new Date(check);ws.setDate(ws.getDate()-ws.getDay());let has=false;for(let d=0;d<7;d++){const day=new Date(ws);day.setDate(day.getDate()+d);if(logDates.has(day.toISOString().slice(0,10))){has=true;break}}if(has)s++;else if(w>0)break;check.setDate(check.getDate()-7)}return s})();
-const circ=2*Math.PI*34;
 const greetHour=new Date().getHours();const greet=greetHour<12?"Good morning":greetHour<17?"Good afternoon":"Good evening";
-el.innerHTML=`<div class="plan-hero"><div class="ph-greeting">${greet}</div><div class="ph-name">${esc(S.user.name)} <span>${S.user.avatar}</span></div><div class="ph-rings"><div class="ph-ring"><svg viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" stroke="var(--amb)" stroke-dasharray="${circ}" stroke-dashoffset="${circ-(circ*wkPct/100)}"/></svg><div class="ph-ring-label"><div class="ph-ring-val" style="color:var(--amb)">${wkDone}/${wkTotal}</div><div class="ph-ring-txt">Week</div></div></div><div class="ph-ring"><svg viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fill" cx="40" cy="40" r="34" stroke="var(--grn)" stroke-dasharray="${circ}" stroke-dashoffset="${circ-(circ*calPct/100)}"/></svg><div class="ph-ring-label"><div class="ph-ring-val" style="color:var(--grn)">${calPct}%</div><div class="ph-ring-txt">Calories</div></div></div></div><div class="ph-stats"><div class="ph-stat"><div class="ph-stat-val">${totalSessions}</div><div class="ph-stat-lbl">Total Sessions</div></div><div class="ph-stat"><div class="ph-stat-val">${streak}</div><div class="ph-stat-lbl">Wk Streak</div></div><div class="ph-stat"><div class="ph-stat-val">${GM[gk]?.e||""}</div><div class="ph-stat-lbl">${GM[gk]?.l||""}</div></div></div></div>`+
-`<div class="rec-card"><div class="rt">💡 ${recs.t}</div>${recs.tips.map(t=>`<div class="rb">• ${t}</div>`).join("")}</div>`+
-getBodyGoalGuidance()+
-renderProgressionCards()+
-`<p class="intro">${S.user.profile?.gender==='female'?'♀ Female':'♂ Male'} · ${GM[gk]?.l||""} · ${S.plan.length} day${S.plan.length>1?'s':''}/week · ${({beginner:'🌱 Beginner',intermediate:'💪 Intermediate',veteran:'🏆 Veteran'})[S.user.profile?.level]||'💪 Intermediate'}${S.user.profile?.gym&&S.user.profile.gym!=='any'?' · '+({wf:'Wembley Fitness',tgg:'The Gym Group'})[S.user.profile.gym]:''}</p>`+
-S.plan.map((d,i)=>{const dn=S.logs["w"+S.week+"-d"+i];return`<div class="card" id="dc${i}"><div class="day-head" onclick="togDay(${i})"><div><div class="day-t">${d.day}${d.custom?' 🔧':''}</div><div class="day-m">${d.sched} · ${d.sub} · ${d.dur}</div></div><div style="display:flex;align-items:center;gap:6px">${dn?'<div class="done-b">✓</div>':''}<span class="chv">▸</span></div></div><div class="day-body"><div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>`<div class="ex-r"><div class="ex-n">${j+1}</div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div><div class="ex-nt">${e.note||""}</div></div><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>`).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn ${dn?'out':'pri'}" onclick="startWO(${i})">${dn?'Redo':'Start Session →'}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button></div></div>`}).join("")+
-`<button class="s-btn blu" style="margin-top:4px" onclick="swTab('library')">📚 Browse Exercise Library</button>`}
+// Weekly calendar strip data
+const now=new Date();const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
+let calStrip='';
+for(let di=0;di<7;di++){
+  const dd=new Date(weekStart);dd.setDate(weekStart.getDate()+di);
+  const isToday=dd.toDateString()===now.toDateString();
+  const dateKey=dd.toISOString().slice(0,10);
+  const hasLog=Object.values(S.logs).some(l=>l.date&&new Date(l.date).toISOString().slice(0,10)===dateKey);
+  calStrip+=`<div class="cal-day${isToday?' today':''}${hasLog?' done':''}"><div class="cal-day-name">${dayNames[di]}</div><div class="cal-day-num">${dd.getDate()}</div>${hasLog?'<div class="cal-dot"></div>':''}</div>`;
+}
+// Find today's workout (first uncompleted day in the plan)
+const todayIdx=S.plan.findIndex((d,i)=>!S.logs["w"+S.week+"-d"+i]);
+const todayWO=todayIdx>=0?S.plan[todayIdx]:null;
+// Workout hero images via CSS gradients per muscle group
+const heroGradients={
+  push:'linear-gradient(135deg,#1a0a0a 0%,#2d1515 40%,#4a1a1a 100%)',
+  pull:'linear-gradient(135deg,#0a1a1a 0%,#152d2d 40%,#1a4a4a 100%)',
+  legs:'linear-gradient(135deg,#0a0a1a 0%,#15152d 40%,#1a1a4a 100%)',
+  upper:'linear-gradient(135deg,#1a0a1a 0%,#2d152d 40%,#4a1a4a 100%)',
+  lower:'linear-gradient(135deg,#0a1a0a 0%,#152d15 40%,#1a4a1a 100%)',
+  chest:'linear-gradient(135deg,#1a0505 0%,#331010 50%,#4d1a1a 100%)',
+  back:'linear-gradient(135deg,#050a1a 0%,#101833 50%,#1a264d 100%)',
+  shoulders:'linear-gradient(135deg,#14051a 0%,#251033 50%,#3a1a4d 100%)',
+  full:'linear-gradient(135deg,#0d1a0a 0%,#1a2d15 50%,#264a1a 100%)',
+  default:'linear-gradient(135deg,#111 0%,#1a1a1a 50%,#222 100%)'
+};
+function getHeroGrad(dayName){
+  const dn=(dayName||'').toLowerCase();
+  for(const[k,v]of Object.entries(heroGradients)){if(dn.includes(k))return v}
+  return heroGradients.default;
+}
+el.innerHTML=
+`<div class="dash-greeting"><div class="dash-hello">${greet},</div><div class="dash-name">${esc(S.user.name)}</div></div>`+
+`<div class="cal-strip">${calStrip}</div>`+
+`<div class="progress-bar-section"><div class="prog-item"><div class="prog-ring"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--amb)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${2*Math.PI*16}" stroke-dashoffset="${2*Math.PI*16-(2*Math.PI*16*wkPct/100)}" transform="rotate(-90 20 20)"/></svg><span>${wkDone}/${wkTotal}</span></div><div class="prog-label">Workouts</div></div><div class="prog-item"><div class="prog-ring"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--grn)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${2*Math.PI*16}" stroke-dashoffset="${2*Math.PI*16-(2*Math.PI*16*calPct/100)}" transform="rotate(-90 20 20)"/></svg><span>${calPct}%</span></div><div class="prog-label">Nutrition</div></div><div class="prog-item"><div class="prog-num">${totalSessions}</div><div class="prog-label">Sessions</div></div><div class="prog-item"><div class="prog-num">${streak}🔥</div><div class="prog-label">Streak</div></div></div>`+
+(todayWO?`<div class="sec-title">Today's Workout</div><div class="hero-card" onclick="togDay(${todayIdx})" id="dc${todayIdx}" style="background:${getHeroGrad(todayWO.day)}"><div class="hero-overlay"><div class="hero-badge">UP NEXT</div><div class="hero-title">${todayWO.day.replace(/Day \d+ — /,'')}</div><div class="hero-meta"><span>${todayWO.sched}</span><span>·</span><span>${todayWO.dur}</span><span>·</span><span>${todayWO.exs.length} exercises</span></div><button class="hero-cta" onclick="event.stopPropagation();startWO(${todayIdx})">Start Workout</button></div><div class="day-body">${renderDayBody(todayWO, todayIdx)}</div></div>`:'')+
+`<div class="sec-title">Week ${S.week} Schedule</div>`+
+`<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
+S.plan.map((d,i)=>{
+  if(i===todayIdx)return'';
+  const dn=S.logs["w"+S.week+"-d"+i];
+  const status=dn?'completed':(i<todayIdx?'missed':'upcoming');
+  const statusBadge=dn?'<div class="wo-badge done">✓ COMPLETED</div>':(i===todayIdx+1?'<div class="wo-badge next">NEXT UP</div>':'');
+  return`<div class="wo-card ${status}" id="dc${i}"><div class="wo-card-head" onclick="togDay(${i})" style="background:${getHeroGrad(d.day)}"><div class="wo-card-overlay">${statusBadge}<div class="wo-card-title">${d.day.replace(/Day \d+ — /,'')}</div><div class="wo-card-meta">${d.sched} · ${d.dur} · ${d.exs.length} exercises</div></div></div><div class="day-body">${renderDayBody(d, i)}</div></div>`;
+}).join('')+
+`<button class="s-btn out" style="margin-top:12px" onclick="swTab('library')">📚 Browse Exercise Library</button>`}
 function togDay(i){document.getElementById("dc"+i).classList.toggle("open")}
 let addExDay=null;let addExFilter="all";
 function openAddEx(di){addExDay=di;addExFilter="all";rPlan();setTimeout(()=>{const el=document.getElementById("dc"+di);if(el){el.classList.add("open");el.scrollIntoView({behavior:"smooth",block:"center"})}},50)}
