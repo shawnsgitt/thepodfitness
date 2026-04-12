@@ -361,6 +361,29 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .diet-consist .dc-stat-val{font-family:'JetBrains Mono';font-size:14px;font-weight:700}
 .diet-consist .dc-stat-lbl{font-size:8px;color:var(--sub);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
 .ex-rm-btn{background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;padding:2px 6px;opacity:.5;transition:opacity .2s;flex-shrink:0}.ex-rm-btn:active{opacity:1}
+.ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
+/* Exercise Detail Modal */
+.ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
+.ex-detail-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:540px;width:100%;margin:0 auto}
+.ex-detail-hero{width:100%;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.ex-detail-hero .edh-icon{font-size:80px;filter:drop-shadow(0 4px 24px rgba(0,0,0,.5))}
+.ex-detail-hero .edh-cat{position:absolute;top:16px;left:16px;padding:4px 12px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(0,0,0,.5);color:#fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1)}
+.ex-detail-hero .edh-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.ex-detail-body{padding:20px 16px 100px}
+.ex-detail-body .edb-name{font-family:'Archivo Black';font-size:22px;letter-spacing:-.01em;margin-bottom:4px}
+.ex-detail-body .edb-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.ex-detail-body .edb-tag{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}
+.ex-detail-body .edb-tag.type-compound{border-color:rgba(191,255,0,.3);color:var(--amb)}.ex-detail-body .edb-tag.type-isolation{border-color:rgba(59,130,246,.3);color:var(--blu)}
+.ex-detail-body .edb-tag.type-cardio{border-color:rgba(236,72,153,.3);color:var(--pnk)}.ex-detail-body .edb-tag.type-hiit{border-color:rgba(249,115,22,.3);color:#F97316}
+.ex-detail-body .edb-tag.type-stretch{border-color:rgba(52,211,153,.3);color:var(--grn)}.ex-detail-body .edb-tag.type-plyo{border-color:rgba(139,92,246,.3);color:#8B5CF6}
+.edb-section{margin-bottom:16px}.edb-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amb);margin-bottom:8px}
+.edb-cues{list-style:none;padding:0}.edb-cues li{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--rads);margin-bottom:6px;font-size:12px;line-height:1.5}
+.edb-cues li .cue-icon{color:var(--amb);font-size:14px;flex-shrink:0;margin-top:1px}
+.edb-sets-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.edb-sets-info .esi-box{background:var(--card);border:1px solid var(--card-border);border-radius:var(--rads);padding:10px;text-align:center}
+.edb-sets-info .esi-val{font-family:'JetBrains Mono';font-size:16px;font-weight:700;color:var(--amb)}.edb-sets-info .esi-lbl{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.edb-subs{display:flex;flex-wrap:wrap;gap:6px}.edb-subs .edb-sub{padding:6px 12px;background:var(--card);border:1px solid var(--card-border);border-radius:100px;font-size:11px;color:var(--tx);cursor:pointer;transition:all .15s}
+.edb-subs .edb-sub:active{border-color:var(--amb);background:rgba(191,255,0,.06)}
 .add-ex-sec{background:rgba(191,255,0,.04);border:1px solid rgba(191,255,0,.15);border-radius:var(--rads);padding:12px;margin-top:10px}
 .add-ex-list{max-height:250px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 
@@ -688,7 +711,7 @@ function chgWeek(d){S.week=Math.max(1,S.week+d);SS("sp-week-"+S.user.id,S.week);
 // ═══════ PLAN TAB ═══════
 function renderDayBody(d, i){
   const dn=S.logs["w"+S.week+"-d"+i];
-  return `<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>`<div class="ex-r"><div class="ex-n">${j+1}</div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div><div class="ex-nt">${e.note||""}</div></div><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>`).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn ${dn?'out':'pri'}" onclick="startWO(${i})">${dn?'Redo':'Start Session →'}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
+  return `<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-n">${j+1}</div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div><div class="ex-nt">${e.note||""}</div></div><span class="ex-chv">›</span><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>`).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn ${dn?'out':'pri'}" onclick="startWO(${i})">${dn?'Redo':'Start Session →'}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
 }
 function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
@@ -826,7 +849,7 @@ el.innerHTML=`<div style="margin-bottom:10px"><div class="pills"><button class="
 `<div class="pills"><button class="pill ${S.libFilter==='all'?'on':''}" onclick="S.libFilter='all';rLib()">All (${allExs.filter(e=>libGymFilter==='all'||exAvailableAtGym(e.n,libGymFilter)).length})</button>${Object.entries(CAT_META).map(([k,v])=>{const cnt=allExs.filter(e=>e.cat===k&&(libGymFilter==='all'||exAvailableAtGym(e.n,libGymFilter))).length;return`<button class="pill ${S.libFilter===k?'on':''}" onclick="S.libFilter='${k}';rLib()">${v.e} ${v.l} (${cnt})</button>`}).join("")}</div>`+
 `<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} exercise${filtered.length!==1?'s':''} found</div>`+
 filtered.map(e=>{const cm=CAT_META[e.cat]||{l:e.cat,e:"🏋️"};const typeClass=e.t==="compound"?"compound":e.t==="isolation"?"isolation":e.t;
-return`<div class="ex-card"><div class="ex-badge ${e.cat}">${cm.e}</div><div class="ex-info"><div class="ex-nm">${e.n}</div><div class="ex-meta">${cm.l} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div><span class="ex-type ${typeClass}">${e.t}</span>${(()=>{const gyms=[];EQUIP_DB.forEach(cat=>cat.items.forEach(item=>{if(item.exercises.some(ex=>e.n.toLowerCase().includes(ex.toLowerCase().split('(')[0].trim())||ex.toLowerCase().includes(e.n.toLowerCase().split('(')[0].trim()))){item.gyms.forEach(g=>{if(!gyms.includes(g))gyms.push(g)})}}));return gyms.length?`<div class="eq-avail" style="margin-top:3px">${gyms.includes('wf')?'<span class="eq-avail-tag wf">Wembley</span>':''}${gyms.includes('tgg')?'<span class="eq-avail-tag tgg">Gym Group</span>':''}</div>`:''})()}<div style="font-size:9px;color:var(--sub);margin-top:3px">${e.nt}</div></div><div style="margin-top:4px"><button class="sub-chip" onclick="(function(btn){const d=btn.nextElementSibling;d.style.display=d.style.display==='none'?'block':'none'})(this)">🔄 Alternatives</button><div style="display:none;margin-top:4px">${getSubstitutes(e.n).map(s=>'<span class="sub-chip" onclick="S.libSearch=\''+s.n.replace(/'/g,"\\'")+'\';;rLib()">'+s.n+'</span>').join('')}</div></div><button class="ex-add-btn" onclick="addLibEx('${e.cat}',${e.idx})">+ Add</button></div>`}).join("")+
+return`<div class="ex-card" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}')"><div class="ex-badge ${e.cat}">${cm.e}</div><div class="ex-info"><div class="ex-nm">${e.n} <span class="ex-chv" style="color:var(--sub);font-size:11px">›</span></div><div class="ex-meta">${cm.l} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div><span class="ex-type ${typeClass}">${e.t}</span>${(()=>{const gyms=[];EQUIP_DB.forEach(cat=>cat.items.forEach(item=>{if(item.exercises.some(ex=>e.n.toLowerCase().includes(ex.toLowerCase().split('(')[0].trim())||ex.toLowerCase().includes(e.n.toLowerCase().split('(')[0].trim()))){item.gyms.forEach(g=>{if(!gyms.includes(g))gyms.push(g)})}}));return gyms.length?`<div class="eq-avail" style="margin-top:3px">${gyms.includes('wf')?'<span class="eq-avail-tag wf">Wembley</span>':''}${gyms.includes('tgg')?'<span class="eq-avail-tag tgg">Gym Group</span>':''}</div>`:''})()}<div style="font-size:9px;color:var(--sub);margin-top:3px">${e.nt}</div></div><div style="margin-top:4px"><button class="sub-chip" onclick="event.stopPropagation();(function(btn){const d=btn.nextElementSibling;d.style.display=d.style.display==='none'?'block':'none'})(this)">🔄 Alternatives</button><div style="display:none;margin-top:4px">${getSubstitutes(e.n).map(s=>'<span class="sub-chip" onclick="S.libSearch=\''+s.n.replace(/'/g,"\\'")+'\';;rLib()">'+s.n+'</span>').join('')}</div></div><button class="ex-add-btn" onclick="event.stopPropagation();addLibEx('${e.cat}',${e.idx})">+ Add</button></div>`}).join("")+
 (filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No exercises found</p><p class="empty-s">Try a different search or filter.</p></div>`:'')+
 `<div style="margin-top:16px"><div class="log-t">📋 Quick Custom Workout</div><p class="intro">Add exercises above to build a custom workout day, then save it.</p><div id="libCart"></div></div>`;
 rLibCart();renderWeeklyVolume();}
@@ -1536,6 +1559,71 @@ if(EX[g]){EX[g].forEach(e=>{if(e.n!==exName&&!subs.some(s=>s.n===e.n))subs.push(
 });
 return subs.slice(0,6);
 }
+
+// ═══════ EXERCISE DETAIL PANEL ═══════
+const COACHING_CUES={
+"Flat Barbell Bench Press":["Retract shoulder blades and arch slightly","Plant feet firmly — drive through the floor","Lower bar to mid-chest, elbows ~45°","Control the eccentric for 2-3 seconds"],
+"Incline Dumbbell Press":["Set bench to 30° incline","Let dumbbells stretch deep at the bottom","Press up and slightly inward","Keep wrists neutral, elbows at 45°"],
+"Cable Flys (Mid)":["Step forward for constant tension","Slight bend in elbows throughout","Squeeze chest hard at the peak","Lean torso slightly forward"],
+"Barbell Bent-Over Row":["Hinge at hips, chest up, back flat","Pull elbows back — bar to lower chest","Squeeze shoulder blades 1 second at top","No momentum — control the negative"],
+"Lat Pulldown (Wide)":["Lean back slightly, chest proud","Pull to upper chest, not behind neck","Focus on driving elbows down","Full stretch at top, slow release"],
+"Seated Cable Row":["Sit tall, chest to the handle","Pull to lower ribcage, elbows close","Pause and squeeze at contraction","No rocking — keep torso still"],
+"Barbell Back Squat":["Brace core hard before descending","Break at hips and knees together","Go to parallel or below","Drive through mid-foot, chest up"],
+"Romanian Deadlift":["Soft knee bend, push hips back","Feel deep hamstring stretch","Bar stays close to legs","Squeeze glutes to lock out"],
+"Leg Press":["Feet shoulder-width on platform","Lower until 90° knee angle","Press through heels, don't lock out","Keep lower back pressed into pad"],
+"Hip Thrust (BB)":["Upper back on bench, feet flat","Drive through heels, squeeze glutes 2s","Full hip extension at top — no arching","Chin tucked, eyes forward"],
+"Seated Dumbbell OHP":["Back supported, core braced","Press straight up, slight inward arc","No excessive lower back arch","Control the negative, full stretch at bottom"],
+"Cable Lateral Raises":["Cable behind body for better tension curve","Lead with elbow, slight lean away","Raise to shoulder height, pause","Light weight — chase the burn"],
+"Barbell Curl":["Elbows pinned to sides","Strict form — no swinging","2-3 second eccentric every rep","Squeeze bicep hard at the top"],
+"Tricep Rope Pushdowns":["Elbows fixed at your sides","Spread the rope at the bottom","Full lockout, squeeze triceps","Slow and controlled return"],
+"Pull-Ups":["Dead hang start, full extension","Drive elbows down and back","Chin over bar at the top","Slow 3-second descent"],
+"Dips (Bodyweight)":["Lean forward slightly for chest bias","Elbows back (not flared) for triceps","Go to 90° elbow angle minimum","Control the movement, no bouncing"],
+"Push-Ups":["Hands shoulder-width, fingers forward","Body in straight line — no sagging","Chest to floor, full range of motion","Core tight, squeeze glutes"],
+"Hanging Leg Raises":["Dead hang, no swinging","Curl pelvis up, don't just lift legs","Slow descent — fight gravity","Engage lower abs, not hip flexors"]
+};
+function getCoachingCues(exName){
+if(COACHING_CUES[exName])return COACHING_CUES[exName];
+// Fallback: parse the exercise note into cues
+const ex=findExInDB(exName);
+if(ex&&ex.nt){return ex.nt.split(/\.\s*/).filter(s=>s.trim()).map(s=>s.trim()+(s.endsWith('.')?'':'.'))}
+return["Focus on controlled, full range of motion.","Breathe out on exertion, in on return.","Keep core braced throughout."];
+}
+function findExInDB(name){
+for(const[cat,exs]of Object.entries(EX_DB)){const found=exs.find(e=>e.n===name);if(found)return{...found,cat}}return null;
+}
+function showExDetail(exName,sets,reps,rest){
+const ex=findExInDB(exName);
+const cat=ex?ex.cat:'other';
+const cm=CAT_META[cat]||{e:'🏋️',l:'Exercise',c:'#888'};
+const cues=getCoachingCues(exName);
+const subs=getSubstitutes(exName);
+const heroGrad=`linear-gradient(135deg, ${cm.c}22 0%, ${cm.c}11 40%, var(--card) 100%)`;
+const typeClass=ex?'type-'+ex.t:'';
+const diffLabel=ex?(ex.diff==='beg'?'Beginner':ex.diff==='adv'?'Advanced':'Intermediate'):'';
+const overlay=document.createElement('div');
+overlay.className='ex-detail-overlay';
+overlay.id='exDetailOverlay';
+overlay.innerHTML=`<div class="ex-detail-panel">
+<div class="ex-detail-hero" style="background:${heroGrad}">
+<div class="edh-icon">${cm.e}</div>
+<div class="edh-cat">${cm.e} ${cm.l}</div>
+<div class="edh-close" onclick="closeExDetail()">✕</div>
+</div>
+<div class="ex-detail-body">
+<div class="edb-name">${esc(exName)}</div>
+<div class="edb-tags">
+${ex?`<span class="edb-tag ${typeClass}">${ex.t}</span>`:''}
+${diffLabel?`<span class="edb-tag">${diffLabel}</span>`:''}
+<span class="edb-tag">${cm.l}</span>
+</div>
+${(sets||reps||rest)?`<div class="edb-section"><div class="edb-section-title">Prescription</div><div class="edb-sets-info">${sets?`<div class="esi-box"><div class="esi-val">${sets}</div><div class="esi-lbl">Sets</div></div>`:''}${reps?`<div class="esi-box"><div class="esi-val">${esc(String(reps))}</div><div class="esi-lbl">Reps</div></div>`:''}${rest?`<div class="esi-box"><div class="esi-val">${esc(String(rest))}</div><div class="esi-lbl">Rest</div></div>`:''}</div></div>`:''}
+<div class="edb-section"><div class="edb-section-title">Form Cues</div><ul class="edb-cues">${cues.map(c=>`<li><span class="cue-icon">▸</span>${esc(c)}</li>`).join('')}</ul></div>
+${subs.length?`<div class="edb-section"><div class="edb-section-title">Alternatives</div><div class="edb-subs">${subs.map(s=>`<span class="edb-sub" onclick="closeExDetail();setTimeout(()=>showExDetail('${s.n.replace(/'/g,"\\'")}'),200)">${s.n}</span>`).join('')}</div></div>`:''}
+</div></div>`;
+document.body.appendChild(overlay);
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeExDetail()});
+}
+function closeExDetail(){const o=document.getElementById('exDetailOverlay');if(o){o.style.opacity='0';o.style.transition='opacity .15s';setTimeout(()=>o.remove(),150)}}
 
 // ═══════ DATA EXPORT ═══════
 function exportWorkoutCSV(){
