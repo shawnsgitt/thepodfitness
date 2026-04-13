@@ -209,6 +209,37 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .meal-card .mc-log-btn{margin-top:8px;width:100%;padding:8px;border-radius:100px;font-size:11px;font-weight:700;border:none;background:rgba(191,255,0,.1);color:var(--amb);cursor:pointer;transition:all .15s}
 .meal-card .mc-log-btn:active{transform:scale(.97)}
 .meal-card.logged .mc-log-btn{background:rgba(239,68,68,.1);color:var(--red)}
+/* Meal Plan Cards */
+.mp-controls{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.mp-mpd{display:flex;align-items:center;gap:6px;flex:1}
+.mp-mpd label{font-size:10px;color:var(--sub);white-space:nowrap}
+.mp-mpd select{background:var(--card);border:1px solid var(--card-border);border-radius:8px;color:var(--tx);font-size:12px;padding:6px 10px;font-family:inherit}
+.mp-refresh{padding:8px 14px;border-radius:100px;border:none;background:var(--amb);color:#0D0D0D;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mp-refresh:active{transform:scale(.96)}
+.mp-day{background:var(--card);border:1px solid var(--card-border);border-radius:var(--rad);margin-bottom:10px;overflow:hidden;animation:fadeUp .25s ease both}
+.mp-day-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer}
+.mp-day-name{font-size:13px;font-weight:700}
+.mp-day-badge{padding:3px 10px;border-radius:100px;font-size:9px;font-weight:700}
+.mp-day-badge.train{background:rgba(191,255,0,.12);color:var(--amb)}
+.mp-day-badge.rest{background:rgba(255,255,255,.05);color:var(--sub)}
+.mp-day-body{padding:0 14px 14px}
+.mp-meal-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--card-border)}
+.mp-meal-row:last-child{border-bottom:none}
+.mp-meal-emoji{font-size:28px;flex-shrink:0;width:40px;text-align:center}
+.mp-meal-info{flex:1;min-width:0}
+.mp-meal-type{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.mp-meal-name{font-size:12px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mp-meal-macros{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.mp-meal-macros span{font-size:9px;font-family:'JetBrains Mono';font-weight:600}
+.mp-meal-macros .cal{color:var(--amb)}.mp-meal-macros .pro{color:#EF4444}.mp-meal-macros .carb{color:#3B82F6}.mp-meal-macros .fat{color:#A855F7}
+.mp-day-totals{display:flex;gap:8px;justify-content:center;padding:10px 0 4px;margin-top:6px;border-top:1px solid var(--card-border)}
+.mp-day-totals div{text-align:center;padding:4px 10px;background:rgba(255,255,255,.03);border-radius:6px}
+.mp-day-totals .tv{font-family:'JetBrains Mono';font-size:12px;font-weight:700}
+.mp-day-totals .tl{font-size:8px;color:var(--sub);margin-top:1px}
+.mp-legend{display:flex;gap:12px;justify-content:center;margin-bottom:12px;font-size:10px;color:var(--sub)}
+.mp-legend span{display:flex;align-items:center;gap:4px}
+.mp-legend .dot{width:8px;height:8px;border-radius:50%}
+.mp-legend .dot.t{background:var(--amb)}.mp-legend .dot.r{background:rgba(255,255,255,.15)}
 /* Recipe Detail Modal */
 .recipe-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
 .recipe-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:540px;width:100%;margin:0 auto}
@@ -600,11 +631,11 @@ const EMO={1:"😩",2:"😐",3:"🙂",4:"💪",5:"🔥"};
 const GOAL_RECS={muscle_gain:{t:"Muscle Gain Tips",tips:["Progressive overload — add 2.5 kg when you hit top of rep range.","Prioritise compounds when freshest.","Sleep 7-9 hours for recovery.","200-400 kcal surplus. Not more."]},fat_loss:{t:"Fat Loss Tips",tips:["Maintain lifting intensity to preserve muscle.","Protein 2g+ per kg bodyweight.","300-500 kcal deficit is sustainable.","Add walks, not extra gym sessions."]},recomp:{t:"Recomp Tips",tips:["Eat maintenance with high protein.","Slower but you stay lean throughout.","Get stronger in 8-12 rep range.","Patience — 3-6 months for visible change."]},general:{t:"Fitness Tips",tips:["Consistency beats perfection.","Mix compounds with isolation.","Don't neglect mobility.","Find exercises you enjoy."]}};
 
 const MEALS=[
-{nm:"Breakfast",tm:"~7:30 AM",opts:[{ml:"Oats (80g) with Frozen Mixed Berries (50g), 1 tbsp Honey & Milk (200ml)",cal:420,p:14,c:68,f:10},{ml:"3 Scrambled Eggs with 3 Bacon rashers, 2 Bread toast & Butter (10g)",cal:580,p:32,c:42,f:30},{ml:"Pancakes — 3 (Pancake Mix 150g, 1 Egg, Milk 100ml) with Syrup (2 tbsp) & 1 Banana",cal:550,p:16,c:80,f:18},{ml:"2 Wheetabix with Milk (250ml), 1 Banana & 1 tbsp Honey",cal:380,p:12,c:72,f:6},{ml:"2 Bread slices with 1 tbsp Jam, 2 tbsp Peanut Butter & Milk (250ml)",cal:480,p:16,c:62,f:20},{ml:"Greek Yoghurt (200g) with Granola (50g), Strawberry (80g) & 1 tbsp Honey",cal:400,p:20,c:55,f:12},{ml:"3 Eggs scrambled with ½ Onion, 2 Tomatoes, 2 Kpakposhito & 2 Bread toast",cal:450,p:24,c:40,f:22}]},
-{nm:"Lunch",tm:"~12:30 PM",opts:[{ml:"Chicken Breast (200g) Wrap (2 wraps) with ½ Bell Pepper, 2 Tomatoes & Cheddar (40g)",cal:620,p:42,c:52,f:22},{ml:"Rice (250g cooked) with 3 Lamb Chops, Carrots (80g), Peas (60g) & Thyme",cal:720,p:40,c:75,f:24},{ml:"Spaghetti (200g cooked) with Meat sauce (150g mince, 1 Onion, 2 Tomatoes, Garlic Powder)",cal:680,p:35,c:78,f:20},{ml:"2 packs Indomie stir-fry with Shrimps (150g), ½ Bell Pepper & Spring Onions",cal:550,p:28,c:65,f:16},{ml:"Pasta (200g cooked) with Chicken Breast (200g), Pasta Cream (3 tbsp) & Parsley",cal:700,p:44,c:72,f:22},{ml:"6 Chicken Wings with Rice (250g cooked), 1 tsp Paprika & Lemon Juice",cal:750,p:45,c:70,f:28},{ml:"2 Plantain (fried) with 3 Eggs, 3 Sausages & Ketchup",cal:620,p:30,c:68,f:24}]},
+{nm:"Breakfast",tm:"~7:30 AM",opts:[{ml:"Oats (80g) with Frozen Mixed Berries (50g), 1 tbsp Honey & Milk (200ml)",cal:420,p:14,c:68,f:10},{ml:"3 Scrambled Eggs with 3 Bacon rashers, 2 Bread toast & Butter (10g)",cal:580,p:32,c:42,f:30},{ml:"Pancakes — 3 (Pancake Mix 150g, 1 Egg, Milk 100ml) with Syrup (2 tbsp) & 1 Banana",cal:550,p:16,c:80,f:18},{ml:"2 Wheetabix with Milk (250ml), 1 Banana & 1 tbsp Honey",cal:380,p:12,c:72,f:6},{ml:"2 Bread slices with 1 tbsp Jam, 2 tbsp Peanut Butter & Milk (250ml)",cal:480,p:16,c:62,f:20},{ml:"Greek Yoghurt (200g) with Granola (50g), Strawberry (80g) & 1 tbsp Honey",cal:400,p:20,c:55,f:12},{ml:"3 Eggs scrambled with ½ Onion, 2 Tomatoes, 2 Kpakposhito & 2 Bread toast",cal:450,p:24,c:40,f:22},{ml:"Oats (80g) with Mixed Berries (50g), 1 tbsp Honey, Whole Milk (200ml) & ½ Avocado",cal:550,p:16,c:68,f:24},{ml:"Protein Pancakes (3) — Oats (50g), Protein Powder (30g), 1 Egg, Milk (100ml) with ½ Avocado & 3 Bacon rashers",cal:640,p:42,c:40,f:32},{ml:"3 Scrambled Eggs with Cheddar (30g), 2 Wholemeal Toast & 2 Sausages",cal:650,p:38,c:38,f:36},{ml:"Oats (80g) with Mixed Berries (50g), 1 tbsp Honey, Whole Milk (200ml) & 2 Boiled Eggs",cal:560,p:26,c:68,f:18},{ml:"Oats (80g) with Mixed Berries (50g), 1 tbsp Honey, Whole Milk (200ml), ½ Avocado & 1 Boiled Egg",cal:580,p:20,c:68,f:24},{ml:"1 Avocado on 2 Toast with 2 Poached Eggs & Cherry Tomatoes (80g)",cal:520,p:22,c:38,f:32},{ml:"Oats (80g) with 1 Banana, Greek Yoghurt (150g) & 1 tbsp Honey",cal:450,p:18,c:74,f:8},{ml:"English Breakfast — 2 Eggs, 2 Bacon rashers, 2 Toast, Baked Beans (150g) & 1 Sausage",cal:720,p:40,c:54,f:34},{ml:"Potatoes (250g) with 3 Eggs, 2 Bacon rashers, ½ Onion & ½ Bell Pepper",cal:620,p:32,c:48,f:30},{ml:"Sirloin Steak (150g) with 2 Fried Eggs & ½ Avocado",cal:620,p:48,c:4,f:44}]},
+{nm:"Lunch",tm:"~12:30 PM",opts:[{ml:"Chicken Breast (200g) Wrap (2 wraps) with ½ Bell Pepper, 2 Tomatoes & Cheddar (40g)",cal:620,p:42,c:52,f:22},{ml:"Rice (250g cooked) with 3 Lamb Chops, Carrots (80g), Peas (60g) & Thyme",cal:720,p:40,c:75,f:24},{ml:"Spaghetti (200g cooked) with Meat sauce (150g mince, 1 Onion, 2 Tomatoes, Garlic Powder)",cal:680,p:35,c:78,f:20},{ml:"2 packs Indomie stir-fry with Shrimps (150g), ½ Bell Pepper & Spring Onions",cal:550,p:28,c:65,f:16},{ml:"Pasta (200g cooked) with Chicken Breast (200g), Pasta Cream (3 tbsp) & Parsley",cal:700,p:44,c:72,f:22},{ml:"6 Chicken Wings with Rice (250g cooked), 1 tsp Paprika & Lemon Juice",cal:750,p:45,c:70,f:28},{ml:"2 Plantain (fried) with 3 Eggs, 3 Sausages & Ketchup",cal:620,p:30,c:68,f:24},{ml:"Grilled Chicken Breast (200g) with Potatoes (250g), Carrots (80g) & Peas (60g)",cal:620,p:44,c:62,f:12},{ml:"6 Chicken Wings with Fried Rice (250g cooked), Peas (60g) & Spring Onions",cal:780,p:42,c:74,f:30},{ml:"Fried Rice (250g cooked) with Salmon fillet (150g), Peas (60g) & Soy Sauce (1 tbsp)",cal:680,p:38,c:72,f:22},{ml:"2 packs Indomie stir-fry with ½ Bell Pepper, ½ Onion, Spring Onions & 1 Egg",cal:520,p:18,c:66,f:20},{ml:"Boiled Plantain (2) with Tomato Stew (100g), 2 Boiled Eggs & ½ Avocado",cal:580,p:24,c:64,f:24},{ml:"Shrimp Pasta (200g cooked) — Shrimps (150g), Garlic, Olive Oil (1 tbsp), Parsley & Chilli Flakes",cal:620,p:34,c:70,f:20},{ml:"Grilled Chicken (200g) with Spicy Fried Rice (250g cooked), ½ Bell Pepper & Scotch Bonnet",cal:700,p:44,c:72,f:18}]},
 {nm:"Pre-Workout",tm:"~3:30 PM",opts:[{ml:"2 Bread slices with 2 tbsp Peanut Butter & 1 Banana",cal:420,p:14,c:58,f:16},{ml:"Oats (60g) with 1 tbsp Honey & Milk (200ml)",cal:350,p:10,c:60,f:8},{ml:"2 Apples sliced with 2 tbsp Peanut Butter",cal:300,p:8,c:38,f:16},{ml:"2 Bread toast with 2 tbsp Jam & 1 Banana",cal:380,p:8,c:72,f:6},{ml:"Greek Yoghurt (150g) with Granola (40g) & 1 tbsp Honey",cal:360,p:18,c:48,f:10}]},
-{nm:"Dinner",tm:"~7:30 PM",opts:[{ml:"Salmon fillet (200g) with Sweet Potatoes (250g) & steamed Corn (1 cob)",cal:680,p:40,c:62,f:24},{ml:"Steak (250g) with Fries (200g) & Carrots (80g)",cal:750,p:48,c:60,f:30},{ml:"Chicken Breast (200g) with Rice (250g cooked), Peas (80g) & 1 tbsp Soy Sauce",cal:650,p:45,c:70,f:14},{ml:"3 Lamb Chops with Potatoes (300g), Onion gravy (½ Onion) & Thyme",cal:720,p:42,c:58,f:30},{ml:"Spaghetti (200g cooked) Bolognese with Meat (150g), 1 Onion & ½ Bell Pepper",cal:700,p:38,c:76,f:22},{ml:"Shrimps (200g) stir-fry with Rice (250g cooked), Ginger (1 tsp) & Spring Onions",cal:580,p:34,c:68,f:14},{ml:"Salmon (150g) Wrap (2 wraps) with 2 Tomatoes, Spring Onions & Salad Cream (2 tbsp)",cal:560,p:36,c:48,f:22}]},
-{nm:"Evening Snack",tm:"~9:30 PM",opts:[{ml:"Greek Yoghurt (200g) with Frozen Mixed Berries (60g) & Granola (40g)",cal:320,p:18,c:42,f:10},{ml:"Cottage Cheese (150g) with Mango slices (100g) & 1 tbsp Honey",cal:280,p:22,c:32,f:6},{ml:"Watermelon (300g) & 2 Tangerines",cal:150,p:2,c:36,f:1},{ml:"Smoothie: 1 Banana, Strawberry (80g), Milk (250ml) & 1 tbsp Honey",cal:300,p:10,c:56,f:4},{ml:"2 Doughnuts & Juice (250ml)",cal:380,p:6,c:52,f:18}]},
+{nm:"Dinner",tm:"~7:30 PM",opts:[{ml:"Salmon fillet (200g) with Sweet Potatoes (250g) & steamed Corn (1 cob)",cal:680,p:40,c:62,f:24},{ml:"Steak (250g) with Fries (200g) & Carrots (80g)",cal:750,p:48,c:60,f:30},{ml:"Chicken Breast (200g) with Rice (250g cooked), Peas (80g) & 1 tbsp Soy Sauce",cal:650,p:45,c:70,f:14},{ml:"3 Lamb Chops with Potatoes (300g), Onion gravy (½ Onion) & Thyme",cal:720,p:42,c:58,f:30},{ml:"Spaghetti (200g cooked) Bolognese with Meat (150g), 1 Onion & ½ Bell Pepper",cal:700,p:38,c:76,f:22},{ml:"Shrimps (200g) stir-fry with Rice (250g cooked), Ginger (1 tsp) & Spring Onions",cal:580,p:34,c:68,f:14},{ml:"Salmon (150g) Wrap (2 wraps) with 2 Tomatoes, Spring Onions & Salad Cream (2 tbsp)",cal:560,p:36,c:48,f:22},{ml:"Salmon fillet (200g) with Baked Potatoes (250g) & Peas (80g)",cal:660,p:42,c:60,f:22},{ml:"Grilled Salmon (150g) with Fried Plantain (2) & Rice (200g cooked)",cal:720,p:38,c:78,f:24},{ml:"Sirloin Steak (250g) with Mashed Potatoes (250g), Carrots (80g) & Gravy",cal:760,p:50,c:58,f:30},{ml:"Creamy Egg Pasta (200g cooked) — 3 Eggs, Cream (2 tbsp), Parmesan (20g) & Black Pepper",cal:660,p:30,c:72,f:28},{ml:"Sirloin Steak (250g) with Sweet Potato Fries (200g), Side Salad & Garlic Butter",cal:780,p:50,c:56,f:36},{ml:"Jollof Rice (300g cooked) with Grilled Chicken (200g), Fried Plantain (1) & Coleslaw",cal:820,p:44,c:86,f:26}]},
+{nm:"Evening Snack",tm:"~9:30 PM",opts:[{ml:"Greek Yoghurt (200g) with Frozen Mixed Berries (60g) & Granola (40g)",cal:320,p:18,c:42,f:10},{ml:"Cottage Cheese (150g) with Mango slices (100g) & 1 tbsp Honey",cal:280,p:22,c:32,f:6},{ml:"Watermelon (300g) & 2 Tangerines",cal:150,p:2,c:36,f:1},{ml:"Smoothie: 1 Banana, Strawberry (80g), Milk (250ml) & 1 tbsp Honey",cal:300,p:10,c:56,f:4},{ml:"2 Doughnuts & Juice (250ml)",cal:380,p:6,c:52,f:18},{ml:"Protein Shake (1 scoop) with 1 tbsp Peanut Butter & Milk (250ml)",cal:360,p:36,c:18,f:16},{ml:"Greek Yoghurt (200g) with 1 tbsp Honey",cal:180,p:20,c:18,f:4},{ml:"Mixed Fruits — Apple, Banana & Grapes (200g)",cal:200,p:2,c:48,f:1},{ml:"2 Weetabix with Milk (250ml) & 1 tbsp Honey",cal:320,p:12,c:58,f:6},{ml:"Chicken & Salad Sandwich (2 slices Bread, Chicken 80g, Lettuce, Tomato & Mayo)",cal:420,p:26,c:40,f:18},{ml:"Chicken Wrap — 1 Tortilla, Chicken (100g), Lettuce, Tomato & Yoghurt Sauce",cal:380,p:28,c:36,f:14}]},
 {nm:"Mass Gainer Shake",tm:"Post-Workout / Anytime",opts:[{ml:"Mass Gainer — 1 scoop with Water (300ml)",cal:625,p:25,c:125,f:3},{ml:"Mass Gainer — 1 scoop with Milk (300ml)",cal:770,p:35,c:140,f:9},{ml:"Mass Gainer — 2 scoops with Milk (500ml)",cal:1250,p:50,c:252,f:12},{ml:"Mass Gainer — 1 scoop with Milk, Banana & Peanut Butter",cal:960,p:42,c:158,f:22},{ml:"Mass Gainer — 2 scoops with Milk, Banana & Oats",cal:1480,p:58,c:280,f:16}]}];
 // ═══════ PLAN GENERATOR ═══════
 function genPlan(p){const{goal,areas,days,level}=p;const inclCardio=p.cardio!==false;const g=GM[goal];const lv=level||"intermediate";const splits=mkSplit(areas,days);const dn=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];const sd={1:[0],2:[0,3],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,4,5],6:[0,1,2,3,4,5]}[days]||[0];
@@ -1050,6 +1081,64 @@ return`<div class="diet-consist"><div class="dc-title">📅 Diet Consistency Tra
 let cmForm={show:false,name:"",cal:"",p:"",c:"",f:"",mealType:"Snack"};
 const MEAL_TYPES=["Breakfast","Lunch","Pre-Workout","Dinner","Evening Snack","Mass Gainer Shake","Snack"];
 let foodSubTab="overview";
+let mealPlanMealsPerDay=4;
+let cachedMealPlan=null;
+// ═══════ MEAL PLAN GENERATOR ═══════
+function getTrainingDays(){
+const sched=S.plan.map(d=>d.sched);
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+return days.map(d=>sched.includes(d));
+}
+function pickRandom(arr,n){const s=[...arr];const r=[];for(let i=0;i<n&&s.length;i++){const idx=Math.floor(Math.random()*s.length);r.push(s.splice(idx,1)[0])}return r}
+function scaleMeal(meal,factor){return{ml:meal.ml,cal:Math.round(meal.cal*factor),p:Math.round(meal.p*factor),c:Math.round(meal.c*factor),f:Math.round(meal.f*factor),origMl:meal.ml,factor}}
+function generateDayMealPlan(isTraining,goal,calTarget,protTarget,mealsPerDay){
+const bfOpts=MEALS.find(m=>m.nm==='Breakfast')?.opts||[];
+const luOpts=MEALS.find(m=>m.nm==='Lunch')?.opts||[];
+const diOpts=MEALS.find(m=>m.nm==='Dinner')?.opts||[];
+const snOpts=(MEALS.find(m=>m.nm==='Evening Snack')?.opts||[]).concat(MEALS.find(m=>m.nm==='Pre-Workout')?.opts||[]);
+// Adjust calorie target: training days get full, rest days get slight deficit
+const dayCalTarget=isTraining?calTarget:Math.round(calTarget*0.88);
+const dayProtTarget=isTraining?protTarget:Math.round(protTarget*0.95);
+// Carb factor: training days get more carbs
+const carbFactor=isTraining?1.0:0.8;
+const plan=[];
+// Decide meal structure based on mealsPerDay
+const bf=pickRandom(bfOpts,1)[0];
+const lu=pickRandom(luOpts,1)[0];
+const di=pickRandom(diOpts,1)[0];
+plan.push({type:'Breakfast',meal:bf});
+plan.push({type:'Lunch',meal:lu});
+plan.push({type:'Dinner',meal:di});
+if(mealsPerDay>=4){const sn=pickRandom(snOpts,1)[0];plan.push({type:'Snack',meal:sn})}
+if(mealsPerDay>=5){const sn2=pickRandom(snOpts.filter(s=>s!==plan[3]?.meal),1)[0]||snOpts[0];plan.push({type:'Snack 2',meal:sn2})}
+if(mealsPerDay>=6){const pw=pickRandom(MEALS.find(m=>m.nm==='Pre-Workout')?.opts||snOpts,1)[0];plan.push({type:'Pre-Workout',meal:pw})}
+// Scale portions to hit calorie target
+const rawTotal=plan.reduce((a,p)=>a+p.meal.cal,0);
+const globalScale=dayCalTarget/rawTotal;
+// Apply per-meal scaling with carb adjustment
+return plan.map(p=>{
+let f=globalScale;
+// On rest days, slightly lower carb-heavy items
+if(!isTraining){const n=p.meal.ml.toLowerCase();const isCarby=n.includes('rice')||n.includes('oats')||n.includes('potato')||n.includes('pasta')||n.includes('plantain')||n.includes('bread')||n.includes('toast');if(isCarby)f*=carbFactor}
+const scaled=scaleMeal(p.meal,f);
+return{type:p.type,...scaled}
+});
+}
+function generateWeekMealPlan(){
+const prof=S.user?.profile;if(!prof)return null;
+const goal=prof.goal||'general';
+const cal=S.nutri?.cal||2500;
+const prot=S.nutri?.protein||150;
+const mpd=mealPlanMealsPerDay;
+const training=getTrainingDays();
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+return days.map((d,i)=>({
+day:d,
+isTraining:training[i],
+meals:generateDayMealPlan(training[i],goal,cal,prot,mpd)
+}));
+}
+function refreshMealPlan(){cachedMealPlan=generateWeekMealPlan();rFood()}
 const MEAL_EMOJI_MAP={oats:'🥣',egg:'🍳',bacon:'🥓',pancake:'🥞',yoghurt:'🥛',yogurt:'🥛',bread:'🍞',toast:'🍞',chicken:'🍗',wrap:'🌯',rice:'🍚',spaghetti:'🍝',pasta:'🍝',indomie:'🍜',steak:'🥩',salmon:'🐟',shrimp:'🦐',plantain:'🍌',lamb:'🍖',smoothie:'🥤',watermelon:'🍉',doughnut:'🍩',mass:'🥤',gainer:'🥤',apple:'🍎',peanut:'🥜',granola:'🥣',cottage:'🧀',mango:'🥭',juice:'🧃',potato:'🥔',fries:'🍟',default:'🍽️'};
 function getMealEmoji(name){const n=name.toLowerCase();for(const[k,v]of Object.entries(MEAL_EMOJI_MAP)){if(n.includes(k))return v}return MEAL_EMOJI_MAP.default}
 function getMealGrad(mealType){const grads={Breakfast:'linear-gradient(135deg,#1a1508 0%,#2d250d 50%,#3d3012 100%)',Lunch:'linear-gradient(135deg,#081a0d 0%,#0d2d15 50%,#123d1a 100%)',Dinner:'linear-gradient(135deg,#0d0815 0%,#150d25 50%,#1d1235 100%)','Pre-Workout':'linear-gradient(135deg,#1a0d08 0%,#2d150d 50%,#3d1a12 100%)','Evening Snack':'linear-gradient(135deg,#08101a 0%,#0d1a2d 50%,#12223d 100%)','Mass Gainer Shake':'linear-gradient(135deg,#0a1a0a 0%,#152d15 50%,#1a3d1a 100%)'};return grads[mealType]||'linear-gradient(135deg,#111 0%,#1a1a1a 50%,#222 100%)'}
@@ -1090,7 +1179,36 @@ const RECIPE_STEPS={
 "Mass Gainer — 1 scoop with Milk (300ml)":["Add 300ml cold milk to a shaker bottle.","Add one scoop of mass gainer powder.","Shake well for 30 seconds. Milk makes it creamier and adds extra calories."],
 "Mass Gainer — 2 scoops with Milk (500ml)":["Add 500ml cold milk to a large shaker or blender.","Add two scoops of mass gainer powder.","Blend or shake for 30–45 seconds. May be thick — add more milk if needed."],
 "Mass Gainer — 1 scoop with Milk, Banana & Peanut Butter":["Add milk, banana, and one tablespoon of peanut butter to a blender.","Add one scoop of mass gainer powder.","Blend until smooth. Pour and drink."],
-"Mass Gainer — 2 scoops with Milk, Banana & Oats":["Add milk, banana, and oats to a blender.","Add two scoops of mass gainer powder.","Blend until smooth. This is a thick shake — add more milk to thin if needed."]
+"Mass Gainer — 2 scoops with Milk, Banana & Oats":["Add milk, banana, and oats to a blender.","Add two scoops of mass gainer powder.","Blend until smooth. This is a thick shake — add more milk to thin if needed."],
+"Oats (80g) with Mixed Berries (50g), 1 tbsp Honey, Whole Milk (200ml) & ½ Avocado":["Add oats and whole milk to a saucepan. Cook on medium heat for 3–4 mins, stirring.","Transfer to a bowl. Top with mixed berries.","Halve the avocado and slice. Arrange on the side.","Drizzle honey over the oats and serve."],
+"Protein Pancakes (3) — Oats (50g), Protein Powder (30g), 1 Egg, Milk (100ml) with ½ Avocado & 3 Bacon rashers":["Blend oats, protein powder, egg, and milk into a smooth batter.","Heat a non-stick pan on medium. Pour a ladleful and cook until bubbles form, about 2 mins. Flip and cook 1 min more.","Repeat for 3 pancakes.","Meanwhile, grill or fry bacon until crispy, about 4 mins per side.","Stack pancakes, lay bacon alongside, and add sliced avocado."],
+"3 Scrambled Eggs with Cheddar (30g), 2 Wholemeal Toast & 2 Sausages":["Grill or pan-fry sausages for 8–10 mins, turning occasionally.","Crack eggs into a bowl, season with salt and pepper, whisk.","Scramble eggs in a buttered non-stick pan on low heat, stirring gently. When nearly set, fold in grated cheddar.","Toast wholemeal bread and serve everything together."],
+"Oats (80g) with Mixed Berries (50g), 1 tbsp Honey, Whole Milk (200ml) & 2 Boiled Eggs":["Boil eggs for 8–10 mins for hard-boiled. Cool in cold water, then peel.","Cook oats with milk on medium heat for 3–4 mins. Transfer to bowl.","Top with berries, drizzle honey.","Serve boiled eggs on the side."],
+"Oats (80g) with Mixed Berries (50g), 1 tbsp Honey, Whole Milk (200ml), ½ Avocado & 1 Boiled Egg":["Boil egg for 8–10 mins. Cool and peel.","Cook oats with milk for 3–4 mins. Transfer to bowl.","Top with berries and drizzle honey.","Halve and slice avocado. Serve alongside with the boiled egg."],
+"1 Avocado on 2 Toast with 2 Poached Eggs & Cherry Tomatoes (80g)":["Toast bread until golden.","Halve the avocado, remove the pit, and mash onto the toast with a fork. Season with salt and pepper.","Bring water to a gentle simmer. Crack each egg into a small cup and slide into the water. Poach for 3–4 mins.","Halve cherry tomatoes. Place poached eggs on the avocado toast and scatter tomatoes around. Season."],
+"Oats (80g) with 1 Banana, Greek Yoghurt (150g) & 1 tbsp Honey":["Cook oats with water or milk for 3–4 mins.","Transfer to bowl. Slice banana on top.","Add a generous dollop of Greek yoghurt.","Drizzle honey over and serve."],
+"English Breakfast — 2 Eggs, 2 Bacon rashers, 2 Toast, Baked Beans (150g) & 1 Sausage":["Grill or fry sausage and bacon for 8–10 mins, turning occasionally.","Fry or scramble eggs to your preference.","Warm baked beans in a small saucepan on medium heat for 3–4 mins.","Toast bread. Plate everything together and serve."],
+"Potatoes (250g) with 3 Eggs, 2 Bacon rashers, ½ Onion & ½ Bell Pepper":["Peel and dice potatoes into small cubes. Boil for 8 mins or until just tender. Drain.","Fry bacon until crispy. Remove and set aside.","In the same pan, sauté diced onion and bell pepper for 2 mins. Add potatoes and fry until golden, about 5 mins.","Push potatoes aside, crack eggs into the pan and scramble or fry. Serve topped with bacon."],
+"Sirloin Steak (150g) with 2 Fried Eggs & ½ Avocado":["Bring steak to room temperature. Season generously with salt and pepper.","Sear in a very hot pan with oil for 3–4 mins per side (medium). Rest 5 mins.","Fry eggs in the same pan until whites are set but yolks are still runny.","Slice avocado. Plate steak with eggs and avocado alongside."],
+"Grilled Chicken Breast (200g) with Potatoes (250g), Carrots (80g) & Peas (60g)":["Season chicken breast with salt, pepper, and a drizzle of olive oil. Grill or pan-fry for 6–7 mins per side until cooked through.","Peel and dice potatoes. Boil for 15–18 mins until tender. Drain.","Boil or steam carrots and peas for 5 mins.","Plate chicken with potatoes and vegetables. Season to taste."],
+"6 Chicken Wings with Fried Rice (250g cooked), Peas (60g) & Spring Onions":["Season wings with salt, pepper, and paprika. Bake at 200°C for 25–30 mins, flipping halfway.","Cook rice or use leftover cold rice for best fried rice.","Heat oil in a wok, add peas, stir 1 min. Add rice and toss on high heat for 3–4 mins.","Slice spring onions, toss through the rice. Serve wings on top."],
+"Fried Rice (250g cooked) with Salmon fillet (150g), Peas (60g) & Soy Sauce (1 tbsp)":["Season salmon with salt and pepper. Pan-fry skin-side down for 4 mins, flip and cook 3 mins more.","Heat oil in a wok. Add peas, stir 1 min. Add cooked rice and toss on high heat.","Add soy sauce and toss to coat evenly.","Flake or place salmon on top of the rice and serve."],
+"2 packs Indomie stir-fry with ½ Bell Pepper, ½ Onion, Spring Onions & 1 Egg":["Cook Indomie noodles for 2 mins, drain, toss with seasoning packets.","Dice bell pepper and onion. Slice spring onions.","Heat oil in a wok, scramble the egg, then push aside.","Add vegetables, stir-fry 1 min. Add noodles and toss everything together."],
+"Boiled Plantain (2) with Tomato Stew (100g), 2 Boiled Eggs & ½ Avocado":["Peel plantain and cut into chunks. Boil in salted water for 15–20 mins until tender. Drain.","Boil eggs for 10 mins. Cool in cold water, then peel.","Warm tomato stew in a saucepan (or make fresh: blend tomatoes, onion, pepper; fry in oil for 10 mins).","Plate plantain, pour stew over, and serve with eggs and sliced avocado."],
+"Shrimp Pasta (200g cooked) — Shrimps (150g), Garlic, Olive Oil (1 tbsp), Parsley & Chilli Flakes":["Cook pasta in salted boiling water until al dente. Drain, reserving a splash of pasta water.","Heat olive oil in a pan. Sauté minced garlic for 30 seconds until fragrant.","Add shrimps and chilli flakes. Cook 2–3 mins until shrimps are pink.","Toss in pasta and a splash of pasta water. Garnish with fresh parsley."],
+"Grilled Chicken (200g) with Spicy Fried Rice (250g cooked), ½ Bell Pepper & Scotch Bonnet":["Season chicken with salt, pepper, and paprika. Grill or pan-fry 6–7 mins per side.","Heat oil in a wok. Dice bell pepper and scotch bonnet (remove seeds for less heat). Stir-fry 1 min.","Add cooked rice, toss on high heat for 3–4 mins until slightly crispy.","Slice chicken and serve on top of the spicy fried rice."],
+"Salmon fillet (200g) with Baked Potatoes (250g) & Peas (80g)":["Preheat oven to 200°C. Scrub potatoes and prick with a fork. Bake for 45–50 mins until soft inside.","Season salmon with salt, pepper, and lemon juice. Bake alongside for the last 12–15 mins.","Boil peas for 3 mins. Drain.","Split baked potatoes, add butter if desired. Serve with salmon and peas."],
+"Grilled Salmon (150g) with Fried Plantain (2) & Rice (200g cooked)":["Cook rice according to packet instructions.","Season salmon with salt and pepper. Grill or pan-fry for 4 mins per side.","Peel and slice plantain diagonally. Fry in oil on medium heat until golden on both sides. Drain on paper towel.","Plate rice with salmon and fried plantain alongside."],
+"Sirloin Steak (250g) with Mashed Potatoes (250g), Carrots (80g) & Gravy":["Peel and chop potatoes. Boil for 15–20 mins until tender. Drain and mash with butter and a splash of milk.","Boil or steam carrots for 5 mins.","Bring steak to room temperature. Season with salt and pepper. Sear in a very hot pan for 3–4 mins per side. Rest 5 mins.","Make gravy from pan juices: add a splash of stock, stir and simmer 2 mins. Pour over steak and serve."],
+"Creamy Egg Pasta (200g cooked) — 3 Eggs, Cream (2 tbsp), Parmesan (20g) & Black Pepper":["Cook pasta in salted boiling water until al dente. Drain, reserving a cup of pasta water.","Whisk eggs, cream, grated Parmesan, and plenty of black pepper in a bowl.","Return hot pasta to the pan off the heat. Pour egg mixture over and toss quickly — the residual heat cooks the eggs into a creamy sauce.","Add splashes of pasta water to loosen if needed. Serve immediately."],
+"Sirloin Steak (250g) with Sweet Potato Fries (200g), Side Salad & Garlic Butter":["Peel and cut sweet potatoes into fries. Toss with oil, salt, and paprika. Bake at 220°C for 20–25 mins, flipping halfway.","Bring steak to room temperature. Season well. Sear in a very hot pan for 3–4 mins per side. Rest 5 mins.","Mix softened butter with minced garlic and parsley. Top the steak with garlic butter.","Toss salad leaves with a light dressing. Serve alongside steak and fries."],
+"Jollof Rice (300g cooked) with Grilled Chicken (200g), Fried Plantain (1) & Coleslaw":["Blend tomatoes, onion, scotch bonnet, and bell pepper. Fry the paste in oil for 10 mins. Add rice, stock, and seasoning. Cook covered on low for 25–30 mins.","Season chicken with salt, pepper, and suya spice or paprika. Grill or bake for 20 mins.","Slice plantain and fry until golden. Drain.","Mix shredded cabbage and carrot with mayo for coleslaw. Plate everything together."],
+"Protein Shake (1 scoop) with 1 tbsp Peanut Butter & Milk (250ml)":["Add cold milk to a shaker or blender.","Add one scoop of protein powder and peanut butter.","Blend or shake vigorously for 30 seconds until smooth. Drink immediately."],
+"Greek Yoghurt (200g) with 1 tbsp Honey":["Spoon yoghurt into a bowl.","Drizzle honey over the top.","Enjoy as a quick high-protein snack."],
+"Mixed Fruits — Apple, Banana & Grapes (200g)":["Wash apple and grapes. Core and slice the apple.","Peel and slice the banana.","Arrange all fruits on a plate or in a bowl."],
+"2 Weetabix with Milk (250ml) & 1 tbsp Honey":["Place Weetabix in a bowl.","Pour cold or warm milk over them.","Drizzle honey on top and serve."],
+"Chicken & Salad Sandwich (2 slices Bread, Chicken 80g, Lettuce, Tomato & Mayo)":["Slice or shred cooked chicken.","Wash and dry lettuce. Slice tomato.","Spread mayo on both bread slices. Layer chicken, lettuce, and tomato.","Close sandwich, cut diagonally, and serve."],
+"Chicken Wrap — 1 Tortilla, Chicken (100g), Lettuce, Tomato & Yoghurt Sauce":["Slice or shred cooked chicken.","Wash lettuce and slice tomato.","Warm tortilla in a dry pan for 30 seconds.","Layer chicken, lettuce, tomato, and a drizzle of yoghurt sauce. Roll tightly."]
 };
 function getRecipeSteps(mealName){if(RECIPE_STEPS[mealName])return RECIPE_STEPS[mealName];const n=mealName.toLowerCase();if(n.includes('toast')||n.includes('bread'))return["Toast bread until golden.","Prepare toppings and spreads.","Assemble and serve."];if(n.includes('scrambl')||n.includes('egg'))return["Crack eggs and whisk with seasoning.","Cook in a non-stick pan on low-medium heat, stirring gently.","Serve when just set — don't overcook."];if(n.includes('rice'))return["Cook rice according to packet instructions.","Prepare protein and vegetables separately.","Plate together and season to taste."];if(n.includes('pasta')||n.includes('spaghetti'))return["Cook pasta in salted boiling water until al dente. Drain.","Prepare sauce in a separate pan.","Toss pasta with sauce and serve."];if(n.includes('wrap'))return["Prepare filling ingredients.","Warm wraps in a dry pan for 30 seconds each side.","Fill, roll tightly, and serve."];if(n.includes('smoothie')||n.includes('shake')||n.includes('gainer'))return["Add liquid base to blender or shaker.","Add remaining ingredients.","Blend or shake until smooth. Serve immediately."];return["Prep all ingredients — wash, peel, and chop as needed.","Cook protein first, then vegetables.","Combine, season to taste, and serve."]}
 function showRecipeDetail(mealType,mealName,cal,p,c,f,mi,oi){
@@ -1118,15 +1236,47 @@ renderDietConsistency()+
 (cmForm.show?`<div class="cm-form"><div class="cm-title">🍽️ Add Custom Meal</div><div class="cm-grp" style="margin-bottom:8px"><label>Meal Name</label><input class="cm-inp full" type="text" placeholder="e.g. Grilled chicken salad" value="${esc(cmForm.name)}" oninput="cmForm.name=this.value" maxlength="60"></div><div class="cm-grp" style="margin-bottom:8px"><label>Meal Category</label><div class="pills" style="margin-bottom:0;padding-bottom:0">${MEAL_TYPES.map(mt=>`<button class="pill ${cmForm.mealType===mt?'on':''}" onclick="cmForm.mealType='${mt}';rFood()">${mt}</button>`).join("")}</div></div><div class="cm-row"><div class="cm-grp"><label>Calories</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="500" value="${cmForm.cal}" oninput="cmForm.cal=this.value"></div><div class="cm-grp"><label>Protein (g)</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="30" value="${cmForm.p}" oninput="cmForm.p=this.value"></div></div><div class="cm-row"><div class="cm-grp"><label>Carbs (g)</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="50" value="${cmForm.c}" oninput="cmForm.c=this.value"></div><div class="cm-grp"><label>Fat (g)</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="15" value="${cmForm.f}" oninput="cmForm.f=this.value"></div></div><div class="cm-actions"><button class="s-btn pri" onclick="logCustomMeal()">+ Log Now</button><button class="s-btn grn" onclick="saveCustomMeal()">💾 Save & Log</button></div><div class="cm-actions"><button class="s-btn out" onclick="cmForm.show=false;rFood()">Cancel</button></div></div>`:`<button class="s-btn pri" style="margin-bottom:12px" onclick="cmForm.show=true;rFood()">🍽️ Add Custom Meal</button>`)+
 (S.customMeals.length?`<div class="cm-saved"><div class="cm-saved-title">⭐ My Saved Meals (${S.customMeals.length})</div>${S.customMeals.map((m,i)=>{const lg=dl.some(l=>l.customIdx===i&&l.isCustom);return`<div class="cm-saved-item ${lg?'meal-o logged':''}"><div style="flex:1"><div class="meal-tx">${esc(m.name)}</div><div class="meal-mc">${m.cal} kcal · ${m.p}P · ${m.c}C · ${m.f}F</div><div style="font-size:9px;color:var(--sub)">${m.mealType}</div></div><div class="cm-saved-btns"><button class="log-btn add" onclick="logSavedMeal(${i})">+ Log</button><button class="log-btn rem" onclick="delSavedMeal(${i})">✕</button></div></div>`}).join("")}</div>`:'')+rFH()}
 function rFood(){const el=document.getElementById("tab-food");const tk=tdk();const dl=S.flog[tk]||[];const tl=dl.reduce((a,m)=>({cal:a.cal+m.cal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}),{cal:0,p:0,c:0,f:0});const t=S.nutri;
-const FOOD_TABS=[{id:'overview',label:'Overview',icon:'📊'},{id:'breakfast',label:'Breakfast',icon:'🍳'},{id:'lunch',label:'Lunch',icon:'🍗'},{id:'dinner',label:'Dinner',icon:'🍽️'},{id:'snacks',label:'Snacks',icon:'🥤'}];
+const FOOD_TABS=[{id:'overview',label:'Overview',icon:'📊'},{id:'mealplan',label:'Meal Plan',icon:'📋'},{id:'breakfast',label:'Breakfast',icon:'🍳'},{id:'lunch',label:'Lunch',icon:'🍗'},{id:'dinner',label:'Dinner',icon:'🍽️'},{id:'snacks',label:'Snacks',icon:'🥤'}];
 const tabBar=`<div class="ntab-bar">${FOOD_TABS.map(ft=>`<button class="ntab-btn${foodSubTab===ft.id?' on':''}" onclick="foodSubTab='${ft.id}';rFood()">${ft.icon} ${ft.label}</button>`).join('')}</div>`;
 let content='';
 if(foodSubTab==='overview'){content=rFoodOverview(dl,tl,t)}
+else if(foodSubTab==='mealplan'){content=rMealPlan()}
 else if(foodSubTab==='breakfast'){const mi=MEALS.findIndex(m=>m.nm==='Breakfast');content=mi>=0?`<div class="sec-title">🍳 Breakfast · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):''}
 else if(foodSubTab==='lunch'){const mi=MEALS.findIndex(m=>m.nm==='Lunch');content=mi>=0?`<div class="sec-title">🍗 Lunch · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):'';const pw=MEALS.findIndex(m=>m.nm==='Pre-Workout');if(pw>=0)content+=`<div class="sec-title" style="margin-top:16px">⚡ Pre-Workout · ${MEALS[pw].tm}</div>`+rMealCards(MEALS[pw],pw)}
 else if(foodSubTab==='dinner'){const mi=MEALS.findIndex(m=>m.nm==='Dinner');content=mi>=0?`<div class="sec-title">🍽️ Dinner · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):''}
 else if(foodSubTab==='snacks'){const es=MEALS.findIndex(m=>m.nm==='Evening Snack');const mg=MEALS.findIndex(m=>m.nm==='Mass Gainer Shake');content='';if(es>=0)content+=`<div class="sec-title">🌙 Evening Snack · ${MEALS[es].tm}</div>`+rMealCards(MEALS[es],es);if(mg>=0)content+=`<div class="sec-title" style="margin-top:16px">🥤 Mass Gainer · ${MEALS[mg].tm}</div>`+rMealCards(MEALS[mg],mg)}
 el.innerHTML=tabBar+content}
+function rMealPlan(){
+if(!cachedMealPlan)cachedMealPlan=generateWeekMealPlan();
+const wp=cachedMealPlan;
+if(!wp)return'<div class="intro" style="text-align:center;padding:20px">Complete onboarding to generate a meal plan.</div>';
+const prof=S.user?.profile||{};
+const goalLabels={muscle_gain:'Muscle Gain',fat_loss:'Fat Loss',general:'General Fitness',strength:'Strength',endurance:'Endurance'};
+let h=`<div class="sec-title">📋 Your Weekly Meal Plan</div>`;
+h+=`<p class="intro" style="text-align:center;margin-bottom:10px">Personalised for <b style="color:var(--tx)">${goalLabels[prof.goal]||'General'}</b> · ${S.nutri?.cal||2500} kcal target · ${prof.days||4} training days</p>`;
+h+=`<div class="mp-legend"><span><div class="dot t"></div> Training Day</span><span><div class="dot r"></div> Rest Day</span></div>`;
+h+=`<div class="mp-controls"><div class="mp-mpd"><label>Meals/day:</label><select onchange="mealPlanMealsPerDay=+this.value;cachedMealPlan=null;rFood()">${[3,4,5,6].map(n=>`<option value="${n}"${mealPlanMealsPerDay===n?' selected':''}>${n} meals</option>`).join('')}</select></div><button class="mp-refresh" onclick="refreshMealPlan()">🔄 Shuffle Plan</button></div>`;
+const today=new Date().toLocaleDateString('en-US',{weekday:'long'});
+wp.forEach(d=>{
+const isToday=d.day===today;
+const totals=d.meals.reduce((a,m)=>({cal:a.cal+m.cal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}),{cal:0,p:0,c:0,f:0});
+h+=`<div class="mp-day" style="${isToday?'border-color:var(--amb);':''}">`;
+h+=`<div class="mp-day-head"><div><div class="mp-day-name">${isToday?'📍 ':''} ${d.day}</div></div><div class="mp-day-badge ${d.isTraining?'train':'rest'}">${d.isTraining?'💪 Training':'😴 Rest'}</div></div>`;
+h+=`<div class="mp-day-body">`;
+d.meals.forEach(m=>{
+const emoji=getMealEmoji(m.ml);
+h+=`<div class="mp-meal-row" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})" style="cursor:pointer">`;
+h+=`<div class="mp-meal-emoji">${emoji}</div>`;
+h+=`<div class="mp-meal-info"><div class="mp-meal-type">${m.type}</div><div class="mp-meal-name">${m.ml}</div>`;
+h+=`<div class="mp-meal-macros"><span class="cal">${m.cal} kcal</span><span class="pro">${m.p}g P</span><span class="carb">${m.c}g C</span><span class="fat">${m.f}g F</span></div>`;
+h+=`</div></div>`;
+});
+h+=`<div class="mp-day-totals"><div><div class="tv" style="color:var(--amb)">${totals.cal}</div><div class="tl">kcal</div></div><div><div class="tv" style="color:#EF4444">${totals.p}g</div><div class="tl">protein</div></div><div><div class="tv" style="color:#3B82F6">${totals.c}g</div><div class="tl">carbs</div></div><div><div class="tv" style="color:#A855F7">${totals.f}g</div><div class="tl">fat</div></div></div>`;
+h+=`</div></div>`;
+});
+h+=`<div style="text-align:center;margin:16px 0;font-size:10px;color:var(--sub)">Portions auto-scaled to your ${S.nutri?.cal||2500} kcal target. Training days have higher carbs. Tap any meal for recipe details.</div>`;
+return h;
+}
 function logCustomMeal(){const nm=cmForm.name.trim();const cal=+cmForm.cal;if(!nm){alert("Enter a meal name!");return}if(!cal||cal<=0){alert("Enter calories!");return}const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];S.flog[tk].push({meal:cmForm.mealType,ml:nm,cal:cal,p:+cmForm.p||0,c:+cmForm.c||0,f:+cmForm.f||0,isCustom:true});savFlog();updHdr();cmForm={show:false,name:"",cal:"",p:"",c:"",f:"",mealType:"Snack"};rFood()}
 function saveCustomMeal(){const nm=cmForm.name.trim();const cal=+cmForm.cal;if(!nm){alert("Enter a meal name!");return}if(!cal||cal<=0){alert("Enter calories!");return}S.customMeals.push({name:nm,cal:cal,p:+cmForm.p||0,c:+cmForm.c||0,f:+cmForm.f||0,mealType:cmForm.mealType});savCMeals();logCustomMeal()}
 function logSavedMeal(i){const m=S.customMeals[i];if(!m)return;const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];S.flog[tk].push({meal:m.mealType,ml:m.name,cal:m.cal,p:m.p,c:m.c,f:m.f,isCustom:true,customIdx:i});savFlog();updHdr();rFood()}
