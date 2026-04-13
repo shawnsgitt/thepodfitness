@@ -1584,14 +1584,11 @@ const consistencyPts=Math.round(((s.completionRate||0)/100)*50);const raw=sessio
 const ratingMult=s.avgRating?Math.max(0.6,s.avgRating/5):0.8;return Math.round(raw*ratingMult)}
 
 async function syncLeaderboard(){
-if(!S.user)return;
-const stats=calcUserStats(S.user.id);
-if(!stats)return;
-try{const board=LS("sp-leaderboard")||[];const idx=board.findIndex(e=>e.userId===stats.userId);
-stats.score=calcScoreLocal(stats);
-if(idx>=0){board[idx]=stats}else{board.push(stats)}
+const ids=LS("sp-user-ids")||[];
+const board=ids.map(id=>{const stats=calcUserStats(id);if(!stats)return null;stats.score=calcScoreLocal(stats);return stats}).filter(Boolean);
 board.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
-board.forEach((e,i)=>{e.rank=i+1});SS("sp-leaderboard",board)}catch(e){console.log("Leaderboard sync failed")}}
+board.forEach((e,i)=>{e.rank=i+1});
+SS("sp-leaderboard",board)}
 
 async function fetchLeaderboard(){
 try{const board=LS("sp-leaderboard")||[];return board}catch(e){return null}}
@@ -1625,16 +1622,9 @@ return`<div class="card" style="display:flex;align-items:center;gap:12px;${isMe?
 
 async function rLeaders(){const el=document.getElementById("tab-leaders");
 el.innerHTML=`<div style="text-align:center;padding:40px 20px"><div style="font-size:28px;margin-bottom:8px">🏆</div><div style="font-size:12px;color:var(--sub)">Loading leaderboard...</div></div>`;
-// Sync current user first
+// Sync all profiles and render
 await syncLeaderboard();
-// Try to fetch shared leaderboard from server
-const remote=await fetchLeaderboard();
-if(remote){renderBoard(remote,el);return}
-// Fallback to local data if offline
-const ids=LS("sp-user-ids")||[];
-const board=ids.map(id=>{const stats=calcUserStats(id);if(!stats)return null;stats.score=calcScoreLocal(stats);return stats}).filter(Boolean);
-board.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
-board.forEach((e,i)=>{e.rank=i+1});
+const board=LS("sp-leaderboard")||[];
 renderBoard(board,el)}
 
 // ═══════ NOTES TAB ═══════
