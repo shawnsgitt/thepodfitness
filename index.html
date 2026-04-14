@@ -1525,7 +1525,7 @@ else{loadAdminPanel()}}
 
 async function verifyAdmin(){const pin=document.getElementById("adminPin").value;const err=document.getElementById("adminErr");
 if(!pin){err.textContent="Enter a PIN";return}
-try{const storedPin=LS("sp-admin-pin")||"1234";
+try{const storedPin=LS("sp-admin-pin")||"6666";
 if(pin===storedPin){adminVerified=true;adminPinVal=pin;rAdminArea()}else{err.textContent="Invalid PIN"}}catch(e){err.textContent="Could not verify"}}
 
 async function loadAdminPanel(){const el=document.getElementById("adminArea");
