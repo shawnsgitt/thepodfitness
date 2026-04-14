@@ -1516,7 +1516,7 @@ el.innerHTML=`<div class="more-nav-grid"><div class="more-nav-item" onclick="swT
 // Data management
 `<div class="log-t" style="margin-top:16px">🗑️ Data</div><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset logs?')){S.logs={};savLogs();updHdr();rSet()}">Reset Workout Logs</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset food?')){S.flog={};savFlog();updHdr();rSet()}">Reset Food Log</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset saved meals?')){S.customMeals=[];savCMeals();rSet()}">Reset Saved Meals</button><button class="rst-btn" style="margin:0" onclick="deleteMyProfile()">Delete Profile</button>`+
 // Admin panel
-`<div class="log-t" style="margin-top:16px">🎨 Appearance</div><div class="card" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px">Theme</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--sub)">${S.theme==='dark'?'🌙 Dark':'☀️ Light'}</span><button class="theme-toggle" onclick="toggleTheme();rSet()"><div class="toggle-thumb"></div></button></div></div></div><div class="log-t" style="margin-top:16px">📤 Data Export</div><div class="card" style="margin-top:8px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportWorkoutCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📋 Workout Log</button><button class="btn" onclick="exportMeasurementsCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📏 Measurements</button><button class="btn" onclick="exportNutritionCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">🍎 Nutrition</button></div></div><div class="log-t" style="margin-top:16px">⏱ Rest Timer</div><div class="card" style="margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--sub)">Default rest:</span><select style="padding:4px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);font-size:12px" onchange="S.restPref=+this.value;SS('sp-rest-'+S.user.id,S.restPref)">${[0,15,30,45,60,90,120,180].map(v=>`<option value="${v}" ${S.restPref===v?'selected':''}>${v===0?'Off':v<60?v+'s':v/60+'m'}</option>`).join('')}</select></div><div style="font-size:10px;color:var(--sub);margin-top:4px">Timer starts automatically after completing a set</div></div><div class="log-t" style="margin-top:16px">🔐 Admin</div><div id="adminArea"></div>`;rAdminArea()}
+`<div class="log-t" style="margin-top:16px">🎨 Appearance</div><div class="card" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px">Theme</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--sub)">${S.theme==='dark'?'🌙 Dark':'☀️ Light'}</span><button class="theme-toggle" onclick="toggleTheme();rSet()"><div class="toggle-thumb"></div></button></div></div></div><div class="log-t" style="margin-top:16px">📤 Data Export</div><div class="card" style="margin-top:8px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportWorkoutCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📋 Workout Log</button><button class="btn" onclick="exportMeasurementsCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📏 Measurements</button><button class="btn" onclick="exportNutritionCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">🍎 Nutrition</button></div></div><div class="log-t" style="margin-top:16px">⏱ Rest Timer</div><div class="card" style="margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--sub)">Default rest:</span><select style="padding:4px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);font-size:12px" onchange="S.restPref=+this.value;SS('sp-rest-'+S.user.id,S.restPref)">${[0,15,30,45,60,90,120,180].map(v=>`<option value="${v}" ${S.restPref===v?'selected':''}>${v===0?'Off':v<60?v+'s':v/60+'m'}</option>`).join('')}</select></div><div style="font-size:10px;color:var(--sub);margin-top:4px">Timer starts automatically after completing a set</div></div><div class="log-t" style="margin-top:16px">☁️ Cloud Leaderboard</div><div class="card" style="margin-top:8px"><div style="font-size:10px;color:var(--sub);margin-bottom:8px;line-height:1.5">Connect a GitHub token so the leaderboard syncs across all devices. Create a <b style="color:var(--tx)">fine-grained Personal Access Token</b> at GitHub &rarr; Settings &rarr; Developer Settings &rarr; Fine-grained tokens. Scope: <b style="color:var(--tx)">shawnsgitt/thepodfitness</b> only, permission: <b style="color:var(--tx)">Contents: Read and write</b>.</div><div style="display:flex;gap:6px;align-items:center"><input id="lbTokenInp" type="password" placeholder="github_pat_..." value="${getLBToken()}" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);font-size:11px;font-family:monospace"><button class="set-edit" onclick="const v=document.getElementById('lbTokenInp').value.trim();SS('sp-lb-token',v);alert(v?'Token saved! Leaderboard will now sync across devices.':'Token cleared.');rSet()">Save</button></div><div style="font-size:9px;margin-top:6px;color:${getLBToken()?'var(--grn)':'var(--sub)'}">${getLBToken()?'✅ Token set — leaderboard syncs to cloud':'⚠️ No token — leaderboard is local only'}</div></div><div class="log-t" style="margin-top:16px">🔐 Admin</div><div id="adminArea"></div>`;rAdminArea()}
 
 let adminVerified=false;let adminPinVal="";
 function rAdminArea(){const el=document.getElementById("adminArea");if(!el)return;
@@ -1535,11 +1535,11 @@ if(!board.length){cont.innerHTML=`<div style="text-align:center;padding:16px;fon
 cont.innerHTML=board.map(u=>`<div class="admin-user"><div style="font-size:22px;flex-shrink:0">${u.avatar}</div><div class="au-info"><div class="au-name">${esc(u.name)}${u.userId===S.user?.id?' (You)':''}</div><div class="au-meta">${u.sessions} sessions · ${u.score} pts · Last: ${u.lastSession?new Date(u.lastSession).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'Never'}</div></div><button class="admin-del" onclick="adminDeleteUser('${u.userId}','${esc(u.name)}')">Delete</button></div>`).join("")}catch(e){document.getElementById("adminUsers").innerHTML=`<div style="color:var(--red);font-size:10px">Failed to load profiles</div>`}}
 
 async function adminDeleteUser(userId,name){if(!confirm('Delete '+name+' from leaderboard?'))return;
-try{const board=LS("sp-leaderboard")||[];SS("sp-leaderboard",board.filter(e=>e.userId!==userId));loadAdminPanel()}catch(e){alert("Failed to delete")}}
+try{const board=LS("sp-leaderboard")||[];const updated=board.filter(e=>e.userId!==userId);SS("sp-leaderboard",updated);if(getLBToken())await cloudWriteBoard(updated);loadAdminPanel()}catch(e){alert("Failed to delete")}}
 
 async function adminDeleteAll(){if(!confirm('Delete ALL profiles from leaderboard? This cannot be undone.'))return;
 if(!confirm('Are you really sure? This deletes everyone.'))return;
-try{SS("sp-leaderboard",[]);loadAdminPanel()}catch(e){alert("Failed to delete")}}
+try{SS("sp-leaderboard",[]);if(getLBToken())await cloudWriteBoard([]);loadAdminPanel()}catch(e){alert("Failed to delete")}}
 
 function editProfField(k){
   const p=S.user.profile;
@@ -1583,15 +1583,56 @@ const sessionPts=(s.sessions||0)*10;const streakPts=(s.streak||0)*15;const setPt
 const consistencyPts=Math.round(((s.completionRate||0)/100)*50);const raw=sessionPts+streakPts+setPts+consistencyPts;
 const ratingMult=s.avgRating?Math.max(0.6,s.avgRating/5):0.8;return Math.round(raw*ratingMult)}
 
+const LB_REPO="shawnsgitt/thepodfitness";
+const LB_FILE="leaderboard.json";
+const LB_READ_URL=`https://raw.githubusercontent.com/${LB_REPO}/main/${LB_FILE}`;
+const LB_API_URL=`https://api.github.com/repos/${LB_REPO}/contents/${LB_FILE}`;
+function getLBToken(){return LS("sp-lb-token")||""}
+
+async function cloudReadBoard(){
+try{const r=await fetch(LB_READ_URL+"?t="+Date.now());if(!r.ok)throw new Error();const d=await r.json();return d.leaderboard||[]}catch{return null}}
+
+async function cloudWriteBoard(board){
+const token=getLBToken();if(!token)return false;
+try{
+// Get current file SHA
+const meta=await fetch(LB_API_URL,{headers:{"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json"}});
+if(!meta.ok)throw new Error("meta fetch failed");
+const{sha}=await meta.json();
+const content=btoa(unescape(encodeURIComponent(JSON.stringify({leaderboard:board},null,2))));
+const res=await fetch(LB_API_URL,{method:"PUT",headers:{"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json","Content-Type":"application/json"},
+body:JSON.stringify({message:"chore: sync leaderboard",content,sha})});
+return res.ok;
+}catch(e){console.log("Cloud write failed:",e);return false}}
+
 async function syncLeaderboard(){
+// Build local stats for all profiles on this device
+if(!LS("sp-device-id")){SS("sp-device-id","d_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6))}
+const deviceId=LS("sp-device-id");
 const ids=LS("sp-user-ids")||[];
-const board=ids.map(id=>{const stats=calcUserStats(id);if(!stats)return null;stats.score=calcScoreLocal(stats);return stats}).filter(Boolean);
-board.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
-board.forEach((e,i)=>{e.rank=i+1});
-SS("sp-leaderboard",board)}
+const localEntries=ids.map(id=>{const stats=calcUserStats(id);if(!stats)return null;stats.score=calcScoreLocal(stats);stats.device=deviceId;return stats}).filter(Boolean);
+// Try cloud merge
+const cloudBoard=await cloudReadBoard();
+if(cloudBoard!==null){
+const otherDevices=cloudBoard.filter(e=>e.device!==deviceId);
+const merged=[...otherDevices,...localEntries];
+merged.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
+merged.forEach((e,i)=>{e.rank=i+1});
+SS("sp-leaderboard",merged);
+// Push to cloud if we have a token
+if(getLBToken())await cloudWriteBoard(merged);
+}else{
+// Offline fallback
+localEntries.sort((a,b)=>b.score-a.score||b.sessions-a.sessions||b.streak-a.streak);
+localEntries.forEach((e,i)=>{e.rank=i+1});
+SS("sp-leaderboard",localEntries);
+}
+}
 
 async function fetchLeaderboard(){
-try{const board=LS("sp-leaderboard")||[];return board}catch(e){return null}}
+const cloud=await cloudReadBoard();
+if(cloud!==null)return cloud;
+return LS("sp-leaderboard")||[]}
 
 function renderBoard(board,el){
 const medals=["🥇","🥈","🥉"];
