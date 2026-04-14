@@ -240,6 +240,18 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .mp-legend span{display:flex;align-items:center;gap:4px}
 .mp-legend .dot{width:8px;height:8px;border-radius:50%}
 .mp-legend .dot.t{background:var(--amb)}.mp-legend .dot.r{background:rgba(255,255,255,.15)}
+/* Grocery List */
+.gl-overlay{position:fixed;inset:0;background:#0D0D0D;z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
+.gl-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--card-border)}
+.gl-header h2{font-size:16px;margin:0}
+.gl-close{background:none;border:none;color:var(--sub);font-size:22px;cursor:pointer;padding:4px 8px}
+.gl-body{flex:1;overflow-y:auto;padding:16px 20px}
+.gl-cat{margin-bottom:16px}
+.gl-cat-title{font-size:12px;font-weight:700;color:var(--amb);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--card-border)}
+.gl-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.gl-item-name{color:var(--tx)}.gl-item-qty{color:var(--sub);font-family:'JetBrains Mono';font-size:11px;white-space:nowrap}
+.gl-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:100px;border:none;background:rgba(191,255,0,.1);color:var(--amb);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.gl-btn:active{transform:scale(.96)}
 /* Recipe Detail Modal */
 .recipe-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
 .recipe-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:540px;width:100%;margin:0 auto}
@@ -1274,8 +1286,120 @@ h+=`</div></div>`;
 h+=`<div class="mp-day-totals"><div><div class="tv" style="color:var(--amb)">${totals.cal}</div><div class="tl">kcal</div></div><div><div class="tv" style="color:#EF4444">${totals.p}g</div><div class="tl">protein</div></div><div><div class="tv" style="color:#3B82F6">${totals.c}g</div><div class="tl">carbs</div></div><div><div class="tv" style="color:#A855F7">${totals.f}g</div><div class="tl">fat</div></div></div>`;
 h+=`</div></div>`;
 });
-h+=`<div style="text-align:center;margin:16px 0;font-size:10px;color:var(--sub)">Portions auto-scaled to your ${S.nutri?.cal||2500} kcal target. Training days have higher carbs. Tap any meal for recipe details.</div>`;
+h+=`<div style="text-align:center;margin:12px 0"><button class="gl-btn" onclick="showGroceryList()">🛒 Grocery List</button></div>`;
+h+=`<div style="text-align:center;margin:4px 0 16px;font-size:10px;color:var(--sub)">Portions auto-scaled to your ${S.nutri?.cal||2500} kcal target. Training days have higher carbs. Tap any meal for recipe details.</div>`;
 return h;
+}
+function generateGroceryList(){
+if(!cachedMealPlan)cachedMealPlan=generateWeekMealPlan();
+if(!cachedMealPlan)return[];
+const agg={};
+// Split meal descriptions into individual ingredients
+function splitIngredients(str){
+// Remove leading title before — or : e.g. "Creamy Egg Pasta (200g cooked) — 3 Eggs..."
+str=str.replace(/^[^—–]*[—–]\s*/,'');
+// Split on ", ", " with ", " & " but not inside parentheses
+let parts=str.split(/,\s*(?![^()]*\))/);
+let result=[];
+parts.forEach(p=>{
+// Further split on " with " and " & "
+let subs=p.split(/\s+with\s+|\s+&\s+/i);
+subs.forEach(s=>result.push(s.trim()));
+});
+return result.filter(Boolean);
+}
+function parseQtyName(s){
+s=s.trim();
+// "3 Eggs" or "Milk (250ml)" or "½ Avocado" or "200g Chicken"
+// Try: number + unit + name: "200g Chicken Breast"
+let m=s.match(/^([\d½¼¾⅓⅔]+(?:\.\d+)?)\s*(g|kg|ml|l|tbsp|tsp|cups?|pieces?|slices?|scoops?|cob|packs?)\s+(.+)/i);
+if(m)return{qty:m[1]+m[2],name:m[3]};
+// Try: number + name: "3 Eggs", "½ Avocado", "1 Banana"
+m=s.match(/^([\d½¼¾⅓⅔]+(?:\.\d+)?)\s+(.+)/);
+if(m)return{qty:m[1],name:m[2]};
+// Try: name (qty): "Milk (250ml)", "Chicken Breast (200g)"
+m=s.match(/^(.+?)\s*\(([\d.]+\s*(?:g|kg|ml|l|tbsp|tsp))\)\s*(.*)$/i);
+if(m){let name=m[1]+(m[3]?' '+m[3]:'');return{qty:m[2],name:name.trim()};}
+// Whole item like "Garlic Butter" or "Side Salad"
+return{qty:'1',name:s};
+}
+// Normalise common ingredient names
+function normName(n){
+n=n.replace(/^(fried|boiled|grilled|baked|steamed|roasted|scrambled|poached|sliced|diced|cooked|raw|fresh|frozen|mixed|stir-fry|stir\s*fry)\s+/i,'');
+n=n.replace(/\s+(stir-fry|stir\s*fry)$/i,'');
+n=n.replace(/\s*\(.*?\)\s*/g,' ').trim();
+// Singularise simple plurals
+const low=n.toLowerCase();
+const sing={'eggs':'Egg','sausages':'Sausage','tomatoes':'Tomato','carrots':'Carrot','apples':'Apple','wraps':'Wrap','slices':'Slice','doughnuts':'Doughnut','tangerines':'Tangerine'};
+if(low.includes('bacon'))return'Bacon';
+if(low.includes('lamb chop'))return'Lamb Chops';
+for(const[pl,si]of Object.entries(sing)){if(low===pl||low.endsWith(' '+pl))return n.replace(new RegExp(pl+'$','i'),si)}
+return n;
+}
+function fracToNum(s){
+const frac={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.33,'⅔':0.67};
+return frac[s]!==undefined?frac[s]:parseFloat(s);
+}
+cachedMealPlan.forEach(d=>{d.meals.forEach(m=>{
+const parts=splitIngredients(m.ml);
+parts.forEach(raw=>{
+const{qty,name}=parseQtyName(raw);
+if(!name||name.length<2)return;
+// Skip filler words
+if(/^(on|the|a|an|of|for|in)$/i.test(name))return;
+let cleanName=normName(name);
+// Merge aliases
+const aliases={'bread toast':'Bread','wholemeal toast':'Wholemeal Bread','bread slices':'Bread','toast':'Bread','bread':'Bread','chicken breast wrap':'Chicken Breast','chicken wings':'Chicken Wings','salmon fillet':'Salmon','sirloin steak':'Steak','chicken sandwich':'Chicken','chicken wrap':'Chicken','salmon wrap':'Salmon','side salad':'Salad Leaves','garlic powder':'Garlic','garlic butter':'Butter','onion gravy':'Onion','pancake mix':'Pancake Mix','protein powder':'Protein Powder','mass gainer powder':'Mass Gainer','peanut butter':'Peanut Butter','salad cream':'Salad Cream','soy sauce':'Soy Sauce','baked beans':'Baked Beans','tomato stew':'Tomato Stew','pasta cream':'Cream','chilli flakes':'Chilli Flakes','suya spice':'Suya Spice','black pepper':'Black Pepper','olive oil':'Olive Oil','yoghurt sauce':'Yoghurt','eggs scrambled':'Egg','egg scrambled':'Egg','eggs':'Egg','shrimps':'Shrimps','avocado on 2 toast':'Avocado','sweet potato fries':'Sweet Potato','potato fries':'Potato','fries':'Potato','cherry tomato':'Tomato','tomato':'Tomato'};
+const aliasKey=cleanName.toLowerCase();
+if(aliases[aliasKey])cleanName=aliases[aliasKey];
+const key=cleanName.toLowerCase().replace(/\s+/g,' ');
+if(!agg[key])agg[key]={name:cleanName,qtys:[]};
+agg[key].qtys.push(qty);
+})})});
+// Merge numeric quantities where units match
+const merged=Object.values(agg).map(item=>{
+const parsed=item.qtys.map(q=>{const m=q.match(/^([\d.½¼¾⅓⅔]+)\s*(g|kg|ml|l|tbsp|tsp|cups?|pieces?|slices?|scoops?|cob|packs?)?$/i);if(!m)return null;let num=fracToNum(m[1]);return{num,unit:(m[2]||'').toLowerCase()}});
+const allParsed=parsed.every(p=>p!==null);
+if(allParsed&&parsed.length>0){
+const byUnit={};parsed.forEach(p=>{const u=p.unit||'×';if(!byUnit[u])byUnit[u]=0;byUnit[u]+=p.num});
+const parts=Object.entries(byUnit).map(([u,n])=>{n=Math.round(n*10)/10;return u==='×'?`×${n}`:`${n}${u}`});
+return{name:item.name,qty:parts.join(' + ')}
+}
+return{name:item.name,qty:`×${item.qtys.length}`}
+});
+// Categorise
+const cats={'🥩 Protein':['chicken','steak','salmon','shrimp','lamb','sausage','bacon','egg','mince','protein powder','mass gainer'],'🥬 Vegetables & Fruits':['onion','tomato','pepper','carrot','peas','corn','avocado','banana','apple','berries','strawberry','mango','watermelon','tangerine','plantain','lettuce','salad','spring onion','kpakposhito','scotch bonnet','parsley','ginger','cherry tomato','grape'],'🌾 Carbs & Grains':['rice','oats','pasta','spaghetti','bread','toast','potato','sweet potato','fries','indomie','noodle','pancake','tortilla','wrap','weetabix','granola','jollof','baked beans'],'🧈 Dairy & Sauces':['milk','yoghurt','yogurt','cheese','cheddar','cream','butter','parmesan','cottage cheese','mayo','salad cream','ketchup','soy sauce','jam','honey','peanut butter','syrup','gravy','coleslaw'],'🧂 Other':[]};
+const result={};
+merged.forEach(item=>{
+const low=item.name.toLowerCase();
+let placed=false;
+for(const[cat,keywords]of Object.entries(cats)){
+if(cat==='🧂 Other')continue;
+if(keywords.some(kw=>low.includes(kw))){if(!result[cat])result[cat]=[];result[cat].push(item);placed=true;break}}
+if(!placed){if(!result['🧂 Other'])result['🧂 Other']=[];result['🧂 Other'].push(item)}
+});
+return result;
+}
+function showGroceryList(){
+const list=generateGroceryList();
+const overlay=document.createElement('div');overlay.className='gl-overlay';overlay.id='groceryOverlay';
+let h=`<div class="gl-header"><h2>🛒 Weekly Grocery List</h2><button class="gl-close" onclick="document.getElementById('groceryOverlay').remove()">✕</button></div>`;
+h+=`<div class="gl-body">`;
+const catOrder=['🥩 Protein','🥬 Vegetables & Fruits','🌾 Carbs & Grains','🧈 Dairy & Sauces','🧂 Other'];
+let hasItems=false;
+catOrder.forEach(cat=>{
+if(!list[cat]||!list[cat].length)return;
+hasItems=true;
+h+=`<div class="gl-cat"><div class="gl-cat-title">${cat}</div>`;
+list[cat].sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
+h+=`<div class="gl-item"><span class="gl-item-name">${item.name}</span><span class="gl-item-qty">${item.qty}</span></div>`;
+});
+h+=`</div>`;
+});
+if(!hasItems)h+=`<div style="text-align:center;padding:40px 0;color:var(--sub)">Generate a meal plan first to see your grocery list.</div>`;
+h+=`</div>`;
+overlay.innerHTML=h;
+document.body.appendChild(overlay);
 }
 function logCustomMeal(){const nm=cmForm.name.trim();const cal=+cmForm.cal;if(!nm){alert("Enter a meal name!");return}if(!cal||cal<=0){alert("Enter calories!");return}const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];S.flog[tk].push({meal:cmForm.mealType,ml:nm,cal:cal,p:+cmForm.p||0,c:+cmForm.c||0,f:+cmForm.f||0,isCustom:true});savFlog();updHdr();cmForm={show:false,name:"",cal:"",p:"",c:"",f:"",mealType:"Snack"};rFood()}
 function saveCustomMeal(){const nm=cmForm.name.trim();const cal=+cmForm.cal;if(!nm){alert("Enter a meal name!");return}if(!cal||cal<=0){alert("Enter calories!");return}S.customMeals.push({name:nm,cal:cal,p:+cmForm.p||0,c:+cmForm.c||0,f:+cmForm.f||0,mealType:cmForm.mealType});savCMeals();logCustomMeal()}
