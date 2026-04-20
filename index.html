@@ -456,6 +456,14 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .diet-consist .dc-stat-val{font-family:'JetBrains Mono';font-size:14px;font-weight:700}
 .diet-consist .dc-stat-lbl{font-size:8px;color:var(--sub);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
 .ex-rm-btn{background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;padding:2px 6px;opacity:.5;transition:opacity .2s;flex-shrink:0}.ex-rm-btn:active{opacity:1}
+.ex-swap-btn{background:rgba(191,255,0,.08);border:1px solid rgba(191,255,0,.25);color:var(--amb);font-size:12px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:100px;margin-right:6px;transition:all .15s;flex-shrink:0}.ex-swap-btn:active{background:rgba(191,255,0,.18)}
+.swap-picker{background:rgba(191,255,0,.04);border:1px dashed rgba(191,255,0,.3);border-radius:10px;padding:10px;margin:6px 0 10px}
+.swap-picker-title{font-size:11px;font-weight:700;color:var(--amb);margin-bottom:8px}
+.swap-alt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:3px}.swap-alt:active{background:rgba(255,255,255,.04)}.swap-alt-nm{flex:1;font-size:12px;font-weight:600}.swap-alt-tag{font-size:9px;padding:2px 6px;border-radius:100px;background:rgba(255,255,255,.05);color:var(--sub)}
+.mp-meal-actions{display:flex;gap:4px;margin-left:6px}.mp-meal-act{background:none;border:1px solid rgba(255,255,255,.1);color:var(--sub);font-size:11px;padding:4px 8px;border-radius:100px;cursor:pointer;flex-shrink:0}.mp-meal-act:active{background:rgba(255,255,255,.05)}.mp-meal-act.rm{color:var(--red)}.mp-meal-act.sw{color:var(--amb)}
+.mp-add-meal{width:100%;background:rgba(191,255,0,.06);border:1px dashed rgba(191,255,0,.35);color:var(--amb);font-size:11px;font-weight:700;padding:8px;border-radius:10px;cursor:pointer;margin-top:8px}
+.mp-picker{background:rgba(0,0,0,.2);border:1px solid var(--bdr);border-radius:10px;padding:10px;margin-top:8px;max-height:360px;overflow-y:auto}
+.mp-pick-opt{padding:8px;border-radius:8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--bdr)}.mp-pick-opt:active{background:rgba(255,255,255,.04)}.mp-pick-opt:last-child{border-bottom:none}.mp-pick-opt-name{font-weight:600;color:var(--tx);margin-bottom:2px}.mp-pick-opt-macros{color:var(--sub);font-size:10px}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -770,7 +778,7 @@ h+=`</div>`;el.innerHTML=h}
 function togA(a){const i=OB.areas.indexOf(a);i>=0?OB.areas.splice(i,1):OB.areas.push(a);rOB()}
 function chkOB(){const s=OB.step;const cn=s===5?(OB.age&&OB.height&&OB.weight):s===7?OB.name.trim():false;const btn=document.querySelector('.ob-next');if(btn){btn.disabled=!cn;btn.style.background=cn?'var(--amb)':'rgba(255,255,255,.06)';btn.style.color=cn?'#000':'var(--sub)'}}
 function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const prof={goal:OB.goal,gender:OB.gender,areas:OB.areas,level:OB.level,age:+OB.age,height:+OB.height,weight:+OB.weight,days:OB.days,cardio:OB.cardio!==false,gym:OB.gym||"any"};S.user={id,name:OB.name.trim(),avatar:OB.avatar,joined:new Date().toISOString(),profile:prof,stats:{totalSessions:0,totalSets:0,avgRating:0,lastSession:null}};S.logs={};S.week=1;S.plan=genPlan(prof);S.nutri=calcNutri(prof);S.flog={};S.customPlans=[];S.customMeals=[];SS("sp-me",S.user);savProf(S.user);SS("sp-plan-"+S.user.id,S.plan);SS("sp-nutri-"+S.user.id,S.nutri);SS("sp-flog-"+S.user.id,{});SS("sp-custom-"+S.user.id,[]);SS("sp-cmeals-"+S.user.id,[]);showApp();syncLeaderboard()}
-function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;stopWOTimer();S.aw=null;S.cs={};S.rat=null;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];S.bodyMeasurements=LS("sp-meas-"+id)||[];S.restPref=LS('sp-rest-'+id)||60;SS("sp-me",u);loadTheme();syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
+function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;stopWOTimer();S.aw=null;S.cs={};S.rat=null;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];S.bodyMeasurements=LS("sp-meas-"+id)||[];S.restPref=LS('sp-rest-'+id)||60;cachedMealPlan=null;SS("sp-me",u);loadTheme();syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
 function doLogout(){stopWOTimer();SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
 async function deleteMyProfile(){if(!confirm('Delete your profile? This removes all local data and your leaderboard entry.'))return;
@@ -799,9 +807,29 @@ function swTab(id){S.tab=id;rNav();ALL_TAB_IDS.forEach(t=>{const e=document.getE
 function updHdr(){document.getElementById("usrRow").innerHTML=`<span class="usr-av">${S.user.avatar}</span><span class="usr-nm">${esc(S.user.name)}</span><span class="sw-h">switch ▸</span>`;document.getElementById("wkLbl").textContent="WK "+S.week;const wk=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const dl=S.flog[tdk()]||[];const dc=dl.reduce((a,m)=>a+m.cal,0);const dp=dl.reduce((a,m)=>a+m.p,0);document.getElementById("statsBar").innerHTML=`<div><span class="st-v">${wk}</span><span class="st-l">/ ${S.plan.length} wk</span></div><div><span class="st-v">${dc}</span><span class="st-l">/ ${S.nutri.cal} kcal</span></div><div><span class="st-v">${dp}g</span><span class="st-l">/ ${S.nutri.protein}g pro</span></div>`}
 function chgWeek(d){S.week=Math.max(1,S.week+d);SS("sp-week-"+S.user.id,S.week);updHdr();if(S.tab==="plan")rPlan()}
 // ═══════ PLAN TAB ═══════
+function hasActiveProgress(i){
+  if(!S.user)return false;
+  if(S.aw===i)return true;
+  try{var s=LS('sp-cs-'+S.user.id);return !!(s&&s.aw===i&&s.cs&&Object.values(s.cs).some(function(arr){return Array.isArray(arr)&&arr.some(function(x){return x&&x.d})}))}catch(e){return false}
+}
+const SCHED_DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday","Any day"];
+function chgSched(di){
+  const cur=S.plan[di].sched||"Any day";
+  const idx=SCHED_DAYS.indexOf(cur);
+  const pick=prompt("Which day do you do this workout?\n\n1) Monday\n2) Tuesday\n3) Wednesday\n4) Thursday\n5) Friday\n6) Saturday\n7) Sunday\n8) Any day\n\nEnter 1-8:",String((idx>=0?idx:7)+1));
+  if(!pick)return;
+  const n=parseInt(pick,10);
+  if(!n||n<1||n>8)return;
+  S.plan[di].sched=SCHED_DAYS[n-1];
+  savPlan();rPlan();
+  setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
+}
 function renderDayBody(d, i){
   const dn=S.logs["w"+S.week+"-d"+i];
-  return `<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><span class="ex-list-chv">›</span><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn ${dn?'out':'pri'}" onclick="startWO(${i})">${dn?'Redo':'Start Session →'}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
+  const inProg=!dn&&hasActiveProgress(i);
+  const startLbl=dn?'Redo':inProg?'▶ Continue Session':'Start Session →';
+  const startCls=dn?'out':inProg?'amb':'pri';
+  return `<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn out" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();chgSched(${i})">📅 Scheduled: ${d.sched||'Any day'} (tap to change)</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
 }
 function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
@@ -880,6 +908,7 @@ return`<div class="sec-title">Weekly Habits</div>`+
   <div class="journey-milestone${totalSessions>=50?' unlocked':''}"><div class="jm-icon">${totalSessions>=50?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Fifty Strong</div><div class="jm-desc">${totalSessions>=50?'Legend status!':totalSessions+'/50 sessions'}</div></div></div>
 </div>`+
 `<div class="sec-title">Week ${S.week} Schedule</div>`+
+`<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — tap any day below to do that workout on any calendar date. Scheduled day is just a suggestion; your streak counts the actual day you train.</div>`+
 `<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
 S.plan.map((d,i)=>{
   const dn=S.logs["w"+S.week+"-d"+i];
@@ -892,6 +921,33 @@ S.plan.map((d,i)=>{
 `<button class="s-btn out" style="margin-top:12px" onclick="swTab('library')">📚 Browse Exercise Library</button>`}
 function togDay(i){document.getElementById("dc"+i).classList.toggle("open")}
 let addExDay=null;let addExFilter="all";
+let swapCtx=null;
+function openSwapEx(di,ei){swapCtx={di:di,ei:ei};rPlan();setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10)}
+function closeSwapEx(){const di=swapCtx?swapCtx.di:null;swapCtx=null;rPlan();if(di!==null)setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10)}
+function doSwapEx(di,ei,cat,idx){
+  const e=EX_DB[cat][idx];
+  const cur=S.plan[di].exs[ei];
+  cur.n=e.n;cur.note=e.nt;
+  // Adjust rep scheme for new exercise type where relevant
+  if(e.t==="cardio"){cur.s=1;cur.r="20 min";cur.rest="—"}
+  else if(e.t==="stretch"){cur.s=1;cur.r="30s hold";cur.rest="—"}
+  else if(e.t==="hiit"){cur.r="30s on/30s off"}
+  else if(e.t==="plyo"){cur.r="8-10"}
+  savPlan();swapCtx=null;rPlan();
+  setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
+}
+function rSwapPicker(di,ei){
+  const curName=S.plan[di].exs[ei].n;
+  const curDb=findExInDB(curName);
+  const curCat=curDb?curDb.cat:'legs';
+  // Show alternatives from same category first, then allow jumping to any category
+  const primary=(EX_DB[curCat]||[]).map(function(e,i){return Object.assign({},e,{cat:curCat,idx:i})}).filter(function(e){return e.n!==curName});
+  return `<div class="swap-picker"><div class="swap-picker-title">⇄ Swap "${curName}" — alternatives (${(CAT_META[curCat]||{l:curCat}).l})</div>`+
+    primary.slice(0,12).map(function(e){
+      return `<div class="swap-alt" onclick="event.stopPropagation();doSwapEx(${di},${ei},'${e.cat}',${e.idx})"><div style="font-size:18px">${(CAT_META[e.cat]||{e:'🏋️'}).e}</div><div class="swap-alt-nm">${e.n}</div><span class="swap-alt-tag">${e.t}</span></div>`;
+    }).join('')+
+    `<button class="s-btn out" style="margin-top:8px;font-size:11px" onclick="event.stopPropagation();closeSwapEx()">Cancel</button></div>`;
+}
 function openAddEx(di){addExDay=di;addExFilter="all";rPlan();setTimeout(()=>{const el=document.getElementById("dc"+di);if(el){el.classList.add("open");el.scrollIntoView({behavior:"smooth",block:"center"})}},50)}
 function closeAddEx(){addExDay=null;rPlan()}
 function rmPlanEx(di,ei){if(S.plan[di].exs.length<=1){alert("Can't remove the last exercise. Remove the whole day instead.");return}S.plan[di].exs.splice(ei,1);savPlan();rPlan();setTimeout(()=>{document.getElementById("dc"+di)?.classList.add("open")},10)}
@@ -1151,7 +1207,56 @@ isTraining:training[i],
 meals:generateDayMealPlan(training[i],goal,cal,prot,mpd)
 }));
 }
-function refreshMealPlan(){cachedMealPlan=generateWeekMealPlan();rFood()}
+function savMealPlan(){if(S.user&&cachedMealPlan)try{SS("sp-mplan-"+S.user.id,cachedMealPlan)}catch(e){}}
+function loadMealPlan(){if(S.user){const m=LS("sp-mplan-"+S.user.id);if(m&&Array.isArray(m)&&m.length)cachedMealPlan=m}}
+function refreshMealPlan(){cachedMealPlan=generateWeekMealPlan();savMealPlan();rFood()}
+let mpSwap=null;let mpAdd=null;
+function removeMealFromDay(dayIdx,mealIdx){if(!cachedMealPlan||!cachedMealPlan[dayIdx])return;if(!confirm("Remove this meal from your plan?"))return;cachedMealPlan[dayIdx].meals.splice(mealIdx,1);savMealPlan();rFood()}
+function openSwapMeal(dayIdx,mealIdx){mpSwap={dayIdx:dayIdx,mealIdx:mealIdx};mpAdd=null;rFood()}
+function openAddMeal(dayIdx){mpAdd={dayIdx:dayIdx};mpSwap=null;rFood()}
+function closeMealPicker(){mpSwap=null;mpAdd=null;rFood()}
+function _scaleToMatch(meal,targetCal){if(!meal||!meal.cal||!targetCal)return{ml:meal.ml,cal:meal.cal,p:meal.p,c:meal.c,f:meal.f};const f=targetCal/meal.cal;return{ml:meal.ml,cal:Math.round(meal.cal*f),p:Math.round(meal.p*f),c:Math.round(meal.c*f),f:Math.round(meal.f*f)}}
+function doSwapMeal(dayIdx,mealIdx,mealCat,optIdx){
+  if(!cachedMealPlan||!cachedMealPlan[dayIdx])return;
+  const existing=cachedMealPlan[dayIdx].meals[mealIdx];const targetCal=existing?existing.cal:null;
+  let src;
+  if(mealCat==="_custom"){const cm=S.customMeals[optIdx];if(!cm)return;src={ml:cm.name,cal:cm.cal,p:cm.p,c:cm.c,f:cm.f}}
+  else{const pool=MEALS.find(m=>m.nm===mealCat);if(!pool||!pool.opts[optIdx])return;src=pool.opts[optIdx]}
+  const scaled=targetCal?_scaleToMatch(src,targetCal):{ml:src.ml,cal:src.cal,p:src.p,c:src.c,f:src.f};
+  cachedMealPlan[dayIdx].meals[mealIdx]=Object.assign({},existing||{},scaled,{type:existing?existing.type:mealCat});
+  savMealPlan();mpSwap=null;rFood();
+}
+function doAddMeal(dayIdx,mealCat,optIdx){
+  if(!cachedMealPlan||!cachedMealPlan[dayIdx])return;
+  let src,typ;
+  if(mealCat==="_custom"){const cm=S.customMeals[optIdx];if(!cm)return;src={ml:cm.name,cal:cm.cal,p:cm.p,c:cm.c,f:cm.f};typ=cm.mealType||"Snack"}
+  else{const pool=MEALS.find(m=>m.nm===mealCat);if(!pool||!pool.opts[optIdx])return;src=pool.opts[optIdx];typ=mealCat}
+  cachedMealPlan[dayIdx].meals.push(Object.assign({type:typ},src));
+  savMealPlan();mpAdd=null;rFood();
+}
+function rMealPicker(mode,dayIdx,mealIdx){
+  const title=mode==="swap"?"Swap meal":"Add meal to this day";
+  const cats=["Breakfast","Lunch","Pre-Workout","Dinner","Evening Snack","Mass Gainer Shake"];
+  const currentType=(mode==="swap"&&cachedMealPlan&&cachedMealPlan[dayIdx]&&cachedMealPlan[dayIdx].meals[mealIdx])?cachedMealPlan[dayIdx].meals[mealIdx].type:null;
+  const handler=mode==="swap"?`doSwapMeal(${dayIdx},${mealIdx},`:`doAddMeal(${dayIdx},`;
+  let h=`<div class="mp-picker"><div style="font-size:12px;font-weight:700;color:var(--amb);margin-bottom:8px">${title}</div>`;
+  cats.forEach(function(cat){
+    const pool=MEALS.find(m=>m.nm===cat);if(!pool)return;
+    const isCurrent=currentType===cat;
+    h+=`<div style="font-size:11px;font-weight:700;color:${isCurrent?'var(--amb)':'var(--sub)'};margin:10px 0 4px">${cat}${isCurrent?' (current)':''}</div>`;
+    pool.opts.forEach(function(o,i){
+      h+=`<div class="mp-pick-opt" onclick="event.stopPropagation();${handler}'${cat}',${i})"><div class="mp-pick-opt-name">${esc(o.ml)}</div><div class="mp-pick-opt-macros">${o.cal} kcal · ${o.p}P · ${o.c}C · ${o.f}F</div></div>`;
+    });
+  });
+  if(S.customMeals&&S.customMeals.length){
+    h+=`<div style="font-size:11px;font-weight:700;color:var(--sub);margin:10px 0 4px">⭐ My Saved Meals</div>`;
+    S.customMeals.forEach(function(cm,i){
+      h+=`<div class="mp-pick-opt" onclick="event.stopPropagation();${handler}'_custom',${i})"><div class="mp-pick-opt-name">${esc(cm.name)}</div><div class="mp-pick-opt-macros">${cm.cal} kcal · ${cm.p}P · ${cm.c}C · ${cm.f}F</div></div>`;
+    });
+  }
+  h+=`<button class="s-btn out" style="margin-top:10px" onclick="event.stopPropagation();closeMealPicker()">Cancel</button></div>`;
+  return h;
+}
 const MEAL_EMOJI_MAP={oats:'🥣',egg:'🍳',bacon:'🥓',pancake:'🥞',yoghurt:'🥛',yogurt:'🥛',bread:'🍞',toast:'🍞',chicken:'🍗',wrap:'🌯',rice:'🍚',spaghetti:'🍝',pasta:'🍝',indomie:'🍜',steak:'🥩',salmon:'🐟',shrimp:'🦐',plantain:'🍌',lamb:'🍖',smoothie:'🥤',watermelon:'🍉',doughnut:'🍩',mass:'🥤',gainer:'🥤',apple:'🍎',peanut:'🥜',granola:'🥣',cottage:'🧀',mango:'🥭',juice:'🧃',potato:'🥔',fries:'🍟',default:'🍽️'};
 function getMealEmoji(name){const n=name.toLowerCase();for(const[k,v]of Object.entries(MEAL_EMOJI_MAP)){if(n.includes(k))return v}return MEAL_EMOJI_MAP.default}
 function getMealGrad(mealType){const grads={Breakfast:'linear-gradient(135deg,#1a1508 0%,#2d250d 50%,#3d3012 100%)',Lunch:'linear-gradient(135deg,#081a0d 0%,#0d2d15 50%,#123d1a 100%)',Dinner:'linear-gradient(135deg,#0d0815 0%,#150d25 50%,#1d1235 100%)','Pre-Workout':'linear-gradient(135deg,#1a0d08 0%,#2d150d 50%,#3d1a12 100%)','Evening Snack':'linear-gradient(135deg,#08101a 0%,#0d1a2d 50%,#12223d 100%)','Mass Gainer Shake':'linear-gradient(135deg,#0a1a0a 0%,#152d15 50%,#1a3d1a 100%)'};return grads[mealType]||'linear-gradient(135deg,#111 0%,#1a1a1a 50%,#222 100%)'}
@@ -1260,7 +1365,7 @@ else if(foodSubTab==='dinner'){const mi=MEALS.findIndex(m=>m.nm==='Dinner');cont
 else if(foodSubTab==='snacks'){const es=MEALS.findIndex(m=>m.nm==='Evening Snack');const mg=MEALS.findIndex(m=>m.nm==='Mass Gainer Shake');content='';if(es>=0)content+=`<div class="sec-title">🌙 Evening Snack · ${MEALS[es].tm}</div>`+rMealCards(MEALS[es],es);if(mg>=0)content+=`<div class="sec-title" style="margin-top:16px">🥤 Mass Gainer · ${MEALS[mg].tm}</div>`+rMealCards(MEALS[mg],mg)}
 el.innerHTML=tabBar+content}
 function rMealPlan(){
-if(!cachedMealPlan)cachedMealPlan=generateWeekMealPlan();
+if(!cachedMealPlan){loadMealPlan();if(!cachedMealPlan){cachedMealPlan=generateWeekMealPlan();savMealPlan()}}
 const wp=cachedMealPlan;
 if(!wp)return'<div class="intro" style="text-align:center;padding:20px">Complete onboarding to generate a meal plan.</div>';
 const prof=S.user?.profile||{};
@@ -1268,22 +1373,27 @@ const goalLabels={muscle_gain:'Muscle Gain',fat_loss:'Fat Loss',general:'General
 let h=`<div class="sec-title">📋 Your Weekly Meal Plan</div>`;
 h+=`<p class="intro" style="text-align:center;margin-bottom:10px">Personalised for <b style="color:var(--tx)">${goalLabels[prof.goal]||'General'}</b> · ${S.nutri?.cal||2500} kcal target · ${prof.days||4} training days</p>`;
 h+=`<div class="mp-legend"><span><div class="dot t"></div> Training Day</span><span><div class="dot r"></div> Rest Day</span></div>`;
-h+=`<div class="mp-controls"><div class="mp-mpd"><label>Meals/day:</label><select onchange="mealPlanMealsPerDay=+this.value;cachedMealPlan=null;rFood()">${[3,4,5,6].map(n=>`<option value="${n}"${mealPlanMealsPerDay===n?' selected':''}>${n} meals</option>`).join('')}</select></div><button class="mp-refresh" onclick="refreshMealPlan()">🔄 Shuffle Plan</button></div>`;
+h+=`<div class="mp-controls"><div class="mp-mpd"><label>Meals/day:</label><select onchange="mealPlanMealsPerDay=+this.value;cachedMealPlan=generateWeekMealPlan();savMealPlan();rFood()">${[3,4,5,6].map(n=>`<option value="${n}"${mealPlanMealsPerDay===n?' selected':''}>${n} meals</option>`).join('')}</select></div><button class="mp-refresh" onclick="refreshMealPlan()">🔄 Shuffle Plan</button></div>`;
 const today=new Date().toLocaleDateString('en-US',{weekday:'long'});
-wp.forEach(d=>{
+wp.forEach((d,dIdx)=>{
 const isToday=d.day===today;
 const totals=d.meals.reduce((a,m)=>({cal:a.cal+m.cal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}),{cal:0,p:0,c:0,f:0});
 h+=`<div class="mp-day" style="${isToday?'border-color:var(--amb);':''}">`;
 h+=`<div class="mp-day-head"><div><div class="mp-day-name">${isToday?'📍 ':''} ${d.day}</div></div><div class="mp-day-badge ${d.isTraining?'train':'rest'}">${d.isTraining?'💪 Training':'😴 Rest'}</div></div>`;
 h+=`<div class="mp-day-body">`;
-d.meals.forEach(m=>{
+d.meals.forEach((m,mIdx)=>{
 const emoji=getMealEmoji(m.ml);
-h+=`<div class="mp-meal-row" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})" style="cursor:pointer">`;
-h+=`<div class="mp-meal-emoji">${emoji}</div>`;
-h+=`<div class="mp-meal-info"><div class="mp-meal-type">${m.type}</div><div class="mp-meal-name">${m.ml}</div>`;
+h+=`<div class="mp-meal-row" style="cursor:pointer">`;
+h+=`<div class="mp-meal-emoji" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})">${emoji}</div>`;
+h+=`<div class="mp-meal-info" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})"><div class="mp-meal-type">${m.type}</div><div class="mp-meal-name">${m.ml}</div>`;
 h+=`<div class="mp-meal-macros"><span class="cal">${m.cal} kcal</span><span class="pro">${m.p}g P</span><span class="carb">${m.c}g C</span><span class="fat">${m.f}g F</span></div>`;
-h+=`</div></div>`;
+h+=`</div>`;
+h+=`<div class="mp-meal-actions"><button class="mp-meal-act sw" onclick="event.stopPropagation();openSwapMeal(${dIdx},${mIdx})" title="Swap meal">⇄</button><button class="mp-meal-act rm" onclick="event.stopPropagation();removeMealFromDay(${dIdx},${mIdx})" title="Remove meal">✕</button></div>`;
+h+=`</div>`;
+if(mpSwap&&mpSwap.dayIdx===dIdx&&mpSwap.mealIdx===mIdx){h+=rMealPicker("swap",dIdx,mIdx)}
 });
+if(mpAdd&&mpAdd.dayIdx===dIdx){h+=rMealPicker("add",dIdx,null)}
+else{h+=`<button class="mp-add-meal" onclick="openAddMeal(${dIdx})">+ Add Meal to ${d.day}</button>`}
 h+=`<div class="mp-day-totals"><div><div class="tv" style="color:var(--amb)">${totals.cal}</div><div class="tl">kcal</div></div><div><div class="tv" style="color:#EF4444">${totals.p}g</div><div class="tl">protein</div></div><div><div class="tv" style="color:#3B82F6">${totals.c}g</div><div class="tl">carbs</div></div><div><div class="tv" style="color:#A855F7">${totals.f}g</div><div class="tl">fat</div></div></div>`;
 h+=`</div></div>`;
 });
@@ -1292,7 +1402,7 @@ h+=`<div style="text-align:center;margin:4px 0 16px;font-size:10px;color:var(--s
 return h;
 }
 function generateGroceryList(){
-if(!cachedMealPlan)cachedMealPlan=generateWeekMealPlan();
+if(!cachedMealPlan){loadMealPlan();if(!cachedMealPlan){cachedMealPlan=generateWeekMealPlan();savMealPlan()}}
 if(!cachedMealPlan)return[];
 const agg={};
 // Split meal descriptions into individual ingredients
@@ -1639,7 +1749,7 @@ el.innerHTML=`<div class="more-nav-grid"><div class="more-nav-item" onclick="swT
 `<div class="log-t">📋 Plan Management</div><button class="s-btn pri" onclick="if(confirm('Regenerate?')){S.plan=genPlan(S.user.profile);savPlan();updHdr();rSet()}">🔄 Regenerate Auto Plan</button><button class="s-btn grn" style="margin-top:6px" onclick="swTab('library')">📚 Build from Library</button>`+
 (S.customPlans.length?`<div style="margin-top:10px">${S.customPlans.map((cp,ci)=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:10px"><div><div style="font-weight:700;font-size:12px">${cp.day} 🔧</div><div style="font-size:9px;color:var(--sub)">${cp.exs.length} exercises</div></div><div style="display:flex;gap:4px"><button class="set-edit" style="font-size:9px;padding:5px 8px" onclick="S.plan.push({...S.customPlans[${ci}],day:'Day '+(S.plan.length+1)+' — '+S.customPlans[${ci}].day});savPlan();updHdr();rSet()">Add</button><button style="padding:5px 8px;border-radius:6px;font-size:9px;font-weight:700;border:1px solid var(--red);background:transparent;color:var(--red)" onclick="S.customPlans.splice(${ci},1);savCustom();rSet()">✕</button></div></div>`).join("")}</div>`:'')+
 // Data management
-`<div class="log-t" style="margin-top:16px">🗑️ Data</div><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset logs?')){S.logs={};savLogs();updHdr();rSet()}">Reset Workout Logs</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset food?')){S.flog={};savFlog();updHdr();rSet()}">Reset Food Log</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset saved meals?')){S.customMeals=[];savCMeals();rSet()}">Reset Saved Meals</button><button class="rst-btn" style="margin:0" onclick="deleteMyProfile()">Delete Profile</button>`+
+`<div class="log-t" style="margin-top:16px">🗑️ Data</div><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset logs?')){S.logs={};savLogs();updHdr();rSet()}">Reset Workout Logs</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset food?')){S.flog={};savFlog();updHdr();rSet()}">Reset Food Log</button><button class="rst-btn" style="margin:0 0 8px" onclick="if(confirm('Reset saved meals?')){S.customMeals=[];savCMeals();try{localStorage.removeItem('sp-mplan-'+S.user.id)}catch(e){};cachedMealPlan=null;rSet()}">Reset Saved Meals</button><button class="rst-btn" style="margin:0" onclick="deleteMyProfile()">Delete Profile</button>`+
 // Admin panel
 `<div class="log-t" style="margin-top:16px">🎨 Appearance</div><div class="card" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px">Theme</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--sub)">${S.theme==='dark'?'🌙 Dark':'☀️ Light'}</span><button class="theme-toggle" onclick="toggleTheme();rSet()"><div class="toggle-thumb"></div></button></div></div></div><div class="log-t" style="margin-top:16px">📤 Data Export</div><div class="card" style="margin-top:8px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportWorkoutCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📋 Workout Log</button><button class="btn" onclick="exportMeasurementsCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">📏 Measurements</button><button class="btn" onclick="exportNutritionCSV()" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);cursor:pointer;font-size:11px">🍎 Nutrition</button></div></div><div class="log-t" style="margin-top:16px">⏱ Rest Timer</div><div class="card" style="margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--sub)">Default rest:</span><select style="padding:4px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--c1-solid);color:var(--tx);font-size:12px" onchange="S.restPref=+this.value;SS('sp-rest-'+S.user.id,S.restPref)">${[0,15,30,45,60,90,120,180].map(v=>`<option value="${v}" ${S.restPref===v?'selected':''}>${v===0?'Off':v<60?v+'s':v/60+'m'}</option>`).join('')}</select></div><div style="font-size:10px;color:var(--sub);margin-top:4px">Timer starts automatically after completing a set</div></div><div class="log-t" style="margin-top:16px">🔐 Admin</div><div id="adminArea"></div>`;rAdminArea()}
 
