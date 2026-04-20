@@ -464,6 +464,24 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .mp-add-meal{width:100%;background:rgba(191,255,0,.06);border:1px dashed rgba(191,255,0,.35);color:var(--amb);font-size:11px;font-weight:700;padding:8px;border-radius:10px;cursor:pointer;margin-top:8px}
 .mp-picker{background:rgba(0,0,0,.2);border:1px solid var(--bdr);border-radius:10px;padding:10px;margin-top:8px;max-height:360px;overflow-y:auto}
 .mp-pick-opt{padding:8px;border-radius:8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--bdr)}.mp-pick-opt:active{background:rgba(255,255,255,.04)}.mp-pick-opt:last-child{border-bottom:none}.mp-pick-opt-name{font-weight:600;color:var(--tx);margin-bottom:2px}.mp-pick-opt-macros{color:var(--sub);font-size:10px}
+.day-aim{background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;margin:0 0 8px;font-size:11px}
+.day-aim .da-row{display:flex;gap:8px;line-height:1.6}
+.day-aim .da-k{color:var(--sub);min-width:80px;flex-shrink:0}
+.day-aim .da-v{color:var(--tx);font-weight:600}
+.coach-wrap{background:rgba(191,255,0,.03);border:1px solid rgba(191,255,0,.18);border-radius:12px;padding:10px 12px;margin:8px 0 12px}
+.coach-sum{font-size:11px;color:var(--tx);line-height:1.5;margin-bottom:6px}
+.coach-tog{width:100%;background:none;border:none;color:var(--amb);font-size:11px;font-weight:700;text-align:left;padding:6px 0;cursor:pointer;border-top:1px solid rgba(191,255,0,.12)}
+.coach-tog:first-of-type{border-top:none}
+.coach-body{padding:4px 0 6px}
+.coach-tip{display:flex;gap:8px;padding:6px 0;font-size:11px;line-height:1.5;color:var(--tx);border-bottom:1px dashed rgba(255,255,255,.04)}
+.coach-tip:last-child{border-bottom:none}
+.coach-tip .ct-i{flex-shrink:0;font-size:14px}
+.coach-tip .ct-t{flex:1}
+.want-sec-t{font-size:10px;font-weight:700;color:var(--sub);margin:6px 0 4px;letter-spacing:.4px;text-transform:uppercase}
+.want-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.want-b{background:rgba(255,255,255,.03);border:1px solid var(--bdr);color:var(--tx);font-size:11px;font-weight:600;padding:6px 10px;border-radius:100px;cursor:pointer;transition:all .15s}
+.want-b:active{background:rgba(191,255,0,.08);border-color:var(--amb);color:var(--amb)}
+.want-hint{font-size:10px;color:var(--sub);margin-top:8px;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px;line-height:1.4}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -824,12 +842,171 @@ function chgSched(di){
   savPlan();rPlan();
   setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
 }
+function ftoast(msg){const el=document.createElement("div");el.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--amb);color:#000;padding:10px 16px;border-radius:100px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;max-width:85%;text-align:center";el.textContent=msg;document.body.appendChild(el);requestAnimationFrame(function(){el.style.opacity="1"});setTimeout(function(){el.style.opacity="0";setTimeout(function(){el.remove()},300)},2800)}
+
+function dayAim(d){
+  const mus={};let comp=0,iso=0,other=0;
+  (d.exs||[]).forEach(function(e){const db=findExInDB(e.n);if(!db)return;mus[db.cat]=(mus[db.cat]||0)+1;if(db.t==="compound")comp++;else if(db.t==="isolation")iso++;else other++});
+  const sorted=Object.entries(mus).sort(function(a,b){return b[1]-a[1]});
+  const targets=sorted.slice(0,3).map(function(e){return(CAT_META[e[0]]||{l:e[0]}).l}).join(", ")||"mixed";
+  const g=GM[S.user?.profile?.goal]||GM.general;
+  return {targets:targets,comp:comp,iso:iso,other:other,goalDesc:g.d,repRange:g.rm,rest:g.rstm};
+}
+function rDayAim(d){
+  const a=dayAim(d);
+  return `<div class="day-aim"><div class="da-row"><span class="da-k">🎯 Targets</span><span class="da-v">${a.targets}</span></div><div class="da-row"><span class="da-k">⚖️ Mix</span><span class="da-v">${a.comp} compound · ${a.iso} isolation${a.other?(' · '+a.other+' other'):''}</span></div><div class="da-row"><span class="da-k">📈 Style</span><span class="da-v">${a.repRange} reps · ${a.rest} rest</span></div></div>`;
+}
+
+function planSummary(){
+  if(!S.plan||!S.plan.length||!S.user)return "";
+  const goal=S.user.profile?.goal||"general";
+  const gm=GM[goal]||GM.general;
+  const dayCount=S.plan.length;
+  // Infer split from day names
+  const names=S.plan.map(function(d){return(d.day||"").toLowerCase()}).join(" ");
+  let split="custom";
+  if(/push.*pull.*leg/.test(names)||/pull.*leg.*push/.test(names))split="Push / Pull / Legs";
+  else if(/upper/.test(names)&&/lower/.test(names))split="Upper / Lower";
+  else if(/full\s*body/.test(names))split="Full Body";
+  else if(/chest|back|leg|arm|shoulder/.test(names))split="Body-part split";
+  return `${dayCount}-day ${split} for <b>${gm.l}</b>. ${gm.d}. Target reps: <b>${gm.rm}</b>, rest: <b>${gm.rstm}</b>.`;
+}
+
+function coachTips(){
+  const tips=[];
+  if(!S.plan||!S.plan.length||!S.user)return tips;
+  const goal=S.user.profile?.goal||"general";
+  const level=S.user.profile?.level||"intermediate";
+  // 1) Compound-first
+  tips.push({i:"🏋️",t:"Open each session with your biggest compound lift while you're fresh — save isolation work for the end."});
+  // 2) Progression from last session
+  const logKeys=Object.keys(S.logs||{}).sort().reverse();
+  if(logKeys.length){
+    const last=S.logs[logKeys[0]];
+    if(last&&last.sets&&last.dayIndex>=0&&S.plan[last.dayIndex]){
+      const plan=S.plan[last.dayIndex];
+      let sug=null;
+      Object.entries(last.sets).some(function(e){
+        const ei=e[0],sets=e[1];const ex=plan.exs[ei];if(!ex)return false;
+        const db=findExInDB(ex.n);if(!db)return false;
+        if(!sets.length||!sets.every(function(s){return s.done}))return false;
+        const top=parseInt(((ex.r||"").split("-").pop()||"0"),10);if(!top)return false;
+        const allHitTop=sets.every(function(s){return parseInt(s.reps,10)>=top});
+        const weight=parseFloat(sets[sets.length-1].weight);
+        if(allHitTop&&weight>0){
+          const isLower=db.cat==="legs"||db.cat==="glutes";
+          sug={name:ex.n,weight:weight,next:weight+(isLower?5:2.5)};
+          return true;
+        }
+        return false;
+      });
+      if(sug)tips.push({i:"📈",t:`You hit every rep on <b>${sug.name}</b> at ${sug.weight}kg — try ${sug.next}kg next session.`});
+      else tips.push({i:"🔁",t:`Stick with last session's weights until every prescribed rep feels clean, then add ${2.5}kg (upper) or 5kg (lower).`});
+    }
+  } else {
+    tips.push({i:"🧭",t:"First week: pick a weight you can lift for every prescribed rep with 2 reps in reserve. Add small increments weekly."});
+  }
+  // 3) Goal-specific
+  const goalTips={
+    muscle_gain:{i:"🍗",t:"Hypertrophy rule: 10–20 hard sets per muscle per week, 8–12 reps, 1–2 reps shy of failure on compounds."},
+    fat_loss:{i:"🔥",t:"Protect muscle during a deficit: keep weights heavy, reps 8–12, add cardio separately rather than rushing between sets."},
+    strength:{i:"💪",t:"Strength block: 3–5 reps on primary lifts, 3–5 minutes rest, add a small load every session or every other session."},
+    recomp:{i:"⚖️",t:"Recomp: prioritise protein (≈1.8g/kg), keep calories near maintenance, progress on compounds week-on-week."},
+    general:{i:"🎯",t:"General fitness: alternate weeks — one focused on strength (4–6 reps), one on hypertrophy (8–12) — keeps you adaptable."}
+  };
+  tips.push(goalTips[goal]||goalTips.general);
+  // 4) Level-specific
+  if(level==="beginner")tips.push({i:"🌱",t:"Beginner: master form before load. Keep a 2-rep buffer, film working sets, add reps before weight."});
+  else if(level==="veteran")tips.push({i:"🔄",t:"Veteran: rotate exercise variations every 4–6 weeks. Tap ⇄ on any lift to swap in a machine or cable alternative."});
+  // 5) Frequency check (last 7 days)
+  const now=Date.now();
+  const last7=Object.values(S.logs||{}).filter(function(l){return l.date&&(now-new Date(l.date).getTime())<7*86400000});
+  if(last7.length===0&&logKeys.length)tips.push({i:"⏰",t:"No sessions in the last 7 days — restart at 80–90% of your previous loads for one week."});
+  else if(last7.length>=5)tips.push({i:"😴",t:"5+ sessions in 7 days — take a rest day. Recovery is where growth happens."});
+  return tips.slice(0,4);
+}
+
+function quickAdd(cat){
+  if(!S.plan||!S.plan.length){ftoast("No plan yet — create one first");return}
+  let di=S.plan.findIndex(function(d){return d.exs.some(function(e){const db=findExInDB(e.n);return db&&db.cat===cat})});
+  if(di<0){
+    // No matching day — append to whichever day has the fewest exercises
+    di=0;let min=999;S.plan.forEach(function(d,i){if(d.exs.length<min){min=d.exs.length;di=i}});
+  }
+  const pool=EX_DB[cat]||[];
+  const existing=new Set(S.plan[di].exs.map(function(e){return e.n}));
+  const g=GM[S.user?.profile?.goal]||GM.general;
+  const lv=S.user?.profile?.level||"intermediate";
+  const sAdj=lv==="beginner"?{s:2,r:"10-12",rest:"2-3 min"}:lv==="veteran"?{s:4,r:g.rm,rest:"90s"}:{s:3,r:g.rm,rest:g.rstm};
+  let addedName=null;
+  for(const e of pool){
+    if(existing.has(e.n))continue;
+    const isCardio=e.t==="cardio",isStretch=e.t==="stretch";
+    S.plan[di].exs.push({n:e.n,s:isCardio||isStretch?1:sAdj.s,r:isCardio?"20 min":isStretch?"30s hold":e.t==="hiit"?"30s on/30s off":e.t==="plyo"?"8-10":sAdj.r,rest:isCardio||isStretch?"—":sAdj.rest,note:e.nt});
+    addedName=e.n;break;
+  }
+  if(!addedName){ftoast(`All ${(CAT_META[cat]||{l:cat}).l} exercises already in your plan`);return}
+  savPlan();rPlan();
+  setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},50);
+  ftoast(`➕ ${addedName} added to ${S.plan[di].day}`);
+}
+
+function styleAdjust(mode){
+  if(!S.plan||!S.plan.length)return;
+  const rules={
+    strength:{s:5,r:"4-6",rest:"3 min",lbl:"Strength (5×4-6, 3 min rest)"},
+    hypertrophy:{s:3,r:"8-12",rest:"90s",lbl:"Hypertrophy (3×8-12, 90s rest)"},
+    endurance:{s:3,r:"15-20",rest:"45s",lbl:"Endurance (3×15-20, 45s rest)"}
+  };
+  const r=rules[mode];if(!r)return;
+  if(!confirm(`Apply ${r.lbl} to all compound lifts across every day?\n\nIsolation, cardio and stretches stay the same.`))return;
+  let n=0;
+  S.plan.forEach(function(d){d.exs.forEach(function(e){const db=findExInDB(e.n);if(db&&db.t==="compound"){e.s=r.s;e.r=r.r;e.rest=r.rest;n++}})});
+  savPlan();rPlan();
+  ftoast(`Style updated · ${n} compound lifts set to ${r.lbl}`);
+}
+
+let coachOpen=false,wantOpen=false;
+function togCoach(){coachOpen=!coachOpen;rPlan()}
+function togWant(){wantOpen=!wantOpen;rPlan()}
+function rCoachCard(){
+  const tips=coachTips();
+  const sum=planSummary();
+  if(!sum&&!tips.length)return '';
+  return `<div class="coach-wrap">`+
+    (sum?`<div class="coach-sum">${sum}</div>`:'')+
+    `<button class="coach-tog" onclick="togCoach()">💡 Coach's tips ${coachOpen?'▾':'▸'}</button>`+
+    (coachOpen?`<div class="coach-body">${tips.map(function(t){return`<div class="coach-tip"><span class="ct-i">${t.i}</span><span class="ct-t">${t.t}</span></div>`}).join('')}</div>`:'')+
+    `<button class="coach-tog" onclick="togWant()">⚙️ I want more... ${wantOpen?'▾':'▸'}</button>`+
+    (wantOpen?`<div class="coach-body">
+      <div class="want-sec-t">Add focus</div>
+      <div class="want-row">
+        <button class="want-b" onclick="quickAdd('arms')">💪 Arms</button>
+        <button class="want-b" onclick="quickAdd('legs')">🦵 Legs</button>
+        <button class="want-b" onclick="quickAdd('glutes')">🍑 Glutes</button>
+        <button class="want-b" onclick="quickAdd('chest')">🫁 Chest</button>
+        <button class="want-b" onclick="quickAdd('back')">🔙 Back</button>
+        <button class="want-b" onclick="quickAdd('shoulders')">🏔️ Shoulders</button>
+        <button class="want-b" onclick="quickAdd('core')">🎯 Core</button>
+        <button class="want-b" onclick="quickAdd('cardio')">🏃 Cardio</button>
+      </div>
+      <div class="want-sec-t">Switch training style</div>
+      <div class="want-row">
+        <button class="want-b" onclick="styleAdjust('strength')">⚡ Strength (5×4-6)</button>
+        <button class="want-b" onclick="styleAdjust('hypertrophy')">💪 Hypertrophy (3×8-12)</button>
+        <button class="want-b" onclick="styleAdjust('endurance')">🏃 Endurance (3×15-20)</button>
+      </div>
+      <div class="want-hint">Or tap ⇄ on any exercise to swap it for a machine or cable variant.</div>
+    </div>`:'')+
+    `</div>`;
+}
+
 function renderDayBody(d, i){
   const dn=S.logs["w"+S.week+"-d"+i];
   const inProg=!dn&&hasActiveProgress(i);
   const startLbl=dn?'Redo':inProg?'▶ Continue Session':'Start Session →';
   const startCls=dn?'out':inProg?'amb':'pri';
-  return `<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn out" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();chgSched(${i})">📅 Scheduled: ${d.sched||'Any day'} (tap to change)</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
+  return rDayAim(d)+`<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn out" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();chgSched(${i})">📅 Scheduled: ${d.sched||'Any day'} (tap to change)</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
 }
 function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
@@ -907,6 +1084,7 @@ return`<div class="sec-title">Weekly Habits</div>`+
   <div class="journey-milestone${streak>=4?' unlocked':''}"><div class="jm-icon">${streak>=4?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Month Warrior</div><div class="jm-desc">${streak>=4?'4 weeks strong!':streak+'/4 week streak'}</div></div></div>
   <div class="journey-milestone${totalSessions>=50?' unlocked':''}"><div class="jm-icon">${totalSessions>=50?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Fifty Strong</div><div class="jm-desc">${totalSessions>=50?'Legend status!':totalSessions+'/50 sessions'}</div></div></div>
 </div>`+
+rCoachCard()+
 `<div class="sec-title">Week ${S.week} Schedule</div>`+
 `<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — tap any day below to do that workout on any calendar date. Scheduled day is just a suggestion; your streak counts the actual day you train.</div>`+
 `<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
