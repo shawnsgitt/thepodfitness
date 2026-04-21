@@ -539,6 +539,7 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .mp-mode-b{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--bdr);color:var(--tx);font-size:12px;font-weight:700;padding:9px 10px;border-radius:10px;cursor:pointer;transition:all .15s}
 .mp-mode-b.on{background:rgba(191,255,0,.1);border-color:var(--amb);color:var(--amb)}
 .mp-mode-hint{font-size:10px;color:var(--sub);line-height:1.5;padding:6px 10px;background:rgba(255,255,255,.02);border-radius:8px;margin-bottom:10px}
+.mp-day-fit{font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;margin:6px 0 2px;background:rgba(255,255,255,.02);line-height:1.4}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -2078,7 +2079,45 @@ const INGREDIENT_DB={
   "jam":{c:"sweet",kcal:56,p:0.1,cb:14,f:0,unit:"tbsp",unitWeight:20},
   "syrup":{c:"sweet",kcal:52,p:0,cb:13,f:0,unit:"tbsp",unitWeight:20},
   "ketchup":{c:"sweet",kcal:15,p:0.2,cb:4,f:0,unit:"tbsp",unitWeight:15},
-  "soy sauce":{c:"sweet",kcal:8,p:1.2,cb:0.8,f:0.1,unit:"tbsp",unitWeight:15}
+  "soy sauce":{c:"sweet",kcal:8,p:1.2,cb:0.8,f:0.1,unit:"tbsp",unitWeight:15},
+  // Composite / prepared dishes — stored with whole-dish macros per 100g
+  // so the ingredient parser recognises them when they appear in saved
+  // meals and the grocery list doesn't reject them. Builder treats these
+  // as starch-bucket items so portioning logic still works.
+  "jollof rice":{c:"carb_starch",kcal:155,p:3,cb:28,f:3},
+  "fried rice":{c:"carb_starch",kcal:174,p:4,cb:25,f:6},
+  "coleslaw":{c:"veg",kcal:152,p:1.3,cb:12,f:11},
+  "tomato stew":{c:"veg",kcal:90,p:2,cb:9,f:5},
+  "meat sauce":{c:"prot_fat",kcal:142,p:10,cb:6,f:8},
+  "bolognese":{c:"prot_fat",kcal:142,p:10,cb:6,f:8},
+  "chicken stir-fry":{c:"prot_lean",kcal:160,p:18,cb:8,f:6},
+  "shrimp stir-fry":{c:"prot_lean",kcal:110,p:16,cb:5,f:3},
+  "indomie stir-fry":{c:"carb_starch",kcal:165,p:5,cb:26,f:5},
+  "chicken wrap":{c:"carb_unit",kcal:290,p:22,cb:28,f:10,unit:"wrap",unitWeight:200},
+  "salmon wrap":{c:"carb_unit",kcal:310,p:20,cb:26,f:14,unit:"wrap",unitWeight:200},
+  "chicken sandwich":{c:"carb_unit",kcal:340,p:24,cb:32,f:12,unit:"piece",unitWeight:220},
+  "pancake mix":{c:"carb_starch",kcal:370,p:10,cb:72,f:5},
+  "mass gainer":{c:"carb_starch",kcal:395,p:14,cb:75,f:3},
+  "salad cream":{c:"fat",kcal:348,p:1.5,cb:17,f:30,unit:"tbsp",unitWeight:15},
+  "scotch bonnet":{c:"veg",kcal:40,p:1.9,cb:9,f:0.4},
+  "kpakposhito":{c:"veg",kcal:40,p:1.9,cb:9,f:0.4},
+  "suya spice":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "paprika":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "thyme":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "parsley":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "garlic":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "garlic powder":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "ginger":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "chilli":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "chilli flakes":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "black pepper":{c:"spice",kcal:0,p:0,cb:0,f:0,unit:"tsp",unitWeight:3},
+  "lemon juice":{c:"sweet",kcal:22,p:0.4,cb:6,f:0.2,unit:"tbsp",unitWeight:15},
+  "gravy":{c:"sweet",kcal:40,p:1,cb:5,f:1.5,unit:"tbsp",unitWeight:15},
+  "pasta cream":{c:"fat",kcal:340,p:2.5,cb:3,f:36,unit:"tbsp",unitWeight:14},
+  "cream":{c:"fat",kcal:340,p:2.5,cb:3,f:36,unit:"tbsp",unitWeight:14},
+  // Grab-and-go items sometimes appear in meals
+  "doughnut":{c:"sweet",kcal:250,p:3,cb:30,f:13,unit:"piece",unitWeight:65},
+  "doughnuts":{c:"sweet",kcal:250,p:3,cb:30,f:13,unit:"piece",unitWeight:65}
 };
 
 function normIngr(s){return(s||"").toLowerCase().replace(/\b(fresh|frozen|cooked|raw|grilled|baked|roasted|fried|boiled|steamed|sliced|diced|chopped|whole|organic|free[\s-]*range|wild|canned|smoked|stir[\s-]*fry|lean)\b/g,"").replace(/\s+/g," ").trim()}
@@ -2190,7 +2229,7 @@ function buildMealFromIngredients(mealName,rawIngredients,mealType){
   };
 }
 
-let cmForm={show:false,name:"",ingr:"",mealType:"Snack",diet:"",preview:null};
+let cmForm={show:false,name:"",ingr:"",mealType:"Snack",mealTypes:["Snack"],diet:"",preview:null};
 const MEAL_TYPES=["Breakfast","Lunch","Pre-Workout","Dinner","Evening Snack","Mass Gainer Shake","Snack"];
 let foodSubTab="overview";
 let mealPlanMealsPerDay=4;
@@ -2238,11 +2277,39 @@ return days.map(d=>sched.includes(d));
 }
 function pickRandom(arr,n){const s=[...arr];const r=[];for(let i=0;i<n&&s.length;i++){const idx=Math.floor(Math.random()*s.length);r.push(s.splice(idx,1)[0])}return r}
 function scaleMeal(meal,factor){return{ml:meal.ml,cal:Math.round(meal.cal*factor),p:Math.round(meal.p*factor),c:Math.round(meal.c*factor),f:Math.round(meal.f*factor),origMl:meal.ml,factor}}
+// Food exclusions: users can list foods they don't eat (raw tomato, certain
+// meats, specific brands...). Any meal whose description contains an
+// excluded substring is filtered out of the auto-generator and swap picker.
+function getExcludedFoods(){
+  const arr=S.user?.profile?.excludeFoods;
+  if(!Array.isArray(arr))return[];
+  return arr.map(function(x){return String(x||"").toLowerCase().trim()}).filter(Boolean);
+}
+function mealRespectsExclusions(meal){
+  const ex=getExcludedFoods();if(!ex.length)return true;
+  const name=((meal&&meal.ml)||"").toLowerCase();
+  if(!name)return true;
+  return!ex.some(function(token){return token&&name.indexOf(token)>=0});
+}
+function filterOpts(opts){
+  const ex=getExcludedFoods();if(!ex.length)return opts;
+  return(opts||[]).filter(mealRespectsExclusions);
+}
 function generateDayMealPlan(isTraining,goal,calTarget,protTarget,mealsPerDay){
-const bfOpts=MEALS.find(m=>m.nm==='Breakfast')?.opts||[];
-const luOpts=MEALS.find(m=>m.nm==='Lunch')?.opts||[];
-const diOpts=MEALS.find(m=>m.nm==='Dinner')?.opts||[];
-const snOpts=(MEALS.find(m=>m.nm==='Evening Snack')?.opts||[]).concat(MEALS.find(m=>m.nm==='Pre-Workout')?.opts||[]);
+function pickPool(slot){
+  const raw=MEALS.find(function(m){return m.nm===slot})?.opts||[];
+  const filtered=filterOpts(raw);
+  // If the user excluded too many items and a whole slot is empty, fall
+  // back to the raw pool so we don't crash — they'll still see a warning
+  // in the Settings exclusion editor.
+  return filtered.length?filtered:raw;
+}
+const bfOpts=pickPool('Breakfast');
+const luOpts=pickPool('Lunch');
+const diOpts=pickPool('Dinner');
+const snRaw=(MEALS.find(m=>m.nm==='Evening Snack')?.opts||[]).concat(MEALS.find(m=>m.nm==='Pre-Workout')?.opts||[]);
+const snOptsFiltered=filterOpts(snRaw);
+const snOpts=snOptsFiltered.length?snOptsFiltered:snRaw;
 // Adjust calorie target: training days get full, rest days get slight deficit
 const dayCalTarget=isTraining?calTarget:Math.round(calTarget*0.88);
 const dayProtTarget=isTraining?protTarget:Math.round(protTarget*0.95);
@@ -2321,15 +2388,23 @@ function rMealPicker(mode,dayIdx,mealIdx){
   cats.forEach(function(cat){
     const pool=MEALS.find(m=>m.nm===cat);if(!pool)return;
     const isCurrent=currentType===cat;
+    // Respect the user's food-exclusion list in the picker too, so the
+    // inventory we surface mirrors what the auto-generator will use.
+    const visibleOpts=pool.opts.map(function(o,i){return{o:o,i:i}}).filter(function(x){return mealRespectsExclusions(x.o)});
+    if(!visibleOpts.length)return;
     h+=`<div style="font-size:11px;font-weight:700;color:${isCurrent?'var(--amb)':'var(--sub)'};margin:10px 0 4px">${cat}${isCurrent?' (current)':''}</div>`;
-    pool.opts.forEach(function(o,i){
+    visibleOpts.forEach(function(x){const o=x.o,i=x.i;
       h+=`<div class="mp-pick-opt" onclick="event.stopPropagation();${handler}'${cat}',${i})"><div class="mp-pick-opt-name">${esc(o.ml)}</div><div class="mp-pick-opt-macros">${o.cal} kcal · ${o.p}P · ${o.c}C · ${o.f}F</div></div>`;
     });
   });
   if(S.customMeals&&S.customMeals.length){
+    // Custom meals can carry either a single mealType or a list of
+    // mealTypes (multi-category support). Show them under 'My Saved Meals'
+    // regardless — the user picked them personally so exclusions don't apply.
     h+=`<div style="font-size:11px;font-weight:700;color:var(--sub);margin:10px 0 4px">⭐ My Saved Meals</div>`;
     S.customMeals.forEach(function(cm,i){
-      h+=`<div class="mp-pick-opt" onclick="event.stopPropagation();${handler}'_custom',${i})"><div class="mp-pick-opt-name">${esc(cm.name)}</div><div class="mp-pick-opt-macros">${cm.cal} kcal · ${cm.p}P · ${cm.c}C · ${cm.f}F</div></div>`;
+      const tags=Array.isArray(cm.mealTypes)&&cm.mealTypes.length?cm.mealTypes.join(" · "):(cm.mealType||"");
+      h+=`<div class="mp-pick-opt" onclick="event.stopPropagation();${handler}'_custom',${i})"><div class="mp-pick-opt-name">${esc(cm.name)}</div><div class="mp-pick-opt-macros">${cm.cal} kcal · ${cm.p}P · ${cm.c}C · ${cm.f}F${tags?' · '+esc(tags):''}</div></div>`;
     });
   }
   h+=`<button class="s-btn out" style="margin-top:10px" onclick="event.stopPropagation();closeMealPicker()">Cancel</button></div>`;
@@ -2478,6 +2553,22 @@ if(mpSwap&&mpSwap.dayIdx===dIdx&&mpSwap.mealIdx===mIdx){h+=rMealPicker("swap",dI
 if(mpAdd&&mpAdd.dayIdx===dIdx){h+=rMealPicker("add",dIdx,null)}
 else{h+=`<button class="mp-add-meal" onclick="openAddMeal(${dIdx})">+ Add Meal to ${d.day}</button>`}
 h+=`<div class="mp-day-totals"><div><div class="tv" style="color:var(--amb)">${totals.cal}</div><div class="tl">kcal</div></div><div><div class="tv" style="color:#EF4444">${totals.p}g</div><div class="tl">protein</div></div><div><div class="tv" style="color:#3B82F6">${totals.c}g</div><div class="tl">carbs</div></div><div><div class="tv" style="color:#A855F7">${totals.f}g</div><div class="tl">fat</div></div></div>`;
+// Target-fit for this day vs the user's daily targets (training or rest
+// adjusted the same way the auto-generator does).
+const calTarget=Math.round((S.nutri?.cal||2500)*(d.isTraining?1:0.88));
+const proTarget=Math.round((S.nutri?.protein||150)*(d.isTraining?1:0.95));
+const calDelta=totals.cal-calTarget;
+const proDelta=totals.p-proTarget;
+const calPct=calTarget?Math.round(calDelta/calTarget*100):0;
+const proPct=proTarget?Math.round(proDelta/proTarget*100):0;
+let fit="",fitCol="var(--grn)";
+if(d.meals.length===0){fit=`📝 Empty — add meals to reach ~${calTarget} kcal / ${proTarget}g protein`;fitCol="var(--sub)"}
+else if(Math.abs(calPct)<=10&&proDelta>=-10){fit=`✅ On target (${totals.cal}/${calTarget} kcal · ${totals.p}/${proTarget}g protein)`;fitCol="var(--grn)"}
+else if(calPct<-15){fit=`🟡 Under by ~${Math.abs(calPct)}% kcal — add a side or larger portion (~${Math.abs(calDelta)} kcal short)`;fitCol="var(--amb)"}
+else if(calPct>15){fit=`🟡 Over by ~${calPct}% kcal — reduce a portion or swap one meal (~${calDelta} kcal surplus)`;fitCol="var(--amb)"}
+else if(proDelta<-15){fit=`🟡 Low protein — add a protein-rich snack (~${Math.abs(proDelta)}g short)`;fitCol="var(--amb)"}
+else{fit=`✅ Close to target (${totals.cal}/${calTarget} kcal · ${totals.p}/${proTarget}g protein)`;fitCol="var(--grn)"}
+h+=`<div class="mp-day-fit" style="color:${fitCol}">${fit}</div>`;
 h+=`</div></div>`;
 });
 h+=`<div style="text-align:center;margin:12px 0"><button class="gl-btn" onclick="showGroceryList()">🛒 Grocery List</button></div>`;
@@ -2773,7 +2864,10 @@ function rCustomMealForm(){
   h+=`<div class="cm-sub">Enter what you want to eat. The app builds portions to match your ${S.nutri?.cal||2500} kcal daily target and ${S.user?.profile?.goal?(GM[S.user.profile.goal]||GM.general).l:"current goal"}.</div>`;
   h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Meal Name</label><input class="cm-inp full" type="text" placeholder="e.g. Chicken Rice Bowl" value="${esc(cmForm.name)}" oninput="cmForm.name=this.value" maxlength="60"></div>`;
   h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Ingredients (comma or new line)</label><textarea class="cm-inp full" rows="3" placeholder="chicken, rice, avocado, broccoli" oninput="cmForm.ingr=this.value">${esc(cmForm.ingr)}</textarea><div class="cm-inline-hint">Tip: just list the ingredients — quantities are computed for you.</div></div>`;
-  h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Meal Type</label><div class="pills" style="margin-bottom:0;padding-bottom:0">${mt.map(function(x){return`<button class="pill ${cmForm.mealType===x?'on':''}" onclick="cmForm.mealType='${x}';cmForm.preview=null;rFood()">${x}</button>`}).join("")}</div></div>`;
+  // Meal types — multi-select. A meal (e.g. Chicken Rice Bowl) can be
+  // suitable for both Lunch and Dinner, so the user can tag it as both.
+  const selectedTypes=Array.isArray(cmForm.mealTypes)&&cmForm.mealTypes.length?cmForm.mealTypes.slice():[cmForm.mealType||"Snack"];
+  h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Meal Type (pick one or more)</label><div class="pills" style="margin-bottom:0;padding-bottom:0">${mt.map(function(x){const on=selectedTypes.indexOf(x)>=0;return`<button class="pill ${on?'on':''}" onclick="cmForm.mealTypes=cmForm.mealTypes||[];const i=cmForm.mealTypes.indexOf('${x}');if(i>=0){cmForm.mealTypes.splice(i,1)}else{cmForm.mealTypes.push('${x}')}if(cmForm.mealTypes.length)cmForm.mealType=cmForm.mealTypes[0];cmForm.preview=null;rFood()">${x}</button>`}).join("")}</div><div class="cm-inline-hint">Tap multiple if the meal fits several slots (e.g. Lunch + Dinner).</div></div>`;
   h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Dietary preference (optional)</label><div class="pills" style="margin-bottom:0;padding-bottom:0">${diets.map(function(x){const lbl=x||"none";return`<button class="pill ${cmForm.diet===x?'on':''}" onclick="cmForm.diet='${x}';rFood()">${lbl}</button>`}).join("")}</div></div>`;
   h+=`<div class="cm-actions"><button class="s-btn pri" onclick="generateCustomMeal()">⚡ Generate meal</button></div>`;
   if(cmForm.preview){
@@ -2809,13 +2903,15 @@ function logCustomMeal(){
   const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];
   S.flog[tk].push({meal:p.mealType,ml:p.description,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f,isCustom:true,ingredients:p.lines});
   savFlog();updHdr();
-  cmForm={show:false,name:"",ingr:"",mealType:"Snack",diet:"",preview:null};
+  cmForm={show:false,name:"",ingr:"",mealType:"Snack",mealTypes:[],diet:"",preview:null};
   rFood();
 }
 function saveCustomMeal(){
   const p=cmForm.preview;
   if(!p||!p.ok){alert("Generate the meal first");return}
-  S.customMeals.push({name:p.mealName,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f,mealType:p.mealType,description:p.description,ingredients:p.lines});
+  // Persist multi-category tags when the user picked more than one.
+  const types=Array.isArray(cmForm.mealTypes)&&cmForm.mealTypes.length?cmForm.mealTypes.slice():[p.mealType||"Snack"];
+  S.customMeals.push({name:p.mealName,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f,mealType:types[0],mealTypes:types,description:p.description,ingredients:p.lines});
   savCMeals();
   logCustomMeal();
 }
@@ -3050,6 +3146,11 @@ el.innerHTML=`<div class="more-nav-grid"><div class="more-nav-item" onclick="swT
 `<div class="log-t" style="margin-top:16px">⚙️ Profile</div><div class="card">`+
 [{l:"Gender",v:`${p.gender==='female'?'🙋‍♀️ Female':p.gender==='male'?'🙋‍♂️ Male':'Not set'}`,k:"gender"},{l:"Goal",v:`${GM[p.goal]?.e||""} ${GM[p.goal]?.l||"Not set"}`,k:"goal"},{l:"Gym Level",v:`${({beginner:'🌱 Beginner',intermediate:'💪 Intermediate',veteran:'🏆 Veteran'})[p.level]||'💪 Intermediate'}`,k:"level"},{l:"Body Stats",v:`Age ${p.age} · ${p.height}cm · ${p.weight}kg`,k:"body"},{l:"Training Days",v:`${p.days} day${p.days>1?'s':''}/week`,k:"days"},{l:"Cardio",v:`${p.cardio!==false?'🏃 Included':'Off'}`,k:"cardio"},{l:"Calorie Target",v:`${S.nutri.cal} kcal · ${S.nutri.protein}g P · ${S.nutri.carbs}g C · ${S.nutri.fat}g F`,k:"nutri"}].map(item=>`<div style="margin-bottom:12px"><div class="set-label">${item.l}</div><div style="font-size:11px;color:var(--sub);margin-bottom:6px">${item.v}</div>${item.k!=="nutri"?`<button class="set-edit" onclick="editProfField('${item.k}')">Change</button>`:''}</div>`).join("")+
 `<div style="margin-bottom:12px"><div class="set-label">Focus Areas</div><div style="font-size:10px;color:var(--sub);margin-bottom:8px">Tap to toggle. Plan regenerates automatically.</div><div class="ob-grid g3" style="margin-bottom:6px">${Object.entries(AM).map(([k,v])=>`<button class="ob-opt ${(p.areas||[]).includes(k)?'on':''}" style="padding:10px 6px" onclick="togArea('${k}')">${v.e}<span class="label" style="font-size:11px">${v.l}</span></button>`).join("")}</div><button class="ob-opt ${(p.areas||[]).length===7?'on':''}" style="padding:8px;font-size:11px" onclick="setAllAreas()"><span style="font-size:16px">🏋️</span> <span class="label" style="font-size:11px">Full Body</span></button></div>`+`</div>`+
+// Food exclusions — comma-separated list of foods the user doesn't eat.
+// Matched as case-insensitive substring against every meal description and
+// ingredient string the app shows, so 'raw tomato' / 'pork' / 'akpeteshie'
+// flow through to the generator, picker, and grocery list.
+`<div class="log-t">🚫 Foods I don't eat</div><div class="card" style="margin-top:8px"><textarea id="exclFoodsIn" rows="2" style="width:100%;background:var(--input);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);padding:8px;font-family:inherit;font-size:12px;line-height:1.5" placeholder="e.g. raw tomato, pork, shrimp, akpeteshie">${esc((S.user.profile?.excludeFoods||[]).join(", "))}</textarea><div style="display:flex;gap:6px;margin-top:6px"><button class="s-btn pri" style="flex:1;font-size:11px;padding:8px" onclick="const v=document.getElementById('exclFoodsIn').value;S.user.profile.excludeFoods=v.split(',').map(function(s){return s.trim()}).filter(Boolean);SS('sp-me',S.user);savProf(S.user);cachedMealPlan=null;if(typeof ftoast==='function')ftoast('✓ Saved '+S.user.profile.excludeFoods.length+' exclusions');rSet()">Save exclusions</button><button class="s-btn out" style="flex:1;font-size:11px;padding:8px" onclick="S.user.profile.excludeFoods=[];SS('sp-me',S.user);savProf(S.user);cachedMealPlan=null;rSet()">Clear</button></div><div style="font-size:10px;color:var(--sub);margin-top:6px;line-height:1.4">Any meal whose description contains one of these phrases will be skipped when the app auto-generates a plan or swaps in alternatives. Tip: put 'raw tomato' to block raw tomato only (cooked/processed tomato still allowed).</div></div>`+
 // Plan management
 `<div class="log-t">📋 Plan Management</div><button class="s-btn pri" onclick="if(confirm('Regenerate?')){S.plan=genPlan(S.user.profile);savPlan();updHdr();rSet()}">🔄 Regenerate Auto Plan</button><button class="s-btn grn" style="margin-top:6px" onclick="swTab('library')">📚 Build from Library</button>`+
 (S.customPlans.length?`<div style="margin-top:10px">${S.customPlans.map((cp,ci)=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:10px"><div><div style="font-weight:700;font-size:12px">${cp.day} 🔧</div><div style="font-size:9px;color:var(--sub)">${cp.exs.length} exercises</div></div><div style="display:flex;gap:4px"><button class="set-edit" style="font-size:9px;padding:5px 8px" onclick="S.plan.push({...S.customPlans[${ci}],day:'Day '+(S.plan.length+1)+' — '+S.customPlans[${ci}].day});savPlan();updHdr();rSet()">Add</button><button style="padding:5px 8px;border-radius:6px;font-size:9px;font-weight:700;border:1px solid var(--red);background:transparent;color:var(--red)" onclick="S.customPlans.splice(${ci},1);savCustom();rSet()">✕</button></div></div>`).join("")}</div>`:'')+
