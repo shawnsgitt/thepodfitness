@@ -510,6 +510,28 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .bodycomp-row span:first-child{color:var(--sub)}
 .bodycomp-row span:last-child{font-weight:700;color:var(--tx)}
 .bodycomp-note{font-size:10px;color:var(--sub);margin-top:6px;line-height:1.4;border-top:1px solid rgba(255,255,255,.05);padding-top:6px}
+.pg-wrap{background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px;margin:6px 0}
+.pg-head{font-size:10px;color:var(--sub);margin-bottom:8px;line-height:1.4}
+.pg-card{display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.pg-card:active{background:rgba(191,255,0,.08);border-color:var(--amb)}
+.pg-card .pg-e{font-size:22px;flex-shrink:0}
+.pg-card .pg-body{flex:1;min-width:0}
+.pg-card .pg-ttl{font-size:12px;font-weight:700;color:var(--tx)}
+.pg-card .pg-desc{font-size:10px;color:var(--sub);margin-top:1px}
+.pg-card .pg-src{font-size:9px;color:var(--sub);margin-top:2px;opacity:.7}
+.pg-card .pg-add{font-size:10px;font-weight:700;color:var(--amb);background:rgba(191,255,0,.08);padding:4px 8px;border-radius:100px;flex-shrink:0}
+.bench-wrap{background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:10px 12px;margin:6px 0}
+.bench-head{font-size:11px;font-weight:700;color:var(--pur);margin-bottom:4px}
+.bench-sub{font-size:10px;color:var(--sub);margin-bottom:8px;line-height:1.4}
+.bench-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;gap:8px;border-top:1px solid rgba(255,255,255,.04)}
+.bench-row:first-of-type{border-top:none}
+.bench-m{color:var(--sub)}
+.bench-s{font-weight:700}
+.bench-a{font-size:10px;color:var(--sub);padding:2px 0 4px;line-height:1.4}
+.bench-warn{font-size:11px;color:var(--amb);background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px;margin-top:8px;line-height:1.4}
+.bench-ok{font-size:11px;color:var(--grn);background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:6px;padding:8px;margin-top:8px}
+.bench-foot{font-size:9px;color:var(--sub);margin-top:8px;border-top:1px solid rgba(255,255,255,.05);padding-top:6px;line-height:1.4}
+.bench-hint{font-size:11px;color:var(--sub);text-align:center;padding:6px}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -676,17 +698,17 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 // ═══════ EXPANDED EXERCISE DATABASE ═══════
 const EX_DB={
 chest:[{n:"Flat Barbell Bench Press",t:"compound",nt:"Control eccentric. Drive through chest.",diff:"inter"},{n:"Incline Dumbbell Press",t:"compound",nt:"30° incline. Full stretch.",diff:"inter"},{n:"Cable Flys (Mid)",t:"isolation",nt:"Constant tension. Slight lean.",diff:"beg"},{n:"Machine Chest Press",t:"compound",nt:"Controlled reps. Push for pump.",diff:"beg"},{n:"Dumbbell Flys",t:"isolation",nt:"Slight elbow bend. Stretch wide.",diff:"beg"},{n:"Incline Barbell Bench",t:"compound",nt:"Upper chest. Controlled tempo.",diff:"inter"},{n:"Decline Bench Press",t:"compound",nt:"Lower chest emphasis. Control path.",diff:"inter"},{n:"Push-Ups (Weighted)",t:"compound",nt:"Plate on back. Full ROM.",diff:"inter"}],
-back:[{n:"Barbell Bent-Over Row",t:"compound",nt:"Chest up, elbows back.",diff:"inter"},{n:"Lat Pulldown (Wide)",t:"compound",nt:"Lean slightly, pull to chest.",diff:"beg"},{n:"Seated Cable Row",t:"compound",nt:"Chest to handle. No momentum.",diff:"beg"},{n:"Single-Arm DB Row",t:"compound",nt:"Full stretch, row to hip.",diff:"inter"},{n:"Chest-Supported DB Row",t:"compound",nt:"No momentum. Squeeze top.",diff:"beg"},{n:"Lat Pulldown (Neutral)",t:"compound",nt:"Mind-muscle connection.",diff:"beg"},{n:"T-Bar Row",t:"compound",nt:"Squeeze shoulder blades.",diff:"inter"},{n:"Meadows Row",t:"compound",nt:"Landmine. Great lat stretch.",diff:"adv"}],
-shoulders:[{n:"Seated Dumbbell OHP",t:"compound",nt:"Control negative. No arch.",diff:"inter"},{n:"Cable Lateral Raises",t:"isolation",nt:"Behind-body for tension.",diff:"beg"},{n:"DB Lateral Raises",t:"isolation",nt:"Light weight, chase burn.",diff:"beg"},{n:"Face Pulls",t:"isolation",nt:"External rotate. Health.",diff:"beg"},{n:"Arnold Press",t:"compound",nt:"Full rotation. Controlled.",diff:"inter"},{n:"Reverse Pec Deck",t:"isolation",nt:"Rear delt squeeze.",diff:"beg"},{n:"Barbell OHP (Standing)",t:"compound",nt:"Brace core. Strict press.",diff:"inter"},{n:"Lu Raises",t:"isolation",nt:"Front + lateral combo.",diff:"adv"}],
+back:[{n:"Barbell Bent-Over Row",t:"compound",nt:"Chest up, elbows back.",diff:"inter"},{n:"Lat Pulldown (Wide)",t:"compound",nt:"Lean slightly, pull to chest.",diff:"beg"},{n:"Seated Cable Row",t:"compound",nt:"Chest to handle. No momentum.",diff:"beg"},{n:"Single-Arm DB Row",t:"compound",nt:"Full stretch, row to hip.",diff:"inter"},{n:"Chest-Supported DB Row",t:"compound",nt:"No momentum. Squeeze top.",diff:"beg"},{n:"Lat Pulldown (Neutral)",t:"compound",nt:"Mind-muscle connection.",diff:"beg"},{n:"T-Bar Row",t:"compound",nt:"Squeeze shoulder blades.",diff:"inter"},{n:"Meadows Row",t:"compound",nt:"Landmine. Great lat stretch.",diff:"adv"},{n:"Renegade Row",t:"compound",nt:"Plank + DB row. Anti-rotation + back.",diff:"inter"}],
+shoulders:[{n:"Seated Dumbbell OHP",t:"compound",nt:"Control negative. No arch.",diff:"inter"},{n:"Cable Lateral Raises",t:"isolation",nt:"Behind-body for tension.",diff:"beg"},{n:"DB Lateral Raises",t:"isolation",nt:"Light weight, chase burn.",diff:"beg"},{n:"Face Pulls",t:"isolation",nt:"External rotate. Health.",diff:"beg"},{n:"Arnold Press",t:"compound",nt:"Full rotation. Controlled.",diff:"inter"},{n:"Reverse Pec Deck",t:"isolation",nt:"Rear delt squeeze.",diff:"beg"},{n:"Barbell OHP (Standing)",t:"compound",nt:"Brace core. Strict press.",diff:"inter"},{n:"Lu Raises",t:"isolation",nt:"Front + lateral combo.",diff:"adv"},{n:"Dumbbell Push Press",t:"compound",nt:"Leg drive into press. Use to break OHP plateaus.",diff:"inter"},{n:"Kettlebell Push Press",t:"compound",nt:"Dip + drive + press. Racked KB.",diff:"inter"}],
 arms:[{n:"Barbell Curl",t:"isolation",nt:"Strict. 2-3s eccentric.",diff:"beg"},{n:"Incline DB Curl",t:"isolation",nt:"Arms behind torso.",diff:"inter"},{n:"Hammer Curls",t:"isolation",nt:"Brachialis. Neutral grip.",diff:"beg"},{n:"Tricep Rope Pushdowns",t:"isolation",nt:"Spread bottom. Squeeze.",diff:"beg"},{n:"Overhead Tricep Extension",t:"isolation",nt:"Long head. Stretch.",diff:"beg"},{n:"EZ Bar Skull Crushers",t:"isolation",nt:"Elbows fixed. Slow.",diff:"inter"},{n:"Preacher Curl (Machine)",t:"isolation",nt:"No cheating. Strict.",diff:"beg"},{n:"Close-Grip Bench Press",t:"compound",nt:"Tricep compound. Elbows in.",diff:"inter"},{n:"Spider Curls",t:"isolation",nt:"Peak contraction focus.",diff:"inter"},{n:"Dips (Weighted)",t:"compound",nt:"Upright for triceps.",diff:"inter"}],
-legs:[{n:"Barbell Back Squat",t:"compound",nt:"Parallel+. Brace hard.",diff:"inter"},{n:"Romanian Deadlift",t:"compound",nt:"Hamstring stretch. Soft knees.",diff:"inter"},{n:"Leg Press",t:"compound",nt:"Feet shoulder-width, full ROM.",diff:"beg"},{n:"Walking Lunges (DB)",t:"compound",nt:"Upright, controlled.",diff:"inter"},{n:"Leg Curl (Machine)",t:"isolation",nt:"1s squeeze at peak.",diff:"beg"},{n:"Hip Thrust (BB)",t:"compound",nt:"Squeeze 2s top.",diff:"inter"},{n:"Standing Calf Raises",t:"isolation",nt:"Full stretch, 2s pause.",diff:"beg"},{n:"Bulgarian Split Squats",t:"compound",nt:"Unilateral. Control.",diff:"inter"},{n:"Leg Extension",t:"isolation",nt:"Slow isolation.",diff:"beg"},{n:"Goblet Squat",t:"compound",nt:"Great for beginners. Deep.",diff:"beg"},{n:"Hack Squat (Machine)",t:"compound",nt:"Fixed path. Quad focus.",diff:"inter"},{n:"Seated Calf Raises",t:"isolation",nt:"Soleus focus. Full ROM.",diff:"beg"}],
-glutes:[{n:"Barbell Hip Thrust",t:"compound",nt:"Squeeze 2s top. Drive through heels.",diff:"inter"},{n:"Cable Kickbacks",t:"isolation",nt:"Squeeze glute at top. Controlled.",diff:"beg"},{n:"Glute Bridge (Weighted)",t:"compound",nt:"Pause at top. Full squeeze.",diff:"beg"},{n:"Bulgarian Split Squat (Glute Focus)",t:"compound",nt:"Lean forward slightly. Long stride.",diff:"inter"},{n:"Sumo Deadlift",t:"compound",nt:"Wide stance. Push through heels.",diff:"inter"},{n:"Step-Ups (Weighted)",t:"compound",nt:"Drive through heel. Full extension.",diff:"beg"},{n:"Frog Pumps",t:"isolation",nt:"Soles together. Squeeze at top.",diff:"beg"},{n:"Single-Leg Hip Thrust",t:"compound",nt:"Unilateral. Balance and squeeze.",diff:"adv"}],
+legs:[{n:"Barbell Back Squat",t:"compound",nt:"Parallel+. Brace hard.",diff:"inter"},{n:"Romanian Deadlift",t:"compound",nt:"Hamstring stretch. Soft knees.",diff:"inter"},{n:"Leg Press",t:"compound",nt:"Feet shoulder-width, full ROM.",diff:"beg"},{n:"Walking Lunges (DB)",t:"compound",nt:"Upright, controlled.",diff:"inter"},{n:"Leg Curl (Machine)",t:"isolation",nt:"1s squeeze at peak.",diff:"beg"},{n:"Hip Thrust (BB)",t:"compound",nt:"Squeeze 2s top.",diff:"inter"},{n:"Standing Calf Raises",t:"isolation",nt:"Full stretch, 2s pause.",diff:"beg"},{n:"Bulgarian Split Squats",t:"compound",nt:"Unilateral. Control.",diff:"inter"},{n:"Leg Extension",t:"isolation",nt:"Slow isolation.",diff:"beg"},{n:"Goblet Squat",t:"compound",nt:"Great for beginners. Deep.",diff:"beg"},{n:"Hack Squat (Machine)",t:"compound",nt:"Fixed path. Quad focus.",diff:"inter"},{n:"Seated Calf Raises",t:"isolation",nt:"Soleus focus. Full ROM.",diff:"beg"},{n:"Kettlebell Sumo Squat",t:"compound",nt:"Wide stance, toes out. Drive knees out.",diff:"beg"},{n:"Kettlebell Side Lunge",t:"compound",nt:"Lateral step, load one leg. Hip mobility.",diff:"beg"},{n:"Single-Leg Romanian Deadlift (DB)",t:"compound",nt:"Hinge on one leg. Balance + hamstrings.",diff:"inter"},{n:"Pulsing Goblet Squat",t:"compound",nt:"Full squat + 4 half-range pulses. Time under tension.",diff:"beg"}],
+glutes:[{n:"Barbell Hip Thrust",t:"compound",nt:"Squeeze 2s top. Drive through heels.",diff:"inter"},{n:"Cable Kickbacks",t:"isolation",nt:"Squeeze glute at top. Controlled.",diff:"beg"},{n:"Glute Bridge (Weighted)",t:"compound",nt:"Pause at top. Full squeeze.",diff:"beg"},{n:"Bulgarian Split Squat (Glute Focus)",t:"compound",nt:"Lean forward slightly. Long stride.",diff:"inter"},{n:"Sumo Deadlift",t:"compound",nt:"Wide stance. Push through heels.",diff:"inter"},{n:"Step-Ups (Weighted)",t:"compound",nt:"Drive through heel. Full extension.",diff:"beg"},{n:"Frog Pumps",t:"isolation",nt:"Soles together. Squeeze at top.",diff:"beg"},{n:"Single-Leg Hip Thrust",t:"compound",nt:"Unilateral. Balance and squeeze.",diff:"adv"},{n:"Kettlebell Single-Arm Swing",t:"compound",nt:"Hip hinge power. Drive from glutes.",diff:"inter"}],
 core:[{n:"Hanging Leg Raises",t:"compound",nt:"No swinging. Controlled.",diff:"inter"},{n:"Cable Woodchops",t:"compound",nt:"Core rotation.",diff:"inter"},{n:"Ab Wheel Rollout",t:"compound",nt:"Brace hard. Don't sag.",diff:"inter"},{n:"Plank (45-60s)",t:"compound",nt:"Squeeze all. No drop.",diff:"beg"},{n:"Pallof Press",t:"isolation",nt:"Anti-rotation. Brace.",diff:"beg"},{n:"Russian Twists",t:"compound",nt:"Feet off floor. Twist.",diff:"beg"},{n:"Dead Bugs",t:"compound",nt:"Lower back flat. Alternate.",diff:"beg"},{n:"Copenhagen Plank",t:"compound",nt:"Adductor + oblique.",diff:"adv"}],
 cardio:[{n:"Treadmill Run (Steady State)",t:"cardio",nt:"60-70% max HR. 20-40 min.",diff:"beg"},{n:"Incline Treadmill Walk",t:"cardio",nt:"12-15% incline. 3.5-4 mph. Fat burn.",diff:"beg"},{n:"Rowing Machine",t:"cardio",nt:"Full body. 500m intervals or steady.",diff:"inter"},{n:"Stationary Bike (Moderate)",t:"cardio",nt:"Steady state. 20-30 min.",diff:"beg"},{n:"Stairmaster",t:"cardio",nt:"Great for glutes and cardio.",diff:"inter"},{n:"Jump Rope",t:"cardio",nt:"30s on, 30s off. Coordination + cardio.",diff:"inter"},{n:"Swimming (Laps)",t:"cardio",nt:"Low impact. Full body cardio.",diff:"inter"},{n:"Assault Bike",t:"cardio",nt:"Arms + legs. Brutal conditioning.",diff:"adv"}],
 hiit:[{n:"Burpees",t:"hiit",nt:"Full body explosive. 30s work, 30s rest.",diff:"inter"},{n:"Battle Ropes (Alternating)",t:"hiit",nt:"30s waves, 30s rest. Arms + core.",diff:"inter"},{n:"Box Jumps",t:"hiit",nt:"Explosive. Step down, don't jump.",diff:"inter"},{n:"Kettlebell Swings",t:"hiit",nt:"Hip hinge. Power from glutes.",diff:"inter"},{n:"Mountain Climbers",t:"hiit",nt:"Fast knees. Core engaged.",diff:"beg"},{n:"Sprint Intervals (Treadmill)",t:"hiit",nt:"20s sprint, 40s walk. 8-10 rounds.",diff:"adv"},{n:"Rowing Intervals",t:"hiit",nt:"500m hard, 1 min rest. Repeat.",diff:"inter"},{n:"Sled Push/Pull",t:"hiit",nt:"Full body conditioning. No eccentric.",diff:"adv"},{n:"Thrusters (DB/BB)",t:"hiit",nt:"Squat to press. Total body.",diff:"inter"}],
 stretch:[{n:"World's Greatest Stretch",t:"stretch",nt:"Lunge + rotation + hamstring. Full body.",diff:"beg"},{n:"90/90 Hip Stretch",t:"stretch",nt:"Internal/external rotation. Hold 30s.",diff:"beg"},{n:"Cat-Cow (Spinal)",t:"stretch",nt:"Flexion/extension. Breathe deep.",diff:"beg"},{n:"Pigeon Pose",t:"stretch",nt:"Deep hip flexor + glute stretch.",diff:"beg"},{n:"Doorway Chest Stretch",t:"stretch",nt:"Arm at 90°. Lean through. Hold 30s.",diff:"beg"},{n:"Seated Hamstring Stretch",t:"stretch",nt:"Straight leg. Hinge at hips.",diff:"beg"},{n:"Thoracic Rotation (Side-lying)",t:"stretch",nt:"Open chest. Follow hand with eyes.",diff:"beg"},{n:"Child's Pose",t:"stretch",nt:"Lat and lower back. Breathe.",diff:"beg"},{n:"Couch Stretch (Quad/Hip Flexor)",t:"stretch",nt:"Back knee on couch. Squeeze glute.",diff:"inter"},{n:"Banded Shoulder Dislocates",t:"stretch",nt:"Wide grip. Slow circles.",diff:"beg"}],
 plyo:[{n:"Depth Jumps",t:"plyo",nt:"Step off box, immediately jump max height.",diff:"adv"},{n:"Broad Jumps",t:"plyo",nt:"Horizontal power. Swing arms. Stick landing.",diff:"inter"},{n:"Plyo Push-Ups",t:"plyo",nt:"Explosive push. Hands leave ground.",diff:"inter"},{n:"Lateral Bounds",t:"plyo",nt:"Single-leg lateral jump. Stick each side.",diff:"inter"},{n:"Tuck Jumps",t:"plyo",nt:"Jump high, knees to chest. Soft land.",diff:"inter"},{n:"Single-Leg Box Jump",t:"plyo",nt:"Unilateral power. Step down.",diff:"adv"},{n:"Skater Jumps",t:"plyo",nt:"Lateral. Reach opposite foot behind.",diff:"beg"},{n:"Medicine Ball Slams",t:"plyo",nt:"Full body power. Slam hard.",diff:"beg"}],
-calisthenics:[{n:"Pull-Ups",t:"compound",nt:"Full dead hang. Chin over bar. Control descent.",diff:"inter"},{n:"Dips (Bodyweight)",t:"compound",nt:"Lean slightly forward for chest. Elbows back for triceps.",diff:"inter"},{n:"Push-Ups",t:"compound",nt:"Full ROM. Chest to floor. Core tight.",diff:"beg"},{n:"Pistol Squats",t:"compound",nt:"Single-leg squat. Full depth. Balance.",diff:"adv"},{n:"Muscle-Ups",t:"compound",nt:"Explosive pull + transition. Advanced skill.",diff:"adv"},{n:"Bodyweight Rows (Inverted)",t:"compound",nt:"Feet elevated for difficulty. Squeeze back.",diff:"beg"},{n:"Handstand Push-Ups",t:"compound",nt:"Wall-assisted. Full press. Shoulder strength.",diff:"adv"},{n:"L-Sit Hold",t:"compound",nt:"Parallel bars or floor. Core + hip flexors.",diff:"inter"},{n:"Diamond Push-Ups",t:"compound",nt:"Hands together. Tricep focus. Full ROM.",diff:"beg"},{n:"Chin-Ups",t:"compound",nt:"Supinated grip. Bicep emphasis. Full hang.",diff:"inter"},{n:"Archer Push-Ups",t:"compound",nt:"Wide stance. Shift weight side to side.",diff:"inter"},{n:"Nordic Hamstring Curls",t:"compound",nt:"Eccentric hamstring. Partner or anchored.",diff:"adv"},{n:"Dragon Flags",t:"compound",nt:"Core beast mode. Slow eccentric.",diff:"adv"},{n:"Hanging Knee Raises",t:"compound",nt:"No swinging. Controlled. Core engagement.",diff:"beg"},{n:"Planche Lean Push-Ups",t:"compound",nt:"Lean forward. Build planche strength.",diff:"adv"},{n:"Bodyweight Squats",t:"compound",nt:"Deep squat. Controlled tempo. High reps.",diff:"beg"}]
+calisthenics:[{n:"Pull-Ups",t:"compound",nt:"Full dead hang. Chin over bar. Control descent.",diff:"inter"},{n:"Dips (Bodyweight)",t:"compound",nt:"Lean slightly forward for chest. Elbows back for triceps.",diff:"inter"},{n:"Push-Ups",t:"compound",nt:"Full ROM. Chest to floor. Core tight.",diff:"beg"},{n:"Pistol Squats",t:"compound",nt:"Single-leg squat. Full depth. Balance.",diff:"adv"},{n:"Muscle-Ups",t:"compound",nt:"Explosive pull + transition. Advanced skill.",diff:"adv"},{n:"Bodyweight Rows (Inverted)",t:"compound",nt:"Feet elevated for difficulty. Squeeze back.",diff:"beg"},{n:"Handstand Push-Ups",t:"compound",nt:"Wall-assisted. Full press. Shoulder strength.",diff:"adv"},{n:"L-Sit Hold",t:"compound",nt:"Parallel bars or floor. Core + hip flexors.",diff:"inter"},{n:"Diamond Push-Ups",t:"compound",nt:"Hands together. Tricep focus. Full ROM.",diff:"beg"},{n:"Chin-Ups",t:"compound",nt:"Supinated grip. Bicep emphasis. Full hang.",diff:"inter"},{n:"Archer Push-Ups",t:"compound",nt:"Wide stance. Shift weight side to side.",diff:"inter"},{n:"Nordic Hamstring Curls",t:"compound",nt:"Eccentric hamstring. Partner or anchored.",diff:"adv"},{n:"Dragon Flags",t:"compound",nt:"Core beast mode. Slow eccentric.",diff:"adv"},{n:"Hanging Knee Raises",t:"compound",nt:"No swinging. Controlled. Core engagement.",diff:"beg"},{n:"Planche Lean Push-Ups",t:"compound",nt:"Lean forward. Build planche strength.",diff:"adv"},{n:"Bodyweight Squats",t:"compound",nt:"Deep squat. Controlled tempo. High reps.",diff:"beg"},{n:"Reverse Lunges (BW)",t:"compound",nt:"Step back, knee to floor. Drive through front heel.",diff:"beg"},{n:"Speed Skaters",t:"plyo",nt:"Lateral bound. Reach opposite foot behind.",diff:"beg"},{n:"Jump Squats",t:"plyo",nt:"Explosive squat. Soft landing. Reset each rep.",diff:"inter"},{n:"Burpee Tuck Jumps",t:"hiit",nt:"Burpee + explosive tuck jump on stand-up. Brutal conditioning.",diff:"adv"},{n:"Plank Push-Up",t:"compound",nt:"Alternate forearm plank ↔ full plank. Controlled.",diff:"inter"},{n:"Plank Drag-Through",t:"compound",nt:"High plank + drag KB/DB side to side. Anti-rotation.",diff:"inter"}]
 };
 
 const CAT_META={chest:{l:"Chest",e:"🫁",c:"#EF4444"},back:{l:"Back",e:"🔙",c:"#3B82F6"},shoulders:{l:"Shoulders",e:"🏔️",c:"#A855F7"},arms:{l:"Arms",e:"💪",c:"#38BDF8"},legs:{l:"Legs",e:"🦵",c:"#22C55E"},glutes:{l:"Glutes",e:"🍑",c:"#F472B6"},core:{l:"Core",e:"🎯",c:"#06B6D4"},calisthenics:{l:"Calisthenics",e:"🤸",c:"#F59E0B"},cardio:{l:"Cardio",e:"🏃",c:"#EC4899"},hiit:{l:"HIIT",e:"🔥",c:"#F97316"},stretch:{l:"Stretching",e:"🧘",c:"#22C55E"},plyo:{l:"Plyometrics",e:"⚡",c:"#8B5CF6"}};
@@ -811,7 +833,22 @@ const EX_META={
   "Sprint Intervals (Treadmill)":{pat:"hiit",mus:"hiit",eq:"machine"},
   "Rowing Intervals":{pat:"hiit",mus:"hiit",eq:"machine"},
   "Sled Push/Pull":{pat:"hiit",mus:"hiit",eq:"machine"},
-  "Thrusters (DB/BB)":{pat:"hiit",mus:"hiit",eq:"barbell"}
+  "Thrusters (DB/BB)":{pat:"hiit",mus:"hiit",eq:"barbell"},
+  // Pure Gym additions
+  "Kettlebell Sumo Squat":{pat:"squat",mus:"legs",eq:"kettlebell"},
+  "Kettlebell Side Lunge":{pat:"lunge",mus:"legs",eq:"kettlebell"},
+  "Single-Leg Romanian Deadlift (DB)":{pat:"hinge",mus:"legs",eq:"dumbbell"},
+  "Pulsing Goblet Squat":{pat:"squat",mus:"legs",eq:"dumbbell"},
+  "Kettlebell Single-Arm Swing":{pat:"hinge",mus:"glutes",eq:"kettlebell"},
+  "Dumbbell Push Press":{pat:"overhead_press",mus:"shoulders",eq:"dumbbell"},
+  "Kettlebell Push Press":{pat:"overhead_press",mus:"shoulders",eq:"kettlebell"},
+  "Renegade Row":{pat:"row",mus:"back",eq:"dumbbell"},
+  "Reverse Lunges (BW)":{pat:"lunge",mus:"legs",eq:"bodyweight"},
+  "Speed Skaters":{pat:"hiit",mus:"hiit",eq:"bodyweight"},
+  "Jump Squats":{pat:"hiit",mus:"hiit",eq:"bodyweight"},
+  "Burpee Tuck Jumps":{pat:"hiit",mus:"hiit",eq:"bodyweight"},
+  "Plank Push-Up":{pat:"core_antiext",mus:"core",eq:"bodyweight"},
+  "Plank Drag-Through":{pat:"core_antirot",mus:"core",eq:"bodyweight"}
 };
 
 const MUSCLE_FAMILY={chest:["chest"],back:["back"],shoulders:["shoulders"],arms:["arms"],legs:["legs","glutes"],glutes:["glutes","legs"],core:["core"],cardio:["cardio"],hiit:["hiit"]};
@@ -1233,6 +1270,10 @@ function rCoachCard(){
     (sum?`<div class="coach-sum">${sum}</div>`:'')+
     `<button class="coach-tog" onclick="togCoach()">💡 Coach's tips ${coachOpen?'▾':'▸'}</button>`+
     (coachOpen?`<div class="coach-body">${tips.map(function(t){return`<div class="coach-tip"><span class="ct-i">${t.i}</span><span class="ct-t">${t.t}</span></div>`}).join('')}${rBodyComp()}${rWeeklyVolume()}</div>`:'')+
+    `<button class="coach-tog" onclick="togBench()">🔍 Benchmark vs Pure Gym ${benchOpen?'▾':'▸'}</button>`+
+    rBench()+
+    `<button class="coach-tog" onclick="togPgPicker()">🏋️ Add a Pure Gym day ${pgPickerOpen?'▾':'▸'}</button>`+
+    rPgPicker()+
     `<button class="coach-tog" onclick="togWant()">⚙️ I want more... ${wantOpen?'▾':'▸'}</button>`+
     (wantOpen?`<div class="coach-body">
       <div class="want-sec-t">Add focus</div>
@@ -1343,7 +1384,7 @@ function renderDayBody(d, i){
   const startCls=dn?'out':inProg?'amb':'pri';
   return rDayAim(d)+rDayCoach(d,i)+`<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn out" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();chgSched(${i})">📅 Scheduled: ${d.sched||'Any day'} (tap to change)</button><button class="s-btn amb" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();shuffleDay(${i})">🔄 Reset / Shuffle Day</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
 }
-function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
+function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div class="log-t" style="margin-top:14px">🟢 Pure Gym Presets</div><div class="preset-card" onclick="applyPreset('pg_kettlebell')"><div style="font-weight:700;font-size:13px">🔔 Kettlebell Full Body</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 6 lifts, 3 rounds</div></div><div class="preset-card" onclick="applyPreset('pg_circuit30')"><div style="font-weight:700;font-size:13px">⏱️ 30-Min Full Body Circuit</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 6 moves · 45s on / 15s off · 5 rounds</div></div><div class="preset-card" onclick="applyPreset('pg_dumbbell')"><div style="font-weight:700;font-size:13px">🏋️ Dumbbell Accumulator</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · DB-only progressive reps</div></div><div class="preset-card" onclick="applyPreset('pg_norwegian')"><div style="font-weight:700;font-size:13px">❤️ Norwegian 4×4 HIIT</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 4 min on / 3 min off × 4 · run, row or bike</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
 // Calculate progress stats for hero
 const wkDone=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const wkTotal=S.plan.length;const wkPct=wkTotal?Math.round(wkDone/wkTotal*100):0;
@@ -3162,6 +3203,29 @@ full_body:[
 {day:'Full Body A',exs:[{n:'Barbell Squat',s:4,r:'6-8'},{n:'Barbell Bench Press',s:4,r:'6-8'},{n:'Barbell Row',s:4,r:'8-10'},{n:'Overhead Press',s:3,r:'8-10'},{n:'Barbell Curl',s:2,r:'10-12'},{n:'Plank',s:3,r:'30-60s'}],cooldown:'5 min stretch'},
 {day:'Full Body B',exs:[{n:'Deadlift',s:3,r:'5-6'},{n:'Dumbbell Bench Press',s:3,r:'8-10'},{n:'Pull Up',s:3,r:'6-10'},{n:'Lateral Raise',s:3,r:'12-15'},{n:'Tricep Pushdown',s:2,r:'12-15'},{n:'Leg Raise',s:3,r:'12-15'}],cooldown:'5 min stretch'},
 {day:'Full Body C',exs:[{n:'Front Squat',s:3,r:'8-10'},{n:'Incline Dumbbell Press',s:3,r:'10-12'},{n:'Seated Row',s:3,r:'10-12'},{n:'Romanian Deadlift',s:3,r:'8-10'},{n:'Hammer Curl',s:2,r:'12-15'},{n:'Cable Crunch',s:3,r:'15-20'}],cooldown:'5 min stretch'}
+],
+// Pure Gym single-day routines — can be applied as a whole plan OR appended
+// as a single extra day via addPureGymDay() below.
+pg_kettlebell:[
+{day:'Full Body — Kettlebell (Pure Gym)',exs:[{n:'Kettlebell Sumo Squat',s:3,r:'20',rest:'60s'},{n:'Kettlebell Single-Arm Swing',s:3,r:'20',rest:'60s'},{n:'Kettlebell Side Lunge',s:3,r:'20',rest:'60s'},{n:'Kettlebell Push Press',s:3,r:'20',rest:'60s'},{n:'Russian Twists',s:3,r:'40s',rest:'45s'},{n:'Plank Drag-Through',s:3,r:'40s',rest:'45s'}],cooldown:'5 min full-body stretch'}
+],
+pg_circuit30:[
+{day:'30-Min Full Body Circuit (Pure Gym)',exs:[{n:'Thrusters (DB/BB)',s:5,r:'45s on / 15s off',rest:'15s'},{n:'Kettlebell Single-Arm Swing',s:5,r:'45s on / 15s off',rest:'15s'},{n:'Renegade Row',s:5,r:'45s on / 15s off',rest:'15s'},{n:'Battle Ropes (Alternating)',s:5,r:'45s on / 15s off',rest:'15s'},{n:'Medicine Ball Slams',s:5,r:'45s on / 15s off',rest:'15s'},{n:'Russian Twists',s:5,r:'45s on / 15s off',rest:'60s between rounds'}],cooldown:'5 min easy cardio + stretch'}
+],
+pg_dumbbell:[
+{day:'Dumbbell Full Body Accumulator (Pure Gym)',exs:[{n:'Walking Lunges (DB)',s:5,r:'2-10 (accumulator)',rest:'60s'},{n:'Pulsing Goblet Squat',s:3,r:'20',rest:'60s'},{n:'Single-Leg Romanian Deadlift (DB)',s:3,r:'12/leg',rest:'60s'},{n:'Romanian Deadlift',s:3,r:'10',rest:'60s'},{n:'Dumbbell Push Press',s:3,r:'10',rest:'60s'}],cooldown:'Static stretches'}
+],
+pg_norwegian:[
+{day:'Norwegian 4×4 HIIT (Pure Gym)',exs:[{n:'Treadmill Run (Steady State)',s:1,r:'5-10 min warm-up',rest:'—'},{n:'Sprint Intervals (Treadmill)',s:4,r:'4 min @ 85-95% HR',rest:'3 min easy'},{n:'Treadmill Run (Steady State)',s:1,r:'5 min cool-down',rest:'—'}],cooldown:'30s stretch per major muscle group'}
+],
+pg_bw_beg:[
+{day:'10-Min Bodyweight — Beginner (Pure Gym)',exs:[{n:'Push-Ups',s:1,r:'10 reps',rest:'20s'},{n:'Bodyweight Squats',s:1,r:'10 reps',rest:'20s'},{n:'Mountain Climbers',s:1,r:'10 reps',rest:'20s'},{n:'Reverse Lunges (BW)',s:1,r:'10 reps',rest:'20s'},{n:'Speed Skaters',s:1,r:'10 reps',rest:'20s'}],cooldown:'Full-body stretch',note:'AMRAP format — repeat the circuit as many rounds as possible in 10 minutes.'}
+],
+pg_bw_int:[
+{day:'10-Min Bodyweight — Intermediate (Pure Gym)',exs:[{n:'Burpees',s:1,r:'10 reps',rest:'15s'},{n:'Jump Squats',s:1,r:'10 reps',rest:'15s'},{n:'Reverse Lunges (BW)',s:1,r:'10 reps',rest:'15s'},{n:'Diamond Push-Ups',s:1,r:'10 reps',rest:'15s'}],cooldown:'Full-body stretch',note:'AMRAP format — 10 minutes.'}
+],
+pg_bw_adv:[
+{day:'10-Min Bodyweight — Advanced (Pure Gym)',exs:[{n:'Burpee Tuck Jumps',s:1,r:'10 reps',rest:'15s'},{n:'Jump Squats',s:1,r:'10 reps',rest:'15s'},{n:'Skater Jumps',s:1,r:'10 reps',rest:'15s'},{n:'Plyo Push-Ups',s:1,r:'10 reps',rest:'15s'},{n:'Plank Push-Up',s:1,r:'10 reps',rest:'15s'}],cooldown:'Full-body stretch',note:'AMRAP — maximum rounds in 10 minutes.'}
 ]
 };
 function applyPreset(name){
@@ -3169,6 +3233,98 @@ if(!PRESETS[name])return;
 S.plan=PRESETS[name].map((d,i)=>({day:'Day '+(i+1)+' — '+d.day,sub:d.day,sched:'Flexible',dur:'~60 min',warm:'5 min cardio · dynamic stretches',exs:d.exs.map(e=>({...e,rest:e.rest||'90s',note:e.note||''})),cool:d.cooldown||'Full stretch · 5 min',prog:'Hit top rep range → add 2.5 kg next session',custom:false}));
 if(S.user){SS('sp-plan-'+S.user.id,S.plan)}
 rPlan();
+}
+
+// Append a single Pure Gym routine as one more day in the current plan
+// (rather than overwriting the whole plan like applyPreset).
+const PG_DAYS=[
+  {key:"pg_kettlebell",emoji:"🔔",label:"Kettlebell Full Body",desc:"6 lifts · 3 rounds · ~35 min",src:"Pure Gym"},
+  {key:"pg_circuit30",emoji:"⏱️",label:"30-Min Full Body Circuit",desc:"6 moves · 45s on / 15s off · 5 rounds",src:"Pure Gym"},
+  {key:"pg_dumbbell",emoji:"🏋️",label:"Dumbbell Full Body Accumulator",desc:"Accumulator reps · ~40 min",src:"Pure Gym"},
+  {key:"pg_norwegian",emoji:"❤️",label:"Norwegian 4×4 HIIT",desc:"Cardio conditioning · 4×(4 min @ 85-95% HR + 3 min easy)",src:"Pure Gym"},
+  {key:"pg_bw_beg",emoji:"🌱",label:"10-Min Bodyweight (Beginner)",desc:"AMRAP · 10 reps × 5 moves · 20s rest",src:"Pure Gym"},
+  {key:"pg_bw_int",emoji:"⚡",label:"10-Min Bodyweight (Intermediate)",desc:"AMRAP · 4 moves · 15s rest",src:"Pure Gym"},
+  {key:"pg_bw_adv",emoji:"🔥",label:"10-Min Bodyweight (Advanced)",desc:"AMRAP · Plyometric · 15s rest",src:"Pure Gym"}
+];
+let pgPickerOpen=false;
+function togPgPicker(){pgPickerOpen=!pgPickerOpen;rPlan()}
+function addPureGymDay(key){
+  const proto=PRESETS[key];if(!proto||!proto[0])return;
+  const d=proto[0];
+  const idx=(S.plan||[]).length;
+  S.plan.push({
+    day:"Day "+(idx+1)+" — "+d.day,
+    sub:d.day,
+    sched:"Flexible",
+    dur:"~"+(key==="pg_norwegian"?35:key==="pg_circuit30"?30:key.startsWith("pg_bw")?10:40)+" min",
+    warm:"5 min cardio · dynamic stretches",
+    exs:d.exs.map(function(e){return Object.assign({},e,{rest:e.rest||"60s",note:e.note||""})}),
+    cool:d.cooldown||"Full stretch · 5 min",
+    prog:"Add 1 rep or 1 round when the current version feels clean.",
+    custom:false,
+    source:"Pure Gym"
+  });
+  savPlan();pgPickerOpen=false;rPlan();
+  if(typeof ftoast==="function")ftoast("➕ Added "+d.day);
+  setTimeout(function(){document.getElementById("dc"+idx)?.classList.add("open")},30);
+}
+function rPgPicker(){
+  if(!pgPickerOpen)return "";
+  const cards=PG_DAYS.map(function(x){
+    return `<div class="pg-card" onclick="addPureGymDay('${x.key}')"><div class="pg-e">${x.emoji}</div><div class="pg-body"><div class="pg-ttl">${x.label}</div><div class="pg-desc">${x.desc}</div><div class="pg-src">Source: ${x.src}</div></div><div class="pg-add">+ Add</div></div>`;
+  }).join("");
+  return `<div class="pg-wrap"><div class="pg-head">Pick a Pure Gym routine to add as one extra day in your plan. Your other days are untouched.</div>${cards}<button class="s-btn out" style="margin-top:6px;font-size:11px" onclick="togPgPicker()">Close</button></div>`;
+}
+
+// Benchmark the user's weekly plan against Pure Gym-aligned volume targets
+// (hypertrophy 10–20 sets/muscle/week · 150 min moderate cardio or 75 min
+// vigorous per week · compound-first session structure).
+let benchOpen=false;
+function togBench(){benchOpen=!benchOpen;rPlan()}
+function benchmarkReport(){
+  if(!S.plan||!S.plan.length||!S.user)return null;
+  const vol=weeklyVolume();
+  const goal=S.user.profile?.goal||"general";
+  // Weekly volume targets by muscle (Pure Gym / evidence-based hypertrophy ranges)
+  const targets={chest:[10,20],back:[10,20],shoulders:[8,20],arms:[8,16],legs:[12,22],glutes:[8,16],core:[6,16]};
+  const rows=[];
+  Object.keys(targets).forEach(function(m){
+    const cur=vol[m]||0;const[lo,hi]=targets[m];
+    let status,col,advice;
+    if(cur===0){status="missing";col="var(--red)";advice="No sets prescribed — consider adding one "+(CAT_META[m]||{l:m}).l.toLowerCase()+" day or exercise"}
+    else if(cur<lo){status=`under (${cur}/${lo}-${hi})`;col="var(--amb)";advice=`Add ${Math.max(2,lo-cur)} more sets this week (≈ 1 extra exercise)`}
+    else if(cur>hi){status=`over (${cur}/${lo}-${hi})`;col="var(--red)";advice="Trim "+(cur-hi)+" sets or deload — past the hypertrophy sweet spot"}
+    else{status=`on target (${cur}/${lo}-${hi})`;col="var(--grn)";advice=""}
+    rows.push({m:m,lbl:(CAT_META[m]||{l:m}).l,cur:cur,status:status,col:col,advice:advice});
+  });
+  // Compound-first check: at least one compound lift per day
+  const missingCompound=[];
+  S.plan.forEach(function(d,i){
+    const hasCompound=(d.exs||[]).some(function(e){const db=findExInDB(e.n);return db&&db.t==="compound"});
+    if(!hasCompound)missingCompound.push(i+1);
+  });
+  // Cardio check: count total cardio exercises per week
+  let cardioSessions=0,cardioDays=0;
+  S.plan.forEach(function(d){
+    let any=false;
+    (d.exs||[]).forEach(function(e){const db=findExInDB(e.n);if(db&&(db.t==="cardio"||db.t==="hiit")){cardioSessions++;any=true}});
+    if(any)cardioDays++;
+  });
+  const cardioTargetNote = goal==="fat_loss"
+    ?"Fat loss: Pure Gym recommends ≥150 min moderate cardio or 75 min vigorous HIIT per week."
+    :goal==="muscle_gain"
+    ?"Muscle gain: keep cardio light — 1-2 sessions of 20-30 min to preserve recovery."
+    :"General health: NHS/Pure Gym guideline is 150 min moderate or 75 min vigorous cardio per week.";
+  return {rows:rows,missingCompound:missingCompound,cardioSessions:cardioSessions,cardioDays:cardioDays,cardioNote:cardioTargetNote};
+}
+function rBench(){
+  if(!benchOpen)return "";
+  const r=benchmarkReport();
+  if(!r)return `<div class="bench-wrap"><div class="bench-hint">Build a plan first to run the benchmark.</div></div>`;
+  const mRows=r.rows.map(function(x){return `<div class="bench-row"><span class="bench-m">${x.lbl}</span><span class="bench-s" style="color:${x.col}">${x.status}</span></div>${x.advice?`<div class="bench-a">→ ${x.advice}</div>`:""}`}).join("");
+  const compNote=r.missingCompound.length?`<div class="bench-warn">⚠️ Day(s) without a compound lift: ${r.missingCompound.join(", ")}. Pure Gym-style sessions open with a compound (squat / bench / row / OHP / deadlift) while you're fresh.</div>`:`<div class="bench-ok">✓ Every day opens with at least one compound lift.</div>`;
+  const cardNote=`<div class="bench-row"><span class="bench-m">Cardio</span><span class="bench-s" style="color:var(--sub)">${r.cardioSessions} session${r.cardioSessions!==1?"s":""} across ${r.cardioDays} day${r.cardioDays!==1?"s":""}</span></div><div class="bench-a">${r.cardioNote}</div>`;
+  return `<div class="bench-wrap"><div class="bench-head">🔍 Benchmark vs Pure Gym targets</div><div class="bench-sub">Weekly sets per muscle vs hypertrophy sweet spot (10-20) and compound-first session structure.</div>${mRows}${cardNote}${compNote}<div class="bench-foot">Sources: Pure Gym programme guides · Schoenfeld et al. hypertrophy volume research · NHS physical activity guidelines.</div></div>`;
 }
 
 // ═══════ OFFLINE QUEUE ═══════
