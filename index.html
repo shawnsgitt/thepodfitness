@@ -187,6 +187,9 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .set-spark{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.02);border-radius:8px;padding:6px 8px;margin-bottom:6px}
 .set-spark svg{flex:1;height:24px;width:100%}
 .set-spark-info{font-size:10px;color:var(--sub);white-space:nowrap}
+.prog-delta{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 8px;margin-bottom:6px}
+.prog-delta-h{font-size:10px;font-weight:700;margin-bottom:3px}
+.prog-delta-row{font-size:10px;color:var(--tx);font-family:'JetBrains Mono',monospace;line-height:1.5}
 .s-sn{text-align:center;font-size:12px;font-weight:600;color:var(--sub);font-family:'JetBrains Mono'}
 .s-inp{background:var(--input);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 3px;color:var(--tx);font-size:13px;text-align:center;outline:none;width:100%;font-family:'JetBrains Mono';transition:border-color .2s}.s-inp:focus{border-color:var(--amb)}
 .chk{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;border:2px solid var(--bdr);background:none;color:var(--sub)}.chk.dn{background:var(--grn);border-color:var(--grn);color:#0D0D0D;font-weight:700;animation:popIn .25s ease}
@@ -3647,7 +3650,40 @@ if(historyW.length>=2){
   const trendCol=prev!=null?(last>prev?"var(--grn)":last<prev?"var(--red)":"var(--sub)"):"var(--sub)";
   spark=`<div class="set-spark"><svg viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--amb)" stroke-width="1.5"/></svg><div class="set-spark-info">Last ${historyW.length} <span style="color:${trendCol};font-weight:700">${trend} ${last}${unitLbl}</span></div></div>`;
 }
-return`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div>${getSupersetGroup(ei)?'<span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--amb);color:#000;font-size:8px;font-weight:800">'+(getSupersetGroup(ei).length>=3?'CIRCUIT':'SUPERSET')+'</span>':''}<button onclick="toggleSuperset(${ei})" style="float:right;padding:1px 6px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg);color:var(--sub);font-size:8px;cursor:pointer">${getSupersetGroup(ei)?'Unlink':'Link SS'}</button><div style="font-size:10px;color:var(--sub);margin-bottom:4px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div>${prevData?`<div style="font-size:9px;padding:4px 8px;background:rgba(56,189,248,.06);border-radius:6px;margin-bottom:6px;border:1px solid rgba(56,189,248,.1)"><span style="color:var(--amb);font-weight:600">Last session:</span> <span style="color:var(--sub);font-family:'JetBrains Mono'">${kgToDisplay(prevData.avgW)} ${unitLbl} avg · ${prevData.avgR} reps</span>${rec&&rec.change?` <span style="color:${rec.color};font-weight:700;margin-left:4px">${rec.icon} ${rec.change}</span>`:''}</div>`:''}${spark}<div class="s-hdr"><span>Set</span><span>${unitLbl}</span><span>Reps</span><span>RPE</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'w',-${wBump})">−</button><input class="s-inp s-inp-sm" type="number" inputmode="decimal" placeholder="${prevData?kgToDisplay(prevData.avgW):'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'w',${wBump})">+</button></div><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'r',-1)">−</button><input class="s-inp s-inp-sm" type="number" inputmode="numeric" placeholder="${prevData?prevData.avgR:'0'}" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'r',1)">+</button></div><div class="rpe-row">${[6,7,8,9,10].map(v=>`<button class="rpe-p ${s.rpe==v?'on':''}" onclick="updS(${ei},${si},'rpe','${v}');rTrack()">${v}</button>`).join("")}</div><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`}).join("")+
+return`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div>${getSupersetGroup(ei)?'<span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--amb);color:#000;font-size:8px;font-weight:800">'+(getSupersetGroup(ei).length>=3?'CIRCUIT':'SUPERSET')+'</span>':''}<button onclick="toggleSuperset(${ei})" style="float:right;padding:1px 6px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg);color:var(--sub);font-size:8px;cursor:pointer">${getSupersetGroup(ei)?'Unlink':'Link SS'}</button><div style="font-size:10px;color:var(--sub);margin-bottom:4px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div>${prevData?`<div style="font-size:9px;padding:4px 8px;background:rgba(56,189,248,.06);border-radius:6px;margin-bottom:6px;border:1px solid rgba(56,189,248,.1)"><span style="color:var(--amb);font-weight:600">Last session:</span> <span style="color:var(--sub);font-family:'JetBrains Mono'">${kgToDisplay(prevData.avgW)} ${unitLbl} avg · ${prevData.avgR} reps</span>${rec&&rec.change?` <span style="color:${rec.color};font-weight:700;margin-left:4px">${rec.icon} ${rec.change}</span>`:''}</div>`:''}${(function(){
+  // Live delta vs last session — updates every time a set is entered/toggled
+  // so the user sees 'how today compares to last time' in real time while
+  // they're still logging the workout.
+  if(!prevData)return"";
+  const isLbs=getUnit()==="lbs";
+  const filled=S.cs[ei].filter(function(s){return(parseFloat(s.w)||0)>0&&(parseInt(s.r,10)||0)>0});
+  if(!filled.length)return"";
+  const curAvgW_disp=filled.reduce(function(a,b){return a+(parseFloat(b.w)||0)},0)/filled.length;
+  const curAvgW_kg=isLbs?(curAvgW_disp/2.20462):curAvgW_disp;
+  const curAvgR=filled.reduce(function(a,b){return a+(parseInt(b.r,10)||0)},0)/filled.length;
+  const curTopW_disp=Math.max.apply(null,filled.map(function(s){return parseFloat(s.w)||0}));
+  const curTopW_kg=isLbs?(curTopW_disp/2.20462):curTopW_disp;
+  const dW_kg=curAvgW_kg-prevData.avgW;                // kg delta
+  const dTopW_kg=curTopW_kg-prevData.maxW;             // top-set kg delta
+  const dR=curAvgR-prevData.avgR;
+  // Volume delta per set: (w*r) avg
+  const curVol=filled.reduce(function(a,b){return a+(parseFloat(b.w)||0)*(parseInt(b.r,10)||0)},0)/filled.length;
+  const prevVol=prevData.avgW*prevData.avgR;
+  const dV=curVol-prevVol;
+  const fmtKg=function(v){return(Math.round(Math.abs(v)*10)/10)};
+  const fmtDisp=function(v){return isLbs?Math.round(v*2.20462*10)/10:Math.round(v*10)/10};
+  const sign=function(n){return n>0.1?"+":n<-0.1?"−":"·"};
+  const col=function(n){return n>0.1?"var(--grn)":n<-0.1?"var(--red)":"var(--sub)"};
+  const items=[];
+  items.push(`<span style="color:${col(dW_kg)};font-weight:700">${sign(dW_kg)}${fmtDisp(Math.abs(dW_kg))} ${unitLbl} avg</span>`);
+  if(Math.abs(dTopW_kg)>=0.1)items.push(`<span style="color:${col(dTopW_kg)};font-weight:700">${sign(dTopW_kg)}${fmtDisp(Math.abs(dTopW_kg))} ${unitLbl} top</span>`);
+  items.push(`<span style="color:${col(dR)};font-weight:700">${sign(dR)}${Math.round(Math.abs(dR))} reps</span>`);
+  const dVdisp=isLbs?Math.round(dV*2.20462):Math.round(dV);
+  items.push(`<span style="color:${col(dV)};font-weight:700">${sign(dV)}${Math.abs(dVdisp)} ${unitLbl}·rep vol</span>`);
+  const headline=dV>0.1?"📈 Beating last session":dV<-0.1?"🔽 Below last session":"≈ Matching last session";
+  const headlineCol=dV>0.1?"var(--grn)":dV<-0.1?"var(--amb)":"var(--sub)";
+  return`<div class="prog-delta" style="border-color:${headlineCol}"><div class="prog-delta-h" style="color:${headlineCol}">${headline} · ${filled.length}/${S.cs[ei].length} sets in</div><div class="prog-delta-row">${items.join(" · ")}</div></div>`;
+})()}${spark}<div class="s-hdr"><span>Set</span><span>${unitLbl}</span><span>Reps</span><span>RPE</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'w',-${wBump})">−</button><input class="s-inp s-inp-sm" type="number" inputmode="decimal" placeholder="${prevData?kgToDisplay(prevData.avgW):'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'w',${wBump})">+</button></div><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'r',-1)">−</button><input class="s-inp s-inp-sm" type="number" inputmode="numeric" placeholder="${prevData?prevData.avgR:'0'}" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'r',1)">+</button></div><div class="rpe-row">${[6,7,8,9,10].map(v=>`<button class="rpe-p ${s.rpe==v?'on':''}" onclick="updS(${ei},${si},'rpe','${v}');rTrack()">${v}</button>`).join("")}</div><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`}).join("")+
 `<div class="finish-panel">
   <div class="fp-title">Session Feedback</div>
   ${(()=>{const alerts=getOverloadAlerts();const dayExNames=w.exs.map(e=>e.n);const relevant=alerts.filter(a=>dayExNames.includes(a.name));if(!relevant.length)return'';return'<div class="fp-alerts">'+relevant.map(a=>'<div class="overload-alert">💪 <strong>'+a.name+'</strong>: Ready to increase! Try <strong>'+a.suggestedW+'kg</strong></div>').join('')+'</div>'})()}
@@ -3668,7 +3704,7 @@ return`<div class="card"><div style="font-weight:700;font-size:12px;margin-botto
   </div>
   <button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>Save & Finish Session</button>
 </div>`}
-function updS(ei,si,f,v){S.cs[ei][si][f]=v;SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw})}
+function updS(ei,si,f,v){S.cs[ei][si][f]=v;SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw});if(f==="w"||f==="r")rTrack()/* refresh the live vs-last-session delta */}
 // +/- steppers for weight / reps. Small deltas (1 or 2.5) match the
 // typical small jumps users make mid-session.
 function bumpS(ei,si,f,delta){
