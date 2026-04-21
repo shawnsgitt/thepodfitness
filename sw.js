@@ -1,5 +1,17 @@
-const CACHE_NAME = 'shawnspod-v33';
+const CACHE_NAME = 'shawnspod-v34';
 const ASSETS = ['./index.html', './manifest.json'];
+
+// Bring the app to focus when the user taps a rest-timer notification.
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of all) {
+      if ('focus' in c) return c.focus();
+    }
+    if (self.clients.openWindow) return self.clients.openWindow('./');
+  })());
+});
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));

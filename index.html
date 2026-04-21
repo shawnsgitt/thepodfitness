@@ -3000,27 +3000,108 @@ catch(err){statusEl.innerHTML=notesStatusHtml("Failed to delete note.","error")}
 
 
 // ═══════ REST TIMER ═══════
+// Wall-clock-based: we store an absolute endTime so the countdown stays
+// correct when the tab is backgrounded or the device is asleep (the JS
+// setInterval may pause but the end-time doesn't move). A local
+// notification is scheduled for the exact end time, and re-registered
+// via the service worker when the app is in the background so the user
+// still gets the 'rest is over' alert if they've switched apps.
 let _rtInterval=null;
+let _rtNotifTimeout=null;
+function _rtLsKey(){return 'sp-rest-timer-'+(S.user&&S.user.id?S.user.id:'anon')}
+async function requestNotifPerm(){
+  try{
+    if(!("Notification" in window))return false;
+    if(Notification.permission==="granted")return true;
+    if(Notification.permission==="denied")return false;
+    const res=await Notification.requestPermission();
+    return res==="granted";
+  }catch(e){return false}
+}
+async function showRestDoneNotif(){
+  try{
+    if(!("Notification" in window)||Notification.permission!=="granted")return;
+    const opts={body:"Continue with your next set.",icon:"./icons/icon-192.png",badge:"./icons/icon-192.png",tag:"sp-rest-done",renotify:true,vibrate:[200,100,200]};
+    if(navigator.serviceWorker&&navigator.serviceWorker.ready){
+      const reg=await navigator.serviceWorker.ready;
+      reg.showNotification("⏰ Rest time is over",opts);
+    } else {
+      new Notification("⏰ Rest time is over",opts);
+    }
+  }catch(e){}
+}
+function scheduleRestNotif(endTime){
+  cancelRestNotif();
+  const ms=endTime-Date.now();
+  if(ms<=0){showRestDoneNotif();return}
+  _rtNotifTimeout=setTimeout(function(){
+    showRestDoneNotif();
+    if(navigator.vibrate&&document.visibilityState==="visible")navigator.vibrate([200,100,200]);
+  },ms);
+}
+function cancelRestNotif(){if(_rtNotifTimeout){clearTimeout(_rtNotifTimeout);_rtNotifTimeout=null}}
 function startRestTimer(secs){
-clearRestTimer();
-S.restTimer={remaining:secs||S.restPref,total:secs||S.restPref};
-_rtInterval=setInterval(()=>{
-S.restTimer.remaining--;
-renderRestTimer();
-if(S.restTimer.remaining<=0){clearRestTimer();try{new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play()}catch(e){};if(navigator.vibrate)navigator.vibrate([200,100,200])}
-},1000);
-renderRestTimer();
+  clearRestTimer();
+  const s=Math.max(1,secs||S.restPref);
+  S.restTimer={endTime:Date.now()+s*1000,total:s,remaining:s};
+  try{SS(_rtLsKey(),S.restTimer)}catch(e){}
+  requestNotifPerm();
+  scheduleRestNotif(S.restTimer.endTime);
+  _rtInterval=setInterval(tickRestTimer,500);
+  tickRestTimer();
 }
-function clearRestTimer(){if(_rtInterval)clearInterval(_rtInterval);_rtInterval=null;S.restTimer=null;const el=document.getElementById('rest-timer-float');if(el)el.remove()}
-function adjustRestTimer(delta){if(S.restTimer){S.restTimer.remaining=Math.max(0,S.restTimer.remaining+delta);renderRestTimer()}}
+function resumeRestTimerFromStorage(){
+  try{
+    const saved=LS(_rtLsKey());
+    if(!saved||!saved.endTime)return;
+    if(Date.now()>=saved.endTime){try{localStorage.removeItem(_rtLsKey())}catch(e){};return}
+    S.restTimer=saved;
+    _rtInterval=setInterval(tickRestTimer,500);
+    scheduleRestNotif(saved.endTime);
+    tickRestTimer();
+  }catch(e){}
+}
+function tickRestTimer(){
+  if(!S.restTimer)return;
+  const remaining=Math.max(0,Math.ceil((S.restTimer.endTime-Date.now())/1000));
+  S.restTimer.remaining=remaining;
+  renderRestTimer();
+  if(remaining<=0){
+    const visible=document.visibilityState==="visible";
+    if(visible){try{new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play()}catch(e){};if(navigator.vibrate)navigator.vibrate([200,100,200])}
+    clearRestTimer(true);
+  }
+}
+function clearRestTimer(completed){
+  if(_rtInterval)clearInterval(_rtInterval);_rtInterval=null;
+  S.restTimer=null;
+  if(!completed)cancelRestNotif();
+  try{localStorage.removeItem(_rtLsKey())}catch(e){}
+  const el=document.getElementById('rest-timer-float');if(el)el.remove();
+}
+function adjustRestTimer(delta){
+  if(!S.restTimer)return;
+  S.restTimer.endTime=Math.max(Date.now()+1000,S.restTimer.endTime+delta*1000);
+  S.restTimer.total=Math.max(5,Math.ceil((S.restTimer.endTime-Date.now())/1000));
+  try{SS(_rtLsKey(),S.restTimer)}catch(e){}
+  scheduleRestNotif(S.restTimer.endTime);
+  tickRestTimer();
+}
 function renderRestTimer(){
-let el=document.getElementById('rest-timer-float');
-if(!S.restTimer){if(el)el.remove();return}
-if(!el){el=document.createElement('div');el.id='rest-timer-float';el.className='rest-timer';document.body.appendChild(el)}
-const m=Math.floor(S.restTimer.remaining/60);const s=S.restTimer.remaining%60;
-const pct=Math.round((S.restTimer.remaining/S.restTimer.total)*100);
-el.innerHTML=`<div style="font-size:10px;color:var(--sub);margin-bottom:4px">REST TIMER</div><div class="rt-time">${m}:${String(s).padStart(2,'0')}</div><div class="apb" style="margin:8px 0;height:4px"><div class="fill amb" style="width:${pct}%"></div></div><div class="rt-btns"><button class="rt-btn" onclick="adjustRestTimer(-15)">-15s</button><button class="rt-btn" onclick="clearRestTimer()">Skip</button><button class="rt-btn" onclick="adjustRestTimer(15)">+15s</button></div>`;
+  let el=document.getElementById('rest-timer-float');
+  if(!S.restTimer){if(el)el.remove();return}
+  if(!el){el=document.createElement('div');el.id='rest-timer-float';el.className='rest-timer';document.body.appendChild(el)}
+  const m=Math.floor(S.restTimer.remaining/60);const s=S.restTimer.remaining%60;
+  const pct=Math.round((S.restTimer.remaining/Math.max(1,S.restTimer.total))*100);
+  el.innerHTML=`<div style="font-size:10px;color:var(--sub);margin-bottom:4px">REST TIMER</div><div class="rt-time">${m}:${String(s).padStart(2,'0')}</div><div class="apb" style="margin:8px 0;height:4px"><div class="fill amb" style="width:${pct}%"></div></div><div class="rt-btns"><button class="rt-btn" onclick="adjustRestTimer(-15)">-15s</button><button class="rt-btn" onclick="clearRestTimer()">Skip</button><button class="rt-btn" onclick="adjustRestTimer(15)">+15s</button></div>`;
 }
+// Re-sync the countdown whenever the tab becomes visible again — mobile
+// browsers may have throttled or paused our setInterval while backgrounded.
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="visible"&&S.restTimer)tickRestTimer();
+});
+// Resume a timer that was running when the app was closed.
+window.addEventListener("load",function(){setTimeout(resumeRestTimerFromStorage,400)});
 
 // ═══════ 1RM CALCULATOR ═══════
 function calc1RM(w,r){if(!w||!r||r<1)return 0;if(r===1)return w;return Math.round(w*(1+r/30)*10)/10}
