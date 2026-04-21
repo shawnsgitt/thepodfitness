@@ -581,6 +581,20 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .mg-stat-row:first-of-type{border-top:none}
 .mg-stat-row span:first-child{color:var(--sub)}
 .mg-ex{font-size:11px;color:var(--tx);padding:3px 0}
+.cal-nav{display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px;font-weight:700}
+.cal-nav span{font-size:13px;color:var(--tx)}
+.cal-nav button{background:var(--card);border:1px solid var(--bdr);color:var(--tx);width:34px;height:34px;border-radius:100px;cursor:pointer;font-size:14px}
+.cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.cal-wk span{font-size:10px;color:var(--sub);text-align:center;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;color:var(--sub);background:rgba(255,255,255,.02);position:relative}
+.cal-cell.empty{background:transparent}
+.cal-cell.today{color:var(--amb);font-weight:700;border:1px solid var(--amb)}
+.cal-cell.fut{color:rgba(255,255,255,.2)}
+.cal-cell.done{background:rgba(191,255,0,.15);color:var(--amb);font-weight:700;cursor:pointer;border:1px solid rgba(191,255,0,.3)}
+.cal-cell.done:active{background:rgba(191,255,0,.25)}
+.cal-cell .cal-dot{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--amb)}
+.cal-legend{font-size:10px;color:var(--sub);text-align:center;margin:8px 0 4px}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -1020,8 +1034,8 @@ const MUSCLE_FAMILY={chest:["chest"],back:["back"],shoulders:["shoulders"],arms:
 // Movement-pattern helpers (used by the AI coach to prevent the app from
 // prescribing two exercises that train the same sub-muscle in one session —
 // e.g. Face Pulls + Reverse Pec Deck are both pat:"rear_delt" and redundant).
-function getPat(name){const m=EX_META[name];return m?m.pat:null}
-function getMus(name){const m=EX_META[name];return m?m.mus:(findExInDB(name)||{cat:null}).cat}
+function getPat(name){const m=EX_META[name];if(m)return m.pat;const cex=(S.customExercises||[]).find(function(e){return e.n===name});return cex&&cex.meta?cex.meta.pat||null:null}
+function getMus(name){const m=EX_META[name];if(m)return m.mus;const cex=(S.customExercises||[]).find(function(e){return e.n===name});if(cex&&cex.meta&&cex.meta.mus)return cex.meta.mus;return(findExInDB(name)||{cat:null}).cat}
 function uniquePatList(list,seenPatsInit){
   const seen=new Set(seenPatsInit||[]);const out=[];
   list.forEach(function(e){const p=getPat(e.n);if(p&&seen.has(p))return;if(p)seen.add(p);out.push(e)});
@@ -1043,12 +1057,16 @@ function weeklyVolume(){
   })});return vol;
 }
 function getExAlternatives(name){
-  const meta=EX_META[name];
-  // Flatten EX_DB with cat/idx for return shape consumed by rSwapPicker
+  const meta=EX_META[name]||((S.customExercises||[]).find(function(e){return e.n===name})||{}).meta||null;
+  // Flatten EX_DB + custom exercises with cat/idx for the swap picker.
   const allList=[];
   Object.entries(EX_DB).forEach(function(entry){
     const cat=entry[0],exs=entry[1];
     exs.forEach(function(e,idx){if(e.n!==name)allList.push({n:e.n,t:e.t,nt:e.nt,diff:e.diff,cat:cat,idx:idx,meta:EX_META[e.n]||null})});
+  });
+  (S.customExercises||[]).forEach(function(ce,idx){
+    if(ce.n===name)return;
+    allList.push({n:ce.n,t:ce.t||"compound",nt:ce.nt||"",diff:ce.diff||"inter",cat:ce.cat||"chest",idx:"c"+idx,meta:ce.meta||null,custom:true});
   });
   if(meta){
     const family=MUSCLE_FAMILY[meta.mus]||[meta.mus];
@@ -1198,9 +1216,17 @@ function calcBodyComp(profile,nutri,flog){
 }
 
 // ═══════ STATE ═══════
-let S={user:null,week:1,tab:"plan",aw:null,cs:{},rat:null,restTimer:null,restPref:60,woStartTime:null,theme:"dark",bodyMeasurements:[],logs:{},users:[],plan:[],nutri:{cal:2500,protein:150,carbs:300,fat:70},flog:{},customPlans:[],customMeals:[],libFilter:"all",libSearch:""};
+let S={user:null,week:1,tab:"plan",aw:null,cs:{},rat:null,restTimer:null,restPref:60,woStartTime:null,theme:"dark",bodyMeasurements:[],logs:{},users:[],plan:[],nutri:{cal:2500,protein:150,carbs:300,fat:70},flog:{},customPlans:[],customMeals:[],customExercises:[],libFilter:"all",libSearch:""};
 const LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
-function loadSt(){S.user=LS("sp-me");if(S.user){S.logs=LS("sp-logs-"+S.user.id)||{};S.week=LS("sp-week-"+S.user.id)||1;S.plan=LS("sp-plan-"+S.user.id)||[];S.nutri=LS("sp-nutri-"+S.user.id)||S.nutri;S.flog=LS("sp-flog-"+S.user.id)||{};S.customPlans=LS("sp-custom-"+S.user.id)||[];S.customMeals=LS("sp-cmeals-"+S.user.id)||[];S.bodyMeasurements=LS("sp-meas-"+S.user.id)||[];S.restPref=LS('sp-rest-'+S.user.id)||60}loadTheme();loadU()}
+function loadSt(){S.user=LS("sp-me");if(S.user){S.logs=LS("sp-logs-"+S.user.id)||{};S.week=LS("sp-week-"+S.user.id)||1;S.plan=LS("sp-plan-"+S.user.id)||[];S.nutri=LS("sp-nutri-"+S.user.id)||S.nutri;S.flog=LS("sp-flog-"+S.user.id)||{};S.customPlans=LS("sp-custom-"+S.user.id)||[];S.customMeals=LS("sp-cmeals-"+S.user.id)||[];S.customExercises=LS("sp-cex-"+S.user.id)||[];S.bodyMeasurements=LS("sp-meas-"+S.user.id)||[];S.restPref=LS('sp-rest-'+S.user.id)||60}loadTheme();loadU()}
+function savCEx(){if(S.user)SS("sp-cex-"+S.user.id,S.customExercises||[])}
+// Unit system (kg | lbs). All weights are stored internally as kilograms so
+// existing logs remain compatible; the toggle only affects what the user
+// sees and types in.
+function getUnit(){return(S.user&&S.user.profile&&S.user.profile.units)||"kg"}
+function kgToDisplay(kg){if(getUnit()==="lbs")return Math.round(kg*2.20462*10)/10;return Math.round(kg*10)/10}
+function displayToKg(v){const n=parseFloat(v);if(isNaN(n))return 0;if(getUnit()==="lbs")return Math.round(n/2.20462*100)/100;return n}
+function setUnit(u){if(!S.user||!S.user.profile)return;S.user.profile.units=u==="lbs"?"lbs":"kg";SS("sp-me",S.user);if(typeof savProf==="function")savProf(S.user);rSet()}
 setTimeout(processOfflineQueue,0);
 function loadU(){const ids=LS("sp-user-ids")||[];S.users=ids.map(id=>LS("sp-prof-"+id)).filter(Boolean)}
 function savProf(u){SS("sp-prof-"+u.id,u);const ids=LS("sp-user-ids")||[];if(!ids.includes(u.id)){ids.push(u.id);SS("sp-user-ids",ids)}}
@@ -1233,7 +1259,7 @@ h+=`</div>`;el.innerHTML=h}
 function togA(a){const i=OB.areas.indexOf(a);i>=0?OB.areas.splice(i,1):OB.areas.push(a);rOB()}
 function chkOB(){const s=OB.step;const cn=s===5?(OB.age&&OB.height&&OB.weight):s===7?OB.name.trim():false;const btn=document.querySelector('.ob-next');if(btn){btn.disabled=!cn;btn.style.background=cn?'var(--amb)':'rgba(255,255,255,.06)';btn.style.color=cn?'#000':'var(--sub)'}}
 function createU(){if(!OB.name.trim())return;const id="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const prof={goal:OB.goal,gender:OB.gender,areas:OB.areas,level:OB.level,age:+OB.age,height:+OB.height,weight:+OB.weight,days:OB.days,cardio:OB.cardio!==false,gym:OB.gym||"any"};S.user={id,name:OB.name.trim(),avatar:OB.avatar,joined:new Date().toISOString(),profile:prof,stats:{totalSessions:0,totalSets:0,avgRating:0,lastSession:null}};S.logs={};S.week=1;S.plan=genPlan(prof);S.nutri=calcNutri(prof);S.flog={};S.customPlans=[];S.customMeals=[];SS("sp-me",S.user);savProf(S.user);SS("sp-plan-"+S.user.id,S.plan);SS("sp-nutri-"+S.user.id,S.nutri);SS("sp-flog-"+S.user.id,{});SS("sp-custom-"+S.user.id,[]);SS("sp-cmeals-"+S.user.id,[]);showApp();syncLeaderboard()}
-function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;stopWOTimer();S.aw=null;S.cs={};S.rat=null;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];S.bodyMeasurements=LS("sp-meas-"+id)||[];S.restPref=LS('sp-rest-'+id)||60;cachedMealPlan=null;if(typeof loadMpMode==="function")loadMpMode();SS("sp-me",u);loadTheme();syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
+function loginAs(id){const u=LS("sp-prof-"+id);if(!u)return;stopWOTimer();S.aw=null;S.cs={};S.rat=null;S.user=u;S.logs=LS("sp-logs-"+id)||{};S.week=LS("sp-week-"+id)||1;S.plan=LS("sp-plan-"+id)||[];S.nutri=LS("sp-nutri-"+id)||S.nutri;S.flog=LS("sp-flog-"+id)||{};S.customPlans=LS("sp-custom-"+id)||[];S.customMeals=LS("sp-cmeals-"+id)||[];S.customExercises=LS("sp-cex-"+id)||[];S.bodyMeasurements=LS("sp-meas-"+id)||[];S.restPref=LS('sp-rest-'+id)||60;cachedMealPlan=null;if(typeof loadMpMode==="function")loadMpMode();SS("sp-me",u);loadTheme();syncLeaderboard();S.plan.length?showApp():(OB.step=1,rOB())}
 function doLogout(){stopWOTimer();SS("sp-me",null);S.user=null;S.aw=null;S.tab="plan";showOB()}
 
 async function deleteMyProfile(){if(!confirm('Delete your profile? This removes all local data and your leaderboard entry.'))return;
@@ -1721,9 +1747,11 @@ let swapCtx=null;
 function openSwapEx(di,ei){swapCtx={di:di,ei:ei};rPlan();setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10)}
 function closeSwapEx(){const di=swapCtx?swapCtx.di:null;swapCtx=null;rPlan();if(di!==null)setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10)}
 function doSwapEx(di,ei,cat,idx){
-  const e=EX_DB[cat][idx];
+  // idx can be a number (EX_DB slot) or a "c<N>" string for a custom exercise.
+  const e=(typeof idx==="string"&&idx.charAt(0)==="c")?S.customExercises[+idx.slice(1)]:EX_DB[cat][idx];
+  if(!e)return;
   const cur=S.plan[di].exs[ei];
-  cur.n=e.n;cur.note=e.nt;
+  cur.n=e.n;cur.note=e.nt||"";
   // Adjust rep scheme for new exercise type where relevant
   if(e.t==="cardio"){cur.s=1;cur.r="20 min";cur.rest="—"}
   else if(e.t==="stretch"){cur.s=1;cur.r="30s hold";cur.rest="—"}
@@ -1825,7 +1853,9 @@ function rLib(){
 }
 function rLibResults(){
   const host=document.getElementById("libResultsRegion");if(!host)return;
-  const allExs=Object.entries(EX_DB).flatMap(function(entry){return entry[1].map(function(e,i){return Object.assign({},e,{cat:entry[0],idx:i})})});
+  const allExs=Object.entries(EX_DB).flatMap(function(entry){return entry[1].map(function(e,i){return Object.assign({},e,{cat:entry[0],idx:i,custom:false})})});
+  // User-created custom exercises slot into the same list with a flag.
+  (S.customExercises||[]).forEach(function(ce,i){allExs.push(Object.assign({},ce,{cat:ce.cat||"chest",idx:"c"+i,custom:true}))});
   const filtered=allExs.filter(function(e){
     if(S.libFilter!=="all"&&e.cat!==S.libFilter)return false;
     if(libTypeFilter!=="all"&&e.t!==libTypeFilter)return false;
@@ -1841,9 +1871,50 @@ function rLibResults(){
     `<div class="pills" style="margin-bottom:6px"><button class="pill ${S.libFilter==='all'?'on':''}" onclick="S.libFilter='all';rLibResults()">All</button>${Object.entries(CAT_META).map(function(e){const k=e[0],v=e[1];return`<button class="pill ${S.libFilter===k?'on':''}" onclick="S.libFilter='${k}';rLibResults()">${v.e} ${v.l}</button>`}).join("")}</div>`+
     `<div class="pills" style="margin-bottom:10px"><button class="pill ${libTypeFilter==='all'?'on':''}" onclick="libTypeFilter='all';rLibResults()">All Types</button><button class="pill ${libTypeFilter==='compound'?'on':''}" onclick="libTypeFilter='compound';rLibResults()">Compound</button><button class="pill ${libTypeFilter==='isolation'?'on':''}" onclick="libTypeFilter='isolation';rLibResults()">Isolation</button><button class="pill ${libTypeFilter==='cardio'?'on':''}" onclick="libTypeFilter='cardio';rLibResults()">Cardio</button><button class="pill ${libTypeFilter==='hiit'?'on':''}" onclick="libTypeFilter='hiit';rLibResults()">HIIT</button><button class="pill ${libTypeFilter==='stretch'?'on':''}" onclick="libTypeFilter='stretch';rLibResults()">Stretch</button><button class="pill ${libTypeFilter==='plyo'?'on':''}" onclick="libTypeFilter='plyo';rLibResults()">Plyo</button></div>`+
     `<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} exercise${filtered.length!==1?'s':''}</div>`+
-    filtered.map(function(e){const cm=CAT_META[e.cat]||{l:e.cat,e:"🏋️"};
-      return`<div class="ex-list-item" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}')">${exThumb(e.n,e.cat)}<div class="ex-list-info"><div class="eli-name">${e.n}</div><div class="eli-meta">${cm.l} · ${e.t} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div></div><div class="ex-list-chv">›</div></div>`}).join("")+
-    (filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No exercises found</p><p class="empty-s">Try a different search or filter.</p></div>`:'');
+    filtered.map(function(e){const cm=CAT_META[e.cat]||{l:e.cat,e:"🏋️"};const badge=e.custom?'<span style="font-size:9px;color:var(--amb);margin-left:4px">⭐ Custom</span>':'';
+      return`<div class="ex-list-item" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}')">${exThumb(e.n,e.cat)}<div class="ex-list-info"><div class="eli-name">${e.n}${badge}</div><div class="eli-meta">${cm.l} · ${e.t||'compound'} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div></div><div class="ex-list-chv">›</div></div>`}).join("")+
+    (filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No exercises found</p><p class="empty-s">Try a different search or filter.</p></div>`:'')+
+    `<div style="margin-top:12px"><button class="s-btn grn" onclick="openCustomExerciseForm()">⭐ Create Custom Exercise</button><div style="font-size:10px;color:var(--sub);text-align:center;margin-top:4px">Add exercises the app doesn't know — e.g. machine / grip / attachment variations you want to track separately.</div></div>`;
+}
+// Custom exercise creator
+let cxForm=null;
+function openCustomExerciseForm(){
+  cxForm={name:"",cat:"chest",t:"compound",diff:"inter",eq:"barbell",pat:"",nt:""};
+  _renderCustomExerciseOverlay();
+}
+function closeCustomExerciseForm(){cxForm=null;const o=document.getElementById("cxOverlay");if(o)o.remove()}
+function saveCustomExercise(){
+  if(!cxForm)return;
+  const name=(cxForm.name||"").trim();if(!name){alert("Give your exercise a name");return}
+  if(findExInDB(name)){alert("An exercise with that name already exists");return}
+  const entry={n:name,cat:cxForm.cat,t:cxForm.t,diff:cxForm.diff,nt:cxForm.nt||"",meta:{pat:cxForm.pat||"",mus:cxForm.cat,eq:cxForm.eq}};
+  S.customExercises=S.customExercises||[];
+  S.customExercises.push(entry);
+  savCEx();
+  closeCustomExerciseForm();
+  rLibResults();
+  if(typeof ftoast==="function")ftoast("⭐ Added "+name+" to your library");
+}
+function _renderCustomExerciseOverlay(){
+  if(!cxForm)return;
+  const cats=Object.keys(CAT_META);
+  const types=["compound","isolation","cardio","hiit","stretch","plyo"];
+  const diffs=[["beg","Beginner"],["inter","Intermediate"],["adv","Advanced"]];
+  const eqs=["barbell","dumbbell","machine","cable","bodyweight","band","kettlebell","trx","medball","other"];
+  const pats=["chest_press","chest_fly","row","vertical_pull","lat_iso","overhead_press","lateral_raise","front_raise","rear_delt","curl","tricep_ext","squat","lunge","hinge","leg_curl","leg_ext","hip_thrust","calf","glute_iso","core_antiext","core_flex","core_rot","core_antirot","cardio_steady","hiit","stretch"];
+  let h=`<div class="gl-header"><h2>⭐ Create Custom Exercise</h2><button class="gl-close" onclick="closeCustomExerciseForm()">✕</button></div><div class="gl-body">`;
+  h+=`<div class="cm-grp" style="margin-bottom:10px"><label>Name</label><input id="cxName" class="cm-inp full" type="text" placeholder="e.g. Cable Lat Pulldown — Neutral Grip" value="${esc(cxForm.name)}" oninput="cxForm.name=this.value"></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:10px"><label>Muscle group</label><div class="pills" style="margin-bottom:0">${cats.map(function(c){return`<button class="pill ${cxForm.cat===c?'on':''}" onclick="cxForm.cat='${c}';_renderCustomExerciseOverlay()">${(CAT_META[c]||{e:'💪'}).e} ${(CAT_META[c]||{l:c}).l}</button>`}).join("")}</div></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:10px"><label>Type</label><div class="pills" style="margin-bottom:0">${types.map(function(t){return`<button class="pill ${cxForm.t===t?'on':''}" onclick="cxForm.t='${t}';_renderCustomExerciseOverlay()">${t}</button>`}).join("")}</div></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:10px"><label>Equipment</label><div class="pills" style="margin-bottom:0">${eqs.map(function(e){return`<button class="pill ${cxForm.eq===e?'on':''}" onclick="cxForm.eq='${e}';_renderCustomExerciseOverlay()">${e}</button>`}).join("")}</div></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:10px"><label>Difficulty</label><div class="pills" style="margin-bottom:0">${diffs.map(function(d){return`<button class="pill ${cxForm.diff===d[0]?'on':''}" onclick="cxForm.diff='${d[0]}';_renderCustomExerciseOverlay()">${d[1]}</button>`}).join("")}</div></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:10px"><label>Movement pattern (optional — for the ⇄ alternatives matcher)</label><select id="cxPat" class="cm-inp full" onchange="cxForm.pat=this.value">${["",...pats].map(function(p){return`<option value="${p}"${cxForm.pat===p?' selected':''}>${p||"(none)"}</option>`}).join("")}</select></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:12px"><label>Form cue (optional)</label><input class="cm-inp full" type="text" placeholder="e.g. Slow eccentric. Squeeze lats at the bottom." value="${esc(cxForm.nt||"")}" oninput="cxForm.nt=this.value"></div>`;
+  h+=`<div style="display:flex;gap:8px"><button class="s-btn pri" onclick="saveCustomExercise()">⭐ Save</button><button class="s-btn out" onclick="closeCustomExerciseForm()">Cancel</button></div>`;
+  h+=`</div>`;
+  let o=document.getElementById("cxOverlay");
+  if(!o){o=document.createElement("div");o.id="cxOverlay";o.className="gl-overlay";document.body.appendChild(o)}
+  o.innerHTML=h;
 }
 
 let libCart=[];
@@ -3242,6 +3313,85 @@ function showMuscleDetail(m){
   document.body.appendChild(overlay);
 }
 
+// ─── Workout calendar (Setgraph-style): tap any date, see the full session ─
+let _calMonthOffset=0; // 0 = current month, -1 = previous, etc.
+function changeCalMonth(delta){_calMonthOffset+=delta;rBody()}
+function _logsByDate(){
+  const map={};
+  Object.values(S.logs||{}).forEach(function(log){
+    if(!log||!log.date)return;
+    const d=new Date(log.date);if(isNaN(d))return;
+    const key=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    if(!map[key])map[key]=[];map[key].push(log);
+  });
+  return map;
+}
+function rCalendarMonth(){
+  const base=new Date();base.setHours(0,0,0,0);base.setDate(1);base.setMonth(base.getMonth()+_calMonthOffset);
+  const year=base.getFullYear(),month=base.getMonth();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const firstDow=new Date(year,month,1).getDay();
+  const monthName=["January","February","March","April","May","June","July","August","September","October","November","December"][month];
+  const byDate=_logsByDate();
+  const today=new Date();today.setHours(0,0,0,0);
+  let h=`<div class="log-t">📅 Workout Calendar</div>`;
+  h+=`<div class="cal-nav"><button onclick="changeCalMonth(-1)">◂</button><span>${monthName} ${year}</span><button onclick="changeCalMonth(1)" ${_calMonthOffset>=0?'disabled style="opacity:.3"':''}>▸</button></div>`;
+  h+=`<div class="cal-wk">`+["S","M","T","W","T","F","S"].map(function(d){return`<span>${d}</span>`}).join("")+`</div>`;
+  h+=`<div class="cal-grid">`;
+  for(let i=0;i<firstDow;i++)h+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(year,month,d);
+    const key=year+"-"+String(month+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    const logs=byDate[key]||[];
+    const isToday=date.getTime()===today.getTime();
+    const isFuture=date>today;
+    const cls=logs.length?" done":isToday?" today":isFuture?" fut":"";
+    const handler=logs.length?`onclick="showDayDetail('${key}')"`:'';
+    h+=`<div class="cal-cell${cls}" ${handler}>${d}${logs.length?'<div class="cal-dot"></div>':''}</div>`;
+  }
+  h+=`</div>`;
+  // Legend + summary
+  const monthLogs=Object.keys(byDate).filter(function(k){return k.startsWith(year+"-"+String(month+1).padStart(2,"0"))}).length;
+  h+=`<div class="cal-legend">${monthLogs} workout${monthLogs!==1?"s":""} this month · tap a highlighted date to replay that session</div>`;
+  return h;
+}
+function showDayDetail(dateKey){
+  const byDate=_logsByDate();
+  const logs=byDate[dateKey];if(!logs||!logs.length)return;
+  const existing=document.getElementById("dayDetailOverlay");if(existing)existing.remove();
+  const overlay=document.createElement("div");overlay.className="gl-overlay";overlay.id="dayDetailOverlay";
+  const date=new Date(dateKey);
+  const wd=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][date.getDay()];
+  const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][date.getMonth()];
+  let h=`<div class="gl-header"><h2>${wd} ${date.getDate()} ${mo}</h2><button class="gl-close" onclick="document.getElementById('dayDetailOverlay').remove()">✕</button></div><div class="gl-body">`;
+  logs.forEach(function(log){
+    const day=S.plan[log.dayIndex]||{day:"Workout",exs:[]};
+    const dayName=(day.day||"Workout").replace(/^Day \d+ — /,"");
+    let totSets=0,totReps=0,totVol=0;
+    Object.entries(log.sets||{}).forEach(function(e){
+      (e[1]||[]).filter(function(s){return s&&s.done}).forEach(function(s){
+        totSets++;const r=parseInt(s.reps,10)||0;totReps+=r;totVol+=(parseFloat(s.weight)||0)*r;
+      });
+    });
+    h+=`<div class="mg-block"><div class="mg-head">🏋️ ${dayName}</div>`;
+    h+=`<div class="mg-stat-row"><span>Sets</span><span>${totSets}</span></div>`;
+    h+=`<div class="mg-stat-row"><span>Reps</span><span>${totReps}</span></div>`;
+    h+=`<div class="mg-stat-row"><span>Volume</span><span>${Math.round(totVol)} kg</span></div>`;
+    if(log.duration)h+=`<div class="mg-stat-row"><span>Duration</span><span>${Math.round(log.duration/60)} min</span></div>`;
+    h+=`<div class="mg-head" style="margin-top:10px">Exercises</div>`;
+    Object.entries(log.sets||{}).forEach(function(e){
+      const ei=e[0],sets=e[1];const ex=day.exs[ei];if(!ex)return;
+      const parts=(sets||[]).map(function(s){const w=s.weight||"-";const r=s.reps||"-";return(s.done?"":"○ ")+w+"×"+r}).join("  ·  ");
+      h+=`<div style="padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.04)"><div style="font-size:12px;font-weight:700">${ex.n}</div><div style="font-size:11px;color:var(--sub);font-family:'JetBrains Mono',monospace;margin-top:2px">${parts}</div></div>`;
+    });
+    if(log.comment)h+=`<div style="margin-top:8px;font-size:11px;color:var(--sub);font-style:italic">"${esc(log.comment)}"</div>`;
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+  overlay.innerHTML=h;
+  document.body.appendChild(overlay);
+}
+
 let _volRange="week"; // 'week' | 'month'
 function setVolRange(r){_volRange=r;rBody()}
 function renderVolumeTrendChart(){
@@ -3256,6 +3406,7 @@ function renderVolumeTrendChart(){
 function rBody(){Object.keys(_chartInstances).forEach(function(k){try{_chartInstances[k].destroy()}catch(e){}delete _chartInstances[k]});const el=document.getElementById("tab-body");const p=S.user.profile;if(!p){el.innerHTML=`<div class="empty"><p class="empty-t">No profile</p></div>`;return}
 const bc=calcBodyComp(p,S.nutri,S.flog);
 el.innerHTML=rRecoveryGrid()+
+rCalendarMonth()+
 `<div class="log-t" style="margin-top:14px">📈 Training Trends</div>`+
 `<div class="card" style="margin-top:4px;padding:10px"><div style="display:flex;gap:6px;margin-bottom:8px"><button class="pill ${_volRange==='week'?'on':''}" onclick="setVolRange('week')">8 weeks</button><button class="pill ${_volRange==='month'?'on':''}" onclick="setVolRange('month')">12 weeks</button></div><div class="chart-wrap" style="height:180px"><canvas id="volTrendChart"></canvas></div><div style="font-size:10px;color:var(--sub);text-align:center;margin-top:4px">Total working volume (kg) and set count per week</div></div>`+
 `<div class="log-t" style="margin-top:14px">📐 Body Composition Analysis</div><p class="intro">Based on your stats: ${p.gender==='female'?'♀':'♂'} ${p.age}yrs · ${p.height}cm · ${p.weight}kg</p>`+
@@ -3480,6 +3631,9 @@ el.innerHTML=`<div class="more-nav-grid"><div class="more-nav-item" onclick="swT
 `<div class="log-t" style="margin-top:16px">⚙️ Profile</div><div class="card">`+
 [{l:"Gender",v:`${p.gender==='female'?'🙋‍♀️ Female':p.gender==='male'?'🙋‍♂️ Male':'Not set'}`,k:"gender"},{l:"Goal",v:`${GM[p.goal]?.e||""} ${GM[p.goal]?.l||"Not set"}`,k:"goal"},{l:"Gym Level",v:`${({beginner:'🌱 Beginner',intermediate:'💪 Intermediate',veteran:'🏆 Veteran'})[p.level]||'💪 Intermediate'}`,k:"level"},{l:"Body Stats",v:`Age ${p.age} · ${p.height}cm · ${p.weight}kg`,k:"body"},{l:"Training Days",v:`${p.days} day${p.days>1?'s':''}/week`,k:"days"},{l:"Cardio",v:`${p.cardio!==false?'🏃 Included':'Off'}`,k:"cardio"},{l:"Calorie Target",v:`${S.nutri.cal} kcal · ${S.nutri.protein}g P · ${S.nutri.carbs}g C · ${S.nutri.fat}g F`,k:"nutri"}].map(item=>`<div style="margin-bottom:12px"><div class="set-label">${item.l}</div><div style="font-size:11px;color:var(--sub);margin-bottom:6px">${item.v}</div>${item.k!=="nutri"?`<button class="set-edit" onclick="editProfField('${item.k}')">Change</button>`:''}</div>`).join("")+
 `<div style="margin-bottom:12px"><div class="set-label">Focus Areas</div><div style="font-size:10px;color:var(--sub);margin-bottom:8px">Tap to toggle. Plan regenerates automatically.</div><div class="ob-grid g3" style="margin-bottom:6px">${Object.entries(AM).map(([k,v])=>`<button class="ob-opt ${(p.areas||[]).includes(k)?'on':''}" style="padding:10px 6px" onclick="togArea('${k}')">${v.e}<span class="label" style="font-size:11px">${v.l}</span></button>`).join("")}</div><button class="ob-opt ${(p.areas||[]).length===7?'on':''}" style="padding:8px;font-size:11px" onclick="setAllAreas()"><span style="font-size:16px">🏋️</span> <span class="label" style="font-size:11px">Full Body</span></button></div>`+`</div>`+
+// Unit system toggle — kg or lbs. Weights are stored internally as kg and
+// converted only for display so switching back and forth doesn't lose data.
+`<div class="log-t">⚖️ Units</div><div class="card" style="margin-top:8px"><div style="display:flex;gap:6px"><button class="pill ${getUnit()==='kg'?'on':''}" style="flex:1" onclick="setUnit('kg')">Kilograms (kg)</button><button class="pill ${getUnit()==='lbs'?'on':''}" style="flex:1" onclick="setUnit('lbs')">Pounds (lbs)</button></div><div style="font-size:10px;color:var(--sub);margin-top:6px;line-height:1.4">Affects weight inputs on the tracker, 1RM calculator, plate calculator, PRs and volume totals. Existing logs stay intact — the app just converts on display.</div></div>`+
 // Food exclusions — comma-separated list of foods the user doesn't eat.
 // Matched as case-insensitive substring against every meal description and
 // ingredient string the app shows, so 'raw tomato' / 'pork' / 'akpeteshie'
@@ -3929,8 +4083,13 @@ if(ex&&ex.nt){return ex.nt.split(/\.\s*/).filter(s=>s.trim()).map(s=>s.trim()+(s
 return["Focus on controlled, full range of motion.","Breathe out on exertion, in on return.","Keep core braced throughout."];
 }
 function findExInDB(name){
-for(const[cat,exs]of Object.entries(EX_DB)){const found=exs.find(e=>e.n===name);if(found)return{...found,cat}}return null;
+for(const[cat,exs]of Object.entries(EX_DB)){const found=exs.find(e=>e.n===name);if(found)return{...found,cat}}
+// Custom user-created exercises are treated as first-class entries.
+const cex=(S.customExercises||[]).find(function(e){return e.n===name});
+if(cex)return{...cex,cat:cex.cat||"chest",custom:true};
+return null;
 }
+// getPat / getMus (defined above) already include custom-exercise meta.
 function showExDetail(exName,sets,reps,rest){
 const ex=findExInDB(exName);
 const cat=ex?ex.cat:'other';
