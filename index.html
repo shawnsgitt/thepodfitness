@@ -458,7 +458,8 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .ex-rm-btn{background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;padding:2px 6px;opacity:.5;transition:opacity .2s;flex-shrink:0}.ex-rm-btn:active{opacity:1}
 .ex-swap-btn{background:rgba(191,255,0,.08);border:1px solid rgba(191,255,0,.25);color:var(--amb);font-size:12px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:100px;margin-right:6px;transition:all .15s;flex-shrink:0}.ex-swap-btn:active{background:rgba(191,255,0,.18)}
 .swap-picker{background:rgba(191,255,0,.04);border:1px dashed rgba(191,255,0,.3);border-radius:10px;padding:10px;margin:6px 0 10px}
-.swap-picker-title{font-size:11px;font-weight:700;color:var(--amb);margin-bottom:8px}
+.swap-picker-title{font-size:11px;font-weight:700;color:var(--amb);margin-bottom:4px}
+.swap-sub{font-size:10px;color:var(--sub);margin-bottom:8px;line-height:1.4}
 .swap-alt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:3px}.swap-alt:active{background:rgba(255,255,255,.04)}.swap-alt-nm{flex:1;font-size:12px;font-weight:600}.swap-alt-tag{font-size:9px;padding:2px 6px;border-radius:100px;background:rgba(255,255,255,.05);color:var(--sub)}
 .mp-meal-actions{display:flex;gap:4px;margin-left:6px}.mp-meal-act{background:none;border:1px solid rgba(255,255,255,.1);color:var(--sub);font-size:11px;padding:4px 8px;border-radius:100px;cursor:pointer;flex-shrink:0}.mp-meal-act:active{background:rgba(255,255,255,.05)}.mp-meal-act.rm{color:var(--red)}.mp-meal-act.sw{color:var(--amb)}
 .mp-add-meal{width:100%;background:rgba(191,255,0,.06);border:1px dashed rgba(191,255,0,.35);color:var(--amb);font-size:11px;font-weight:700;padding:8px;border-radius:10px;cursor:pointer;margin-top:8px}
@@ -482,6 +483,23 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .want-b{background:rgba(255,255,255,.03);border:1px solid var(--bdr);color:var(--tx);font-size:11px;font-weight:600;padding:6px 10px;border-radius:100px;cursor:pointer;transition:all .15s}
 .want-b:active{background:rgba(191,255,0,.08);border-color:var(--amb);color:var(--amb)}
 .want-hint{font-size:10px;color:var(--sub);margin-top:8px;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px;line-height:1.4}
+.cm-sub{font-size:11px;color:var(--sub);margin-bottom:10px;line-height:1.4}
+.cm-inline-hint{font-size:10px;color:var(--sub);margin-top:4px}
+.cm-inp.full{width:100%}
+textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
+.cm-preview{margin-top:12px;padding:12px;background:rgba(191,255,0,.04);border:1px solid rgba(191,255,0,.2);border-radius:10px}
+.cm-pv-head{font-size:12px;font-weight:700;color:var(--amb);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.cm-pv-type{background:rgba(191,255,0,.15);color:var(--amb);padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600}
+.cm-pv-list{list-style:none;padding:0;margin:6px 0 10px}
+.cm-pv-list li{padding:4px 0;font-size:12px;color:var(--tx);border-bottom:1px dashed rgba(255,255,255,.05)}
+.cm-pv-list li:last-child{border-bottom:none}
+.cm-pv-list li::before{content:"• ";color:var(--amb)}
+.cm-pv-macros{display:flex;gap:8px;padding:10px 0;margin:8px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.cm-pv-macros>div{flex:1;text-align:center}
+.cm-pv-macros .mv{font-size:14px;font-weight:700}
+.cm-pv-macros .ml{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.3px}
+.cm-target{font-size:10px;font-weight:600;text-align:center;margin-top:6px}
+.cm-warn{font-size:11px;color:var(--sub);background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:6px;padding:8px;margin:8px 0;line-height:1.5}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -662,6 +680,158 @@ calisthenics:[{n:"Pull-Ups",t:"compound",nt:"Full dead hang. Chin over bar. Cont
 };
 
 const CAT_META={chest:{l:"Chest",e:"🫁",c:"#EF4444"},back:{l:"Back",e:"🔙",c:"#3B82F6"},shoulders:{l:"Shoulders",e:"🏔️",c:"#A855F7"},arms:{l:"Arms",e:"💪",c:"#38BDF8"},legs:{l:"Legs",e:"🦵",c:"#22C55E"},glutes:{l:"Glutes",e:"🍑",c:"#F472B6"},core:{l:"Core",e:"🎯",c:"#06B6D4"},calisthenics:{l:"Calisthenics",e:"🤸",c:"#F59E0B"},cardio:{l:"Cardio",e:"🏃",c:"#EC4899"},hiit:{l:"HIIT",e:"🔥",c:"#F97316"},stretch:{l:"Stretching",e:"🧘",c:"#22C55E"},plyo:{l:"Plyometrics",e:"⚡",c:"#8B5CF6"}};
+
+// Exercise metadata for alternatives — pat=movement pattern, mus=primary muscle, eq=equipment
+const EX_META={
+  // Chest press patterns
+  "Flat Barbell Bench Press":{pat:"chest_press",mus:"chest",eq:"barbell"},
+  "Incline Dumbbell Press":{pat:"chest_press",mus:"chest",eq:"dumbbell"},
+  "Incline Barbell Bench":{pat:"chest_press",mus:"chest",eq:"barbell"},
+  "Decline Bench Press":{pat:"chest_press",mus:"chest",eq:"barbell"},
+  "Machine Chest Press":{pat:"chest_press",mus:"chest",eq:"machine"},
+  "Push-Ups (Weighted)":{pat:"chest_press",mus:"chest",eq:"bodyweight"},
+  "Push-Ups":{pat:"chest_press",mus:"chest",eq:"bodyweight"},
+  "Diamond Push-Ups":{pat:"chest_press",mus:"chest",eq:"bodyweight"},
+  "Archer Push-Ups":{pat:"chest_press",mus:"chest",eq:"bodyweight"},
+  "Dips (Bodyweight)":{pat:"chest_press",mus:"chest",eq:"bodyweight"},
+  "Planche Lean Push-Ups":{pat:"chest_press",mus:"chest",eq:"bodyweight"},
+  // Chest fly
+  "Cable Flys (Mid)":{pat:"chest_fly",mus:"chest",eq:"cable"},
+  "Dumbbell Flys":{pat:"chest_fly",mus:"chest",eq:"dumbbell"},
+  // Back - row
+  "Barbell Bent-Over Row":{pat:"row",mus:"back",eq:"barbell"},
+  "Seated Cable Row":{pat:"row",mus:"back",eq:"cable"},
+  "Single-Arm DB Row":{pat:"row",mus:"back",eq:"dumbbell"},
+  "Chest-Supported DB Row":{pat:"row",mus:"back",eq:"dumbbell"},
+  "T-Bar Row":{pat:"row",mus:"back",eq:"barbell"},
+  "Meadows Row":{pat:"row",mus:"back",eq:"barbell"},
+  "Bodyweight Rows (Inverted)":{pat:"row",mus:"back",eq:"bodyweight"},
+  // Back - vertical pull
+  "Lat Pulldown (Wide)":{pat:"vertical_pull",mus:"back",eq:"cable"},
+  "Lat Pulldown (Neutral)":{pat:"vertical_pull",mus:"back",eq:"cable"},
+  "Pull-Ups":{pat:"vertical_pull",mus:"back",eq:"bodyweight"},
+  "Chin-Ups":{pat:"vertical_pull",mus:"back",eq:"bodyweight"},
+  "Muscle-Ups":{pat:"vertical_pull",mus:"back",eq:"bodyweight"},
+  // Shoulders - overhead press
+  "Seated Dumbbell OHP":{pat:"overhead_press",mus:"shoulders",eq:"dumbbell"},
+  "Arnold Press":{pat:"overhead_press",mus:"shoulders",eq:"dumbbell"},
+  "Barbell OHP (Standing)":{pat:"overhead_press",mus:"shoulders",eq:"barbell"},
+  "Handstand Push-Ups":{pat:"overhead_press",mus:"shoulders",eq:"bodyweight"},
+  // Shoulders - lateral raise
+  "Cable Lateral Raises":{pat:"lateral_raise",mus:"shoulders",eq:"cable"},
+  "DB Lateral Raises":{pat:"lateral_raise",mus:"shoulders",eq:"dumbbell"},
+  "Lu Raises":{pat:"lateral_raise",mus:"shoulders",eq:"dumbbell"},
+  // Shoulders - rear delt
+  "Face Pulls":{pat:"rear_delt",mus:"shoulders",eq:"cable"},
+  "Reverse Pec Deck":{pat:"rear_delt",mus:"shoulders",eq:"machine"},
+  // Arms - curl
+  "Barbell Curl":{pat:"curl",mus:"arms",eq:"barbell"},
+  "Incline DB Curl":{pat:"curl",mus:"arms",eq:"dumbbell"},
+  "Hammer Curls":{pat:"curl",mus:"arms",eq:"dumbbell"},
+  "Preacher Curl (Machine)":{pat:"curl",mus:"arms",eq:"machine"},
+  "Spider Curls":{pat:"curl",mus:"arms",eq:"dumbbell"},
+  // Arms - tricep extension
+  "Tricep Rope Pushdowns":{pat:"tricep_ext",mus:"arms",eq:"cable"},
+  "Overhead Tricep Extension":{pat:"tricep_ext",mus:"arms",eq:"cable"},
+  "EZ Bar Skull Crushers":{pat:"tricep_ext",mus:"arms",eq:"barbell"},
+  "Close-Grip Bench Press":{pat:"tricep_ext",mus:"arms",eq:"barbell"},
+  "Dips (Weighted)":{pat:"tricep_ext",mus:"arms",eq:"bodyweight"},
+  // Legs - squat (quad-dominant)
+  "Barbell Back Squat":{pat:"squat",mus:"legs",eq:"barbell"},
+  "Goblet Squat":{pat:"squat",mus:"legs",eq:"dumbbell"},
+  "Leg Press":{pat:"squat",mus:"legs",eq:"machine"},
+  "Hack Squat (Machine)":{pat:"squat",mus:"legs",eq:"machine"},
+  "Bodyweight Squats":{pat:"squat",mus:"legs",eq:"bodyweight"},
+  // Legs - lunge
+  "Bulgarian Split Squats":{pat:"lunge",mus:"legs",eq:"dumbbell"},
+  "Walking Lunges (DB)":{pat:"lunge",mus:"legs",eq:"dumbbell"},
+  "Pistol Squats":{pat:"lunge",mus:"legs",eq:"bodyweight"},
+  // Legs - hinge
+  "Romanian Deadlift":{pat:"hinge",mus:"legs",eq:"barbell"},
+  // Legs - isolation
+  "Leg Curl (Machine)":{pat:"leg_curl",mus:"legs",eq:"machine"},
+  "Nordic Hamstring Curls":{pat:"leg_curl",mus:"legs",eq:"bodyweight"},
+  "Leg Extension":{pat:"leg_ext",mus:"legs",eq:"machine"},
+  // Legs - hip
+  "Hip Thrust (BB)":{pat:"hip_thrust",mus:"legs",eq:"barbell"},
+  // Legs - calf
+  "Standing Calf Raises":{pat:"calf",mus:"legs",eq:"machine"},
+  "Seated Calf Raises":{pat:"calf",mus:"legs",eq:"machine"},
+  // Glutes - hip thrust family
+  "Barbell Hip Thrust":{pat:"hip_thrust",mus:"glutes",eq:"barbell"},
+  "Glute Bridge (Weighted)":{pat:"hip_thrust",mus:"glutes",eq:"bodyweight"},
+  "Single-Leg Hip Thrust":{pat:"hip_thrust",mus:"glutes",eq:"bodyweight"},
+  "Frog Pumps":{pat:"hip_thrust",mus:"glutes",eq:"bodyweight"},
+  // Glutes - iso
+  "Cable Kickbacks":{pat:"glute_iso",mus:"glutes",eq:"cable"},
+  // Glutes - unilateral
+  "Bulgarian Split Squat (Glute Focus)":{pat:"lunge",mus:"glutes",eq:"dumbbell"},
+  "Step-Ups (Weighted)":{pat:"lunge",mus:"glutes",eq:"dumbbell"},
+  // Glutes - hinge
+  "Sumo Deadlift":{pat:"hinge",mus:"glutes",eq:"barbell"},
+  // Core - anti-extension (plank-family)
+  "Plank (45-60s)":{pat:"core_antiext",mus:"core",eq:"bodyweight"},
+  "Ab Wheel Rollout":{pat:"core_antiext",mus:"core",eq:"bodyweight"},
+  "Dead Bugs":{pat:"core_antiext",mus:"core",eq:"bodyweight"},
+  "Copenhagen Plank":{pat:"core_antiext",mus:"core",eq:"bodyweight"},
+  "L-Sit Hold":{pat:"core_antiext",mus:"core",eq:"bodyweight"},
+  // Core - flexion
+  "Hanging Leg Raises":{pat:"core_flex",mus:"core",eq:"bodyweight"},
+  "Hanging Knee Raises":{pat:"core_flex",mus:"core",eq:"bodyweight"},
+  "Dragon Flags":{pat:"core_flex",mus:"core",eq:"bodyweight"},
+  // Core - rotation / anti-rotation
+  "Cable Woodchops":{pat:"core_rot",mus:"core",eq:"cable"},
+  "Russian Twists":{pat:"core_rot",mus:"core",eq:"bodyweight"},
+  "Pallof Press":{pat:"core_antirot",mus:"core",eq:"cable"},
+  // Cardio steady
+  "Treadmill Run (Steady State)":{pat:"cardio_steady",mus:"cardio",eq:"machine"},
+  "Incline Treadmill Walk":{pat:"cardio_steady",mus:"cardio",eq:"machine"},
+  "Rowing Machine":{pat:"cardio_steady",mus:"cardio",eq:"machine"},
+  "Stationary Bike (Moderate)":{pat:"cardio_steady",mus:"cardio",eq:"machine"},
+  "Stairmaster":{pat:"cardio_steady",mus:"cardio",eq:"machine"},
+  "Jump Rope":{pat:"cardio_steady",mus:"cardio",eq:"bodyweight"},
+  "Swimming (Laps)":{pat:"cardio_steady",mus:"cardio",eq:"bodyweight"},
+  "Assault Bike":{pat:"cardio_steady",mus:"cardio",eq:"machine"},
+  // HIIT - treat as interchangeable
+  "Burpees":{pat:"hiit",mus:"hiit",eq:"bodyweight"},
+  "Battle Ropes (Alternating)":{pat:"hiit",mus:"hiit",eq:"machine"},
+  "Box Jumps":{pat:"hiit",mus:"hiit",eq:"bodyweight"},
+  "Kettlebell Swings":{pat:"hiit",mus:"hiit",eq:"kettlebell"},
+  "Mountain Climbers":{pat:"hiit",mus:"hiit",eq:"bodyweight"},
+  "Sprint Intervals (Treadmill)":{pat:"hiit",mus:"hiit",eq:"machine"},
+  "Rowing Intervals":{pat:"hiit",mus:"hiit",eq:"machine"},
+  "Sled Push/Pull":{pat:"hiit",mus:"hiit",eq:"machine"},
+  "Thrusters (DB/BB)":{pat:"hiit",mus:"hiit",eq:"barbell"}
+};
+
+const MUSCLE_FAMILY={chest:["chest"],back:["back"],shoulders:["shoulders"],arms:["arms"],legs:["legs","glutes"],glutes:["glutes","legs"],core:["core"],cardio:["cardio"],hiit:["hiit"]};
+function getExAlternatives(name){
+  const meta=EX_META[name];
+  // Flatten EX_DB with cat/idx for return shape consumed by rSwapPicker
+  const allList=[];
+  Object.entries(EX_DB).forEach(function(entry){
+    const cat=entry[0],exs=entry[1];
+    exs.forEach(function(e,idx){if(e.n!==name)allList.push({n:e.n,t:e.t,nt:e.nt,diff:e.diff,cat:cat,idx:idx,meta:EX_META[e.n]||null})});
+  });
+  if(meta){
+    const family=MUSCLE_FAMILY[meta.mus]||[meta.mus];
+    const matches=allList.filter(function(e){return e.meta&&e.meta.pat===meta.pat&&family.indexOf(e.meta.mus)>=0});
+    // Sort: same equipment family first, then compound > isolation
+    matches.sort(function(a,b){
+      const aSameEq=a.meta.eq===meta.eq?0:1;
+      const bSameEq=b.meta.eq===meta.eq?0:1;
+      if(aSameEq!==bSameEq)return aSameEq-bSameEq;
+      const aTier=a.t==="compound"?0:1;
+      const bTier=b.t==="compound"?0:1;
+      return aTier-bTier;
+    });
+    return matches;
+  }
+  // Fallback: same category, no metadata known
+  const db=findExInDB(name);
+  if(!db)return [];
+  return allList.filter(function(e){return e.cat===db.cat});
+}
 
 const GM={muscle_gain:{l:"Muscle Gain",e:"💪",rm:"8-10",ri:"12-15",rstm:"2 min",rsti:"60s",ca:300,d:"Surplus + overload"},fat_loss:{l:"Fat Loss",e:"🔥",rm:"10-12",ri:"15-20",rstm:"90s",rsti:"45s",ca:-400,d:"Deficit + high protein"},recomp:{l:"Recomp",e:"⚡",rm:"8-10",ri:"12-15",rstm:"2 min",rsti:"60s",ca:0,d:"Maintenance + high protein"},general:{l:"General Fitness",e:"🎯",rm:"10-12",ri:"12-15",rstm:"90s",rsti:"60s",ca:0,d:"Balanced"}};
 const AM={chest:{l:"Chest",e:"🫁"},back:{l:"Back",e:"🔙"},shoulders:{l:"Shoulders",e:"🏔️"},arms:{l:"Arms",e:"💪"},legs:{l:"Legs",e:"🦵"},glutes:{l:"Glutes",e:"🍑"},core:{l:"Core",e:"🎯"},calisthenics:{l:"Calisthenics",e:"🤸"}};
@@ -1114,17 +1284,24 @@ function doSwapEx(di,ei,cat,idx){
   savPlan();swapCtx=null;rPlan();
   setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
 }
+const PAT_LABEL={chest_press:"Chest press",chest_fly:"Chest fly",row:"Horizontal pull (row)",vertical_pull:"Vertical pull",overhead_press:"Overhead press",lateral_raise:"Lateral raise",rear_delt:"Rear delt",curl:"Bicep curl",tricep_ext:"Tricep extension",squat:"Squat",lunge:"Unilateral leg",hinge:"Hip hinge",leg_curl:"Leg curl",leg_ext:"Leg extension",hip_thrust:"Hip thrust",calf:"Calf raise",glute_iso:"Glute isolation",core_antiext:"Core — anti-extension",core_flex:"Core — flexion",core_rot:"Core — rotation",core_antirot:"Core — anti-rotation",cardio_steady:"Steady cardio",hiit:"HIIT"};
 function rSwapPicker(di,ei){
   const curName=S.plan[di].exs[ei].n;
-  const curDb=findExInDB(curName);
-  const curCat=curDb?curDb.cat:'legs';
-  // Show alternatives from same category first, then allow jumping to any category
-  const primary=(EX_DB[curCat]||[]).map(function(e,i){return Object.assign({},e,{cat:curCat,idx:i})}).filter(function(e){return e.n!==curName});
-  return `<div class="swap-picker"><div class="swap-picker-title">⇄ Swap "${curName}" — alternatives (${(CAT_META[curCat]||{l:curCat}).l})</div>`+
-    primary.slice(0,12).map(function(e){
-      return `<div class="swap-alt" onclick="event.stopPropagation();doSwapEx(${di},${ei},'${e.cat}',${e.idx})"><div style="font-size:18px">${(CAT_META[e.cat]||{e:'🏋️'}).e}</div><div class="swap-alt-nm">${e.n}</div><span class="swap-alt-tag">${e.t}</span></div>`;
-    }).join('')+
-    `<button class="s-btn out" style="margin-top:8px;font-size:11px" onclick="event.stopPropagation();closeSwapEx()">Cancel</button></div>`;
+  const meta=EX_META[curName];
+  const alts=getExAlternatives(curName);
+  const patLbl=meta?(PAT_LABEL[meta.pat]||meta.pat):"same category";
+  const musLbl=meta?((CAT_META[meta.mus]||{l:meta.mus}).l):"";
+  const header=meta
+    ?`<div class="swap-picker-title">⇄ Swap <b>${esc(curName)}</b></div><div class="swap-sub">${alts.length} alternative${alts.length!==1?"s":""} — same muscle (${musLbl}) and same pattern (${patLbl})</div>`
+    :`<div class="swap-picker-title">⇄ Swap <b>${esc(curName)}</b></div><div class="swap-sub">Showing ${alts.length} same-category option${alts.length!==1?"s":""}. Exact match data not available for this lift.</div>`;
+  const body=alts.length
+    ?alts.slice(0,12).map(function(e){
+        const emeta=e.meta;
+        const eqTag=emeta?emeta.eq:e.t;
+        return `<div class="swap-alt" onclick="event.stopPropagation();doSwapEx(${di},${ei},'${e.cat}',${e.idx})"><div style="font-size:18px">${(CAT_META[e.cat]||{e:'🏋️'}).e}</div><div class="swap-alt-nm">${e.n}</div><span class="swap-alt-tag">${eqTag}</span></div>`;
+      }).join('')
+    :`<div class="swap-sub" style="padding:8px 4px">No close substitutes in the database for this exercise. Try using the + Add Exercise button below to pick any exercise manually.</div>`;
+  return `<div class="swap-picker">${header}${body}<button class="s-btn out" style="margin-top:8px;font-size:11px" onclick="event.stopPropagation();closeSwapEx()">Cancel</button></div>`;
 }
 function openAddEx(di){addExDay=di;addExFilter="all";rPlan();setTimeout(()=>{const el=document.getElementById("dc"+di);if(el){el.classList.add("open");el.scrollIntoView({behavior:"smooth",block:"center"})}},50)}
 function closeAddEx(){addExDay=null;rPlan()}
@@ -1325,7 +1502,252 @@ return`<div class="diet-consist"><div class="dc-title">📅 Diet Consistency Tra
 `<div style="font-size:9px;color:var(--sub);margin-top:8px;text-align:center;line-height:1.4">${dc.consistencyPct>=80?'🔥 Excellent consistency! Keep it up!':dc.consistencyPct>=50?'💪 Good progress! Stay on track.':'📝 Log your meals daily to build consistency.'} Target: ${dc.target} kcal/day (±15%)</div></div>`}
 
 // ═══════ FOOD TAB ═══════
-let cmForm={show:false,name:"",cal:"",p:"",c:"",f:"",mealType:"Snack"};
+// Ingredient database — values per 100g unless unit is specified.
+// c = category | kcal,p,cb,f = macros | unit,unitWeight = unit-based items
+const INGREDIENT_DB={
+  // Lean proteins
+  "chicken breast":{c:"prot_lean",kcal:165,p:31,cb:0,f:3.6},
+  "chicken":{c:"prot_lean",kcal:165,p:31,cb:0,f:3.6},
+  "turkey":{c:"prot_lean",kcal:135,p:30,cb:0,f:1},
+  "turkey breast":{c:"prot_lean",kcal:135,p:30,cb:0,f:1},
+  "tuna":{c:"prot_lean",kcal:116,p:25,cb:0,f:1},
+  "cod":{c:"prot_lean",kcal:82,p:18,cb:0,f:0.7},
+  "white fish":{c:"prot_lean",kcal:82,p:18,cb:0,f:0.7},
+  "prawns":{c:"prot_lean",kcal:85,p:20,cb:0,f:0.5},
+  "shrimp":{c:"prot_lean",kcal:85,p:20,cb:0,f:0.5},
+  "beef mince 5%":{c:"prot_lean",kcal:137,p:21,cb:0,f:5},
+  "lean beef":{c:"prot_lean",kcal:137,p:21,cb:0,f:5},
+  "tofu":{c:"prot_lean",kcal:76,p:8,cb:2,f:5},
+  // Fatty proteins
+  "chicken thigh":{c:"prot_fat",kcal:209,p:25,cb:0,f:11},
+  "salmon":{c:"prot_fat",kcal:208,p:20,cb:0,f:13},
+  "beef mince":{c:"prot_fat",kcal:254,p:26,cb:0,f:17},
+  "mince":{c:"prot_fat",kcal:254,p:26,cb:0,f:17},
+  "steak":{c:"prot_fat",kcal:271,p:26,cb:0,f:18},
+  "sirloin":{c:"prot_fat",kcal:271,p:26,cb:0,f:18},
+  "lamb":{c:"prot_fat",kcal:294,p:25,cb:0,f:21},
+  "lamb chops":{c:"prot_fat",kcal:294,p:25,cb:0,f:21},
+  "pork":{c:"prot_fat",kcal:231,p:24,cb:0,f:14},
+  "bacon":{c:"prot_fat",kcal:541,p:37,cb:1.4,f:42},
+  "sausage":{c:"prot_fat",kcal:301,p:13,cb:2,f:27},
+  "sausages":{c:"prot_fat",kcal:301,p:13,cb:2,f:27},
+  // Unit proteins
+  "egg":{c:"prot_unit",kcal:70,p:6,cb:0.6,f:5,unit:"egg"},
+  "eggs":{c:"prot_unit",kcal:70,p:6,cb:0.6,f:5,unit:"egg"},
+  "protein powder":{c:"prot_powder",kcal:120,p:24,cb:3,f:1.5,unit:"scoop",unitWeight:30},
+  "whey":{c:"prot_powder",kcal:120,p:24,cb:3,f:1.5,unit:"scoop",unitWeight:30},
+  // Starch carbs (cooked)
+  "rice":{c:"carb_starch",kcal:130,p:2.7,cb:28,f:0.3},
+  "white rice":{c:"carb_starch",kcal:130,p:2.7,cb:28,f:0.3},
+  "brown rice":{c:"carb_starch",kcal:112,p:2.6,cb:23,f:0.9},
+  "jollof rice":{c:"carb_starch",kcal:155,p:3,cb:28,f:3},
+  "pasta":{c:"carb_starch",kcal:158,p:6,cb:31,f:1},
+  "spaghetti":{c:"carb_starch",kcal:158,p:6,cb:31,f:1},
+  "noodles":{c:"carb_starch",kcal:138,p:5,cb:25,f:2},
+  "indomie":{c:"carb_starch",kcal:138,p:5,cb:25,f:2},
+  "oats":{c:"carb_starch",kcal:389,p:17,cb:66,f:7},
+  "potato":{c:"carb_starch",kcal:77,p:2,cb:17,f:0.1},
+  "potatoes":{c:"carb_starch",kcal:77,p:2,cb:17,f:0.1},
+  "sweet potato":{c:"carb_starch",kcal:86,p:1.6,cb:20,f:0.1},
+  "plantain":{c:"carb_starch",kcal:122,p:1.3,cb:32,f:0.4},
+  "quinoa":{c:"carb_starch",kcal:120,p:4,cb:21,f:2},
+  "couscous":{c:"carb_starch",kcal:112,p:4,cb:23,f:0.2},
+  "baked beans":{c:"carb_starch",kcal:94,p:5,cb:15,f:0.6},
+  "beans":{c:"carb_starch",kcal:127,p:9,cb:23,f:0.5},
+  "granola":{c:"carb_starch",kcal:471,p:10,cb:64,f:20},
+  "fries":{c:"carb_starch",kcal:312,p:3.4,cb:41,f:15},
+  // Unit-based carbs
+  "bread":{c:"carb_unit",kcal:80,p:3,cb:15,f:1,unit:"slice",unitWeight:30},
+  "toast":{c:"carb_unit",kcal:80,p:3,cb:15,f:1,unit:"slice",unitWeight:30},
+  "tortilla":{c:"carb_unit",kcal:140,p:4,cb:24,f:3,unit:"wrap",unitWeight:45},
+  "wrap":{c:"carb_unit",kcal:140,p:4,cb:24,f:3,unit:"wrap",unitWeight:45},
+  "wraps":{c:"carb_unit",kcal:140,p:4,cb:24,f:3,unit:"wrap",unitWeight:45},
+  "weetabix":{c:"carb_unit",kcal:69,p:2.1,cb:13,f:0.4,unit:"biscuit",unitWeight:19},
+  "wheetabix":{c:"carb_unit",kcal:69,p:2.1,cb:13,f:0.4,unit:"biscuit",unitWeight:19},
+  "pancake":{c:"carb_unit",kcal:175,p:4,cb:22,f:8,unit:"pancake",unitWeight:75},
+  "pancakes":{c:"carb_unit",kcal:175,p:4,cb:22,f:8,unit:"pancake",unitWeight:75},
+  // Fats
+  "avocado":{c:"fat",kcal:160,p:2,cb:8,f:15},
+  "olive oil":{c:"fat",kcal:120,p:0,cb:0,f:14,unit:"tbsp",unitWeight:14},
+  "oil":{c:"fat",kcal:120,p:0,cb:0,f:14,unit:"tbsp",unitWeight:14},
+  "peanut butter":{c:"fat",kcal:94,p:4,cb:3,f:8,unit:"tbsp",unitWeight:16},
+  "almond butter":{c:"fat",kcal:98,p:3.4,cb:3,f:9,unit:"tbsp",unitWeight:16},
+  "almonds":{c:"fat",kcal:579,p:21,cb:22,f:50},
+  "cashews":{c:"fat",kcal:553,p:18,cb:30,f:44},
+  "walnuts":{c:"fat",kcal:654,p:15,cb:14,f:65},
+  "butter":{c:"fat",kcal:72,p:0.1,cb:0,f:8,unit:"tbsp",unitWeight:10},
+  "cheese":{c:"fat",kcal:402,p:25,cb:3,f:33},
+  "cheddar":{c:"fat",kcal:402,p:25,cb:3,f:33},
+  "parmesan":{c:"fat",kcal:431,p:38,cb:4,f:29},
+  "feta":{c:"fat",kcal:264,p:14,cb:4,f:21},
+  "mayo":{c:"fat",kcal:102,p:0.1,cb:0.1,f:11,unit:"tbsp",unitWeight:14},
+  "hummus":{c:"fat",kcal:166,p:8,cb:14,f:10},
+  // Veg
+  "broccoli":{c:"veg",kcal:34,p:2.8,cb:7,f:0.4},
+  "spinach":{c:"veg",kcal:23,p:2.9,cb:3.6,f:0.4},
+  "kale":{c:"veg",kcal:49,p:4.3,cb:9,f:0.9},
+  "lettuce":{c:"veg",kcal:15,p:1.4,cb:2.9,f:0.2},
+  "salad":{c:"veg",kcal:15,p:1.4,cb:2.9,f:0.2},
+  "mixed salad":{c:"veg",kcal:20,p:1.5,cb:3.5,f:0.2},
+  "tomato":{c:"veg",kcal:18,p:0.9,cb:3.9,f:0.2},
+  "tomatoes":{c:"veg",kcal:18,p:0.9,cb:3.9,f:0.2},
+  "onion":{c:"veg",kcal:40,p:1.1,cb:9,f:0.1},
+  "bell pepper":{c:"veg",kcal:31,p:1,cb:6,f:0.3},
+  "pepper":{c:"veg",kcal:31,p:1,cb:6,f:0.3},
+  "carrot":{c:"veg",kcal:41,p:0.9,cb:10,f:0.2},
+  "carrots":{c:"veg",kcal:41,p:0.9,cb:10,f:0.2},
+  "cucumber":{c:"veg",kcal:16,p:0.7,cb:3.6,f:0.1},
+  "peas":{c:"veg",kcal:81,p:5,cb:14,f:0.4},
+  "sweetcorn":{c:"veg",kcal:86,p:3,cb:19,f:1},
+  "corn":{c:"veg",kcal:86,p:3,cb:19,f:1},
+  "mushroom":{c:"veg",kcal:22,p:3,cb:3,f:0.3},
+  "mushrooms":{c:"veg",kcal:22,p:3,cb:3,f:0.3},
+  "cauliflower":{c:"veg",kcal:25,p:1.9,cb:5,f:0.3},
+  "zucchini":{c:"veg",kcal:17,p:1.2,cb:3.1,f:0.3},
+  "courgette":{c:"veg",kcal:17,p:1.2,cb:3.1,f:0.3},
+  "asparagus":{c:"veg",kcal:20,p:2.2,cb:3.9,f:0.1},
+  "green beans":{c:"veg",kcal:31,p:1.8,cb:7,f:0.2},
+  // Fruits
+  "apple":{c:"fruit",kcal:95,p:0.5,cb:25,f:0.3,unit:"piece",unitWeight:180},
+  "banana":{c:"fruit",kcal:105,p:1.3,cb:27,f:0.4,unit:"piece",unitWeight:120},
+  "strawberry":{c:"fruit",kcal:32,p:0.7,cb:8,f:0.3},
+  "strawberries":{c:"fruit",kcal:32,p:0.7,cb:8,f:0.3},
+  "blueberry":{c:"fruit",kcal:57,p:0.7,cb:14,f:0.3},
+  "blueberries":{c:"fruit",kcal:57,p:0.7,cb:14,f:0.3},
+  "berries":{c:"fruit",kcal:50,p:1,cb:12,f:0.3},
+  "mango":{c:"fruit",kcal:60,p:0.8,cb:15,f:0.4},
+  "pineapple":{c:"fruit",kcal:50,p:0.5,cb:13,f:0.1},
+  "grapes":{c:"fruit",kcal:69,p:0.7,cb:18,f:0.2},
+  "orange":{c:"fruit",kcal:62,p:1.2,cb:15,f:0.2,unit:"piece",unitWeight:130},
+  "watermelon":{c:"fruit",kcal:30,p:0.6,cb:8,f:0.2},
+  // Dairy / liquids
+  "milk":{c:"dairy_liquid",kcal:61,p:3.2,cb:4.8,f:3.3},
+  "almond milk":{c:"dairy_liquid",kcal:15,p:0.5,cb:1.3,f:1.1},
+  "soy milk":{c:"dairy_liquid",kcal:54,p:3.3,cb:6,f:1.8},
+  "oat milk":{c:"dairy_liquid",kcal:45,p:1,cb:7,f:1.5},
+  "yoghurt":{c:"dairy",kcal:59,p:10,cb:3.6,f:0.4},
+  "yogurt":{c:"dairy",kcal:59,p:10,cb:3.6,f:0.4},
+  "greek yoghurt":{c:"dairy",kcal:59,p:10,cb:3.6,f:0.4},
+  "greek yogurt":{c:"dairy",kcal:59,p:10,cb:3.6,f:0.4},
+  "cottage cheese":{c:"dairy",kcal:98,p:11,cb:3.4,f:4.3},
+  // Sweets & sauces
+  "honey":{c:"sweet",kcal:64,p:0.1,cb:17,f:0,unit:"tbsp",unitWeight:21},
+  "jam":{c:"sweet",kcal:56,p:0.1,cb:14,f:0,unit:"tbsp",unitWeight:20},
+  "syrup":{c:"sweet",kcal:52,p:0,cb:13,f:0,unit:"tbsp",unitWeight:20},
+  "ketchup":{c:"sweet",kcal:15,p:0.2,cb:4,f:0,unit:"tbsp",unitWeight:15},
+  "soy sauce":{c:"sweet",kcal:8,p:1.2,cb:0.8,f:0.1,unit:"tbsp",unitWeight:15}
+};
+
+function normIngr(s){return(s||"").toLowerCase().replace(/\b(fresh|frozen|cooked|raw|grilled|baked|roasted|fried|boiled|steamed|sliced|diced|chopped|whole|organic|free[\s-]*range|wild|canned|smoked|stir[\s-]*fry|lean)\b/g,"").replace(/\s+/g," ").trim()}
+function lookupIngredient(raw){
+  const n=normIngr(raw);
+  if(!n)return null;
+  if(INGREDIENT_DB[n])return Object.assign({matched:n},INGREDIENT_DB[n]);
+  // Longest-key substring match
+  const keys=Object.keys(INGREDIENT_DB).sort(function(a,b){return b.length-a.length});
+  for(const k of keys){if(n.indexOf(k)>=0)return Object.assign({matched:k},INGREDIENT_DB[k])}
+  for(const k of keys){if(k.indexOf(n)>=0)return Object.assign({matched:k},INGREDIENT_DB[k])}
+  // Word-level
+  const words=n.split(/\s+/).filter(function(w){return w.length>2});
+  for(const w of words){
+    if(INGREDIENT_DB[w])return Object.assign({matched:w},INGREDIENT_DB[w]);
+    for(const k of keys){if(k.indexOf(w)>=0||w.indexOf(k)>=0)return Object.assign({matched:k},INGREDIENT_DB[k])}
+  }
+  return null;
+}
+function _itemGrams(x){
+  const i=x.info;
+  if(i.unit==="egg")return 50*x.qty;
+  if(i.unitWeight)return i.unitWeight*x.qty;
+  return x.qty; // grams or ml (≈ g for milk-like)
+}
+function _totals(items){
+  let cal=0,p=0,c=0,f=0;
+  items.forEach(function(x){const g=_itemGrams(x);const fac=g/100;cal+=x.info.kcal*fac;p+=x.info.p*fac;c+=x.info.cb*fac;f+=x.info.f*fac});
+  return {cal:Math.round(cal),p:Math.round(p),c:Math.round(c),f:Math.round(f)};
+}
+function _basePortion(cat,goal){
+  if(cat==="prot_lean")return goal==="muscle_gain"?180:goal==="fat_loss"?200:150;
+  if(cat==="prot_fat")return 150;
+  if(cat==="prot_unit")return goal==="muscle_gain"?4:3;  // eggs
+  if(cat==="prot_powder")return 1; // scoops
+  if(cat==="carb_starch")return goal==="muscle_gain"?200:goal==="fat_loss"?120:160;
+  if(cat==="carb_unit")return 2;
+  if(cat==="fat"){return 30} // g; for tbsp items unitWeight handles conversion below
+  if(cat==="veg")return 120;
+  if(cat==="fruit")return 100;
+  if(cat==="dairy")return 150;
+  if(cat==="dairy_liquid")return 200;
+  if(cat==="sweet")return 1;
+  return 100;
+}
+function buildMealFromIngredients(mealName,rawIngredients,mealType){
+  const prof=S.user?.profile||{};
+  const goal=prof.goal||"general";
+  const mealsPerDay=(typeof mealPlanMealsPerDay!=="undefined"?mealPlanMealsPerDay:null)||4;
+  const dailyCal=S.nutri?.cal||2500;
+  // Meal type share of daily calories
+  const share={Breakfast:0.25,Lunch:0.30,Dinner:0.30,"Pre-Workout":0.12,"Evening Snack":0.10,Snack:0.10,"Mass Gainer Shake":0.25};
+  const targetCal=Math.round(dailyCal*(share[mealType]||(1/mealsPerDay)));
+  // Parse ingredients
+  const parts=rawIngredients.split(/[\n,;]+/).map(function(s){return s.trim()}).filter(Boolean);
+  const items=[];const unrec=[];
+  parts.forEach(function(raw){
+    const info=lookupIngredient(raw);
+    if(!info){unrec.push(raw);return}
+    // Handle unit-based vs gram-based
+    let qty=_basePortion(info.c,goal);
+    // For units, qty is count; for fat tbsp, convert to tbsp count (~2)
+    if(info.unit==="tbsp")qty=info.c==="sweet"?1:2;
+    items.push({raw:raw,info:info,qty:qty});
+  });
+  if(!items.length)return {error:"No recognisable ingredients. Try: chicken, rice, avocado, eggs, oats..."};
+  // Ensure adequate protein: if no protein item, suggest adding
+  const hasProtein=items.some(function(x){return /^prot_/.test(x.info.c)});
+  // Compute totals and scale to target
+  let totals=_totals(items);
+  const diff=totals.cal-targetCal;
+  if(Math.abs(diff)>targetCal*0.15){
+    // Scale starch/fat items to close the gap. Preserve protein and veg minimums.
+    const adj=items.filter(function(x){return x.info.c==="carb_starch"||x.info.c==="carb_unit"||x.info.c==="fat"});
+    if(adj.length){
+      // current calories from adjustable items
+      let adjCal=0;adj.forEach(function(x){const g=_itemGrams(x);adjCal+=x.info.kcal*(g/100)});
+      const newAdjCal=Math.max(adjCal-diff,adjCal*0.5);
+      const sf=adjCal>0?newAdjCal/adjCal:1;
+      adj.forEach(function(x){
+        if(x.info.unit){x.qty=Math.max(1,Math.round(x.qty*sf))}
+        else{x.qty=Math.max(30,Math.round(x.qty*sf/5)*5)} // round to 5g, min 30g
+      });
+      totals=_totals(items);
+    }
+  }
+  // Format lines
+  function capitalise(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s}
+  function fmt(x){
+    const i=x.info;const name=capitalise((x.raw||i.matched||"").trim());
+    if(i.unit==="egg")return x.qty+" "+(x.qty===1?"Egg":"Eggs");
+    if(i.unit==="scoop")return x.qty+" scoop"+(x.qty!==1?"s":"")+" "+name;
+    if(i.unit==="slice")return x.qty+" slice"+(x.qty!==1?"s":"")+" "+name;
+    if(i.unit==="wrap")return x.qty+" "+name+(x.qty!==1?"s":"");
+    if(i.unit==="biscuit")return x.qty+" "+name;
+    if(i.unit==="pancake")return x.qty+" Pancake"+(x.qty!==1?"s":"");
+    if(i.unit==="piece")return x.qty+" "+name+(x.qty!==1?"s":"");
+    if(i.unit==="tbsp")return x.qty+" tbsp "+name;
+    if(i.c==="dairy_liquid")return x.qty+"ml "+name;
+    return x.qty+"g "+name;
+  }
+  const lines=items.map(fmt);
+  const desc=capitalise(mealName)+" — "+lines.join(", ");
+  return {
+    ok:true,mealName:capitalise(mealName),mealType:mealType||"Snack",
+    description:desc,lines:lines,items:items,
+    unrecognised:unrec,targetCal:targetCal,totals:totals,
+    needsProtein:!hasProtein
+  };
+}
+
+let cmForm={show:false,name:"",ingr:"",mealType:"Snack",diet:"",preview:null};
 const MEAL_TYPES=["Breakfast","Lunch","Pre-Workout","Dinner","Evening Snack","Mass Gainer Shake","Snack"];
 let foodSubTab="overview";
 let mealPlanMealsPerDay=4;
@@ -1529,7 +1951,7 @@ return`<div class="mac-bar">${ring(tl.cal,t.cal,"#38BDF8","Calories","kcal")}${r
 (function(){if(calRemain<=0)return'<div class="cal-summary" style="border-left:3px solid var(--grn)"><div class="cs-title">🥤 Mass Gainer Calculator</div><div style="font-size:11px;color:var(--grn);text-align:center;padding:8px 0">✅ You\'ve hit your calorie target! No mass gainer needed today.</div></div>';const mgPerScoop={cal:625,p:25,c:125,f:3};const scoopsNeeded=Math.ceil(calRemain/mgPerScoop.cal*10)/10;const mgCal=Math.round(scoopsNeeded*mgPerScoop.cal);const mgP=Math.round(scoopsNeeded*mgPerScoop.p);const scoopTxt=scoopsNeeded<=1?'1 scoop':scoopsNeeded<=1.5?'1.5 scoops':scoopsNeeded<=2?'2 scoops':scoopsNeeded.toFixed(1)+' scoops';const withMilk=Math.round(scoopsNeeded*145);const totalWithMilk=mgCal+withMilk;return'<div class="cal-summary" style="border-left:3px solid var(--amb)"><div class="cs-title">🥤 Mass Gainer Top-Up</div><div style="font-size:10px;color:var(--sub);margin-bottom:8px;text-align:center">To reach your <b style="color:var(--tx)">'+t.cal+' kcal</b> target</div><div class="cs-row"><span class="cs-label">Calories needed</span><span class="cs-val" style="color:var(--amb)">'+calRemain+' kcal</span></div><div class="cs-row"><span class="cs-label">Mass Gainer</span><span class="cs-val" style="color:var(--grn);font-weight:800">'+scoopTxt+'</span></div><div style="margin:8px 0;padding:8px;background:rgba(255,255,255,.04);border-radius:8px;font-size:10px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px"><div style="color:var(--sub)">With Water</div><div style="color:var(--tx);font-weight:600">'+mgCal+' kcal · '+mgP+'g P</div><div style="color:var(--sub)">With Milk</div><div style="color:var(--tx);font-weight:600">'+totalWithMilk+' kcal</div></div></div><div style="font-size:8px;color:var(--sub);text-align:center;font-style:italic">~625 kcal per scoop. Check your label.</div></div>'})()+
 renderDietConsistency()+
 (dl.length?`<div class="daily-log"><div class="dl-title">✅ Today's Log (${dl.length} items)</div>${dl.map((m,i)=>`<div class="dl-item"><span>${m.meal}: ${m.ml}</span><span style="font-family:'JetBrains Mono';font-size:10px;color:var(--amb);white-space:nowrap;margin:0 6px">${m.cal} kcal</span><button class="log-btn rem" onclick="rmLog(${i})">✕</button></div>`).join("")}<div class="dl-total"><div style="text-align:center"><div class="dl-tv" style="color:var(--amb)">${tl.cal}</div><div class="dl-tl">kcal</div></div><div style="text-align:center"><div class="dl-tv" style="color:var(--red)">${tl.p}g</div><div class="dl-tl">protein</div></div><div style="text-align:center"><div class="dl-tv" style="color:var(--blu)">${tl.c}g</div><div class="dl-tl">carbs</div></div><div style="text-align:center"><div class="dl-tv" style="color:var(--pur)">${tl.f}g</div><div class="dl-tl">fat</div></div></div></div>`:'')+
-(cmForm.show?`<div class="cm-form"><div class="cm-title">🍽️ Add Custom Meal</div><div class="cm-grp" style="margin-bottom:8px"><label>Meal Name</label><input class="cm-inp full" type="text" placeholder="e.g. Grilled chicken salad" value="${esc(cmForm.name)}" oninput="cmForm.name=this.value" maxlength="60"></div><div class="cm-grp" style="margin-bottom:8px"><label>Meal Category</label><div class="pills" style="margin-bottom:0;padding-bottom:0">${MEAL_TYPES.map(mt=>`<button class="pill ${cmForm.mealType===mt?'on':''}" onclick="cmForm.mealType='${mt}';rFood()">${mt}</button>`).join("")}</div></div><div class="cm-row"><div class="cm-grp"><label>Calories</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="500" value="${cmForm.cal}" oninput="cmForm.cal=this.value"></div><div class="cm-grp"><label>Protein (g)</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="30" value="${cmForm.p}" oninput="cmForm.p=this.value"></div></div><div class="cm-row"><div class="cm-grp"><label>Carbs (g)</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="50" value="${cmForm.c}" oninput="cmForm.c=this.value"></div><div class="cm-grp"><label>Fat (g)</label><input class="cm-inp" type="number" inputmode="numeric" placeholder="15" value="${cmForm.f}" oninput="cmForm.f=this.value"></div></div><div class="cm-actions"><button class="s-btn pri" onclick="logCustomMeal()">+ Log Now</button><button class="s-btn grn" onclick="saveCustomMeal()">💾 Save & Log</button></div><div class="cm-actions"><button class="s-btn out" onclick="cmForm.show=false;rFood()">Cancel</button></div></div>`:`<button class="s-btn pri" style="margin-bottom:12px" onclick="cmForm.show=true;rFood()">🍽️ Add Custom Meal</button>`)+
+(cmForm.show?rCustomMealForm():`<button class="s-btn pri" style="margin-bottom:12px" onclick="cmForm.show=true;cmForm.preview=null;rFood()">🍽️ Add Custom Meal</button>`)+
 (S.customMeals.length?`<div class="cm-saved"><div class="cm-saved-title">⭐ My Saved Meals (${S.customMeals.length})</div>${S.customMeals.map((m,i)=>{const lg=dl.some(l=>l.customIdx===i&&l.isCustom);return`<div class="cm-saved-item ${lg?'meal-o logged':''}"><div style="flex:1"><div class="meal-tx">${esc(m.name)}</div><div class="meal-mc">${m.cal} kcal · ${m.p}P · ${m.c}C · ${m.f}F</div><div style="font-size:9px;color:var(--sub)">${m.mealType}</div></div><div class="cm-saved-btns"><button class="log-btn add" onclick="logSavedMeal(${i})">+ Log</button><button class="log-btn rem" onclick="delSavedMeal(${i})">✕</button></div></div>`}).join("")}</div>`:'')+rFH()}
 function rFood(){const el=document.getElementById("tab-food");const tk=tdk();const dl=S.flog[tk]||[];const tl=dl.reduce((a,m)=>({cal:a.cal+m.cal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}),{cal:0,p:0,c:0,f:0});const t=S.nutri;
 const FOOD_TABS=[{id:'overview',label:'Overview',icon:'📊'},{id:'mealplan',label:'Meal Plan',icon:'📋'},{id:'breakfast',label:'Breakfast',icon:'🍳'},{id:'lunch',label:'Lunch',icon:'🍗'},{id:'dinner',label:'Dinner',icon:'🍽️'},{id:'snacks',label:'Snacks',icon:'🥤'}];
@@ -1690,8 +2112,59 @@ h+=`</div>`;
 overlay.innerHTML=h;
 document.body.appendChild(overlay);
 }
-function logCustomMeal(){const nm=cmForm.name.trim();const cal=+cmForm.cal;if(!nm){alert("Enter a meal name!");return}if(!cal||cal<=0){alert("Enter calories!");return}const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];S.flog[tk].push({meal:cmForm.mealType,ml:nm,cal:cal,p:+cmForm.p||0,c:+cmForm.c||0,f:+cmForm.f||0,isCustom:true});savFlog();updHdr();cmForm={show:false,name:"",cal:"",p:"",c:"",f:"",mealType:"Snack"};rFood()}
-function saveCustomMeal(){const nm=cmForm.name.trim();const cal=+cmForm.cal;if(!nm){alert("Enter a meal name!");return}if(!cal||cal<=0){alert("Enter calories!");return}S.customMeals.push({name:nm,cal:cal,p:+cmForm.p||0,c:+cmForm.c||0,f:+cmForm.f||0,mealType:cmForm.mealType});savCMeals();logCustomMeal()}
+function rCustomMealForm(){
+  const mt=MEAL_TYPES;
+  const diets=["","vegetarian","vegan","halal","high-protein","low-carb"];
+  let h=`<div class="cm-form"><div class="cm-title">🍽️ Build a meal from your ingredients</div>`;
+  h+=`<div class="cm-sub">Enter what you want to eat. The app builds portions to match your ${S.nutri?.cal||2500} kcal daily target and ${S.user?.profile?.goal?(GM[S.user.profile.goal]||GM.general).l:"current goal"}.</div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Meal Name</label><input class="cm-inp full" type="text" placeholder="e.g. Chicken Rice Bowl" value="${esc(cmForm.name)}" oninput="cmForm.name=this.value" maxlength="60"></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Ingredients (comma or new line)</label><textarea class="cm-inp full" rows="3" placeholder="chicken, rice, avocado, broccoli" oninput="cmForm.ingr=this.value">${esc(cmForm.ingr)}</textarea><div class="cm-inline-hint">Tip: just list the ingredients — quantities are computed for you.</div></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Meal Type</label><div class="pills" style="margin-bottom:0;padding-bottom:0">${mt.map(function(x){return`<button class="pill ${cmForm.mealType===x?'on':''}" onclick="cmForm.mealType='${x}';cmForm.preview=null;rFood()">${x}</button>`}).join("")}</div></div>`;
+  h+=`<div class="cm-grp" style="margin-bottom:8px"><label>Dietary preference (optional)</label><div class="pills" style="margin-bottom:0;padding-bottom:0">${diets.map(function(x){const lbl=x||"none";return`<button class="pill ${cmForm.diet===x?'on':''}" onclick="cmForm.diet='${x}';rFood()">${lbl}</button>`}).join("")}</div></div>`;
+  h+=`<div class="cm-actions"><button class="s-btn pri" onclick="generateCustomMeal()">⚡ Generate meal</button></div>`;
+  if(cmForm.preview){
+    const p=cmForm.preview;
+    if(p.error){h+=`<div class="cm-warn">${esc(p.error)}</div>`}
+    else{
+      const diffPct=p.targetCal>0?Math.round((p.totals.cal-p.targetCal)/p.targetCal*100):0;
+      const diffCol=Math.abs(diffPct)<=15?"var(--grn)":Math.abs(diffPct)<=25?"var(--amb)":"var(--red)";
+      h+=`<div class="cm-preview"><div class="cm-pv-head">📋 Generated meal <span class="cm-pv-type">${p.mealType}</span></div>`;
+      h+=`<div class="cm-pv-line" style="font-weight:700;color:var(--tx);margin-bottom:6px">${esc(p.mealName)}</div>`;
+      h+=`<ul class="cm-pv-list">${p.lines.map(function(l){return"<li>"+esc(l)+"</li>"}).join("")}</ul>`;
+      if(p.unrecognised.length)h+=`<div class="cm-warn">Not found in food database (ignored): ${p.unrecognised.map(esc).join(", ")}</div>`;
+      if(p.needsProtein)h+=`<div class="cm-warn" style="color:var(--amb);background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)">⚠️ No protein source detected. Consider adding chicken, eggs, fish, tofu, or protein powder.</div>`;
+      h+=`<div class="cm-pv-macros"><div><div class="mv" style="color:var(--amb)">${p.totals.cal}</div><div class="ml">kcal</div></div><div><div class="mv" style="color:#EF4444">${p.totals.p}g</div><div class="ml">protein</div></div><div><div class="mv" style="color:#3B82F6">${p.totals.c}g</div><div class="ml">carbs</div></div><div><div class="mv" style="color:#A855F7">${p.totals.f}g</div><div class="ml">fat</div></div></div>`;
+      h+=`<div class="cm-target" style="color:${diffCol}">Target for ${p.mealType}: ~${p.targetCal} kcal · Generated: ${p.totals.cal} kcal (${diffPct>0?"+":""}${diffPct}%)</div>`;
+      h+=`<div class="cm-actions"><button class="s-btn pri" onclick="logCustomMeal()">+ Log Now</button><button class="s-btn grn" onclick="saveCustomMeal()">💾 Save & Log</button><button class="s-btn out" onclick="generateCustomMeal()">🔄 Regenerate</button></div>`;
+    }
+  }
+  h+=`<div class="cm-actions"><button class="s-btn out" onclick="cmForm={show:false,name:'',ingr:'',mealType:'Snack',diet:'',preview:null};rFood()">Cancel</button></div>`;
+  h+=`</div>`;
+  return h;
+}
+function generateCustomMeal(){
+  const nm=(cmForm.name||"").trim();
+  if(!nm){alert("Give your meal a name first");return}
+  if(!(cmForm.ingr||"").trim()){alert("List at least one ingredient (e.g. chicken, rice, avocado)");return}
+  cmForm.preview=buildMealFromIngredients(nm,cmForm.ingr,cmForm.mealType);
+  rFood();
+}
+function logCustomMeal(){
+  const p=cmForm.preview;
+  if(!p||!p.ok){alert("Generate the meal first");return}
+  const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];
+  S.flog[tk].push({meal:p.mealType,ml:p.description,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f,isCustom:true,ingredients:p.lines});
+  savFlog();updHdr();
+  cmForm={show:false,name:"",ingr:"",mealType:"Snack",diet:"",preview:null};
+  rFood();
+}
+function saveCustomMeal(){
+  const p=cmForm.preview;
+  if(!p||!p.ok){alert("Generate the meal first");return}
+  S.customMeals.push({name:p.mealName,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f,mealType:p.mealType,description:p.description,ingredients:p.lines});
+  savCMeals();
+  logCustomMeal();
+}
 function logSavedMeal(i){const m=S.customMeals[i];if(!m)return;const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];S.flog[tk].push({meal:m.mealType,ml:m.name,cal:m.cal,p:m.p,c:m.c,f:m.f,isCustom:true,customIdx:i});savFlog();updHdr();rFood()}
 function delSavedMeal(i){if(!confirm("Delete this saved meal?"))return;S.customMeals.splice(i,1);savCMeals();rFood()}
 function lMeal(mi,oi){const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];const m=MEALS[mi].opts[oi];S.flog[tk].push({meal:MEALS[mi].nm,ml:m.ml,cal:m.cal,p:m.p,c:m.c,f:m.f,mi,oi});savFlog();updHdr();rFood()}
