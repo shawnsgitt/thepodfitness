@@ -241,7 +241,13 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 .mp-meal-emoji{font-size:28px;flex-shrink:0;width:40px;text-align:center}
 .mp-meal-info{flex:1;min-width:0}
 .mp-meal-type{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
-.mp-meal-name{font-size:12px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mp-meal-name{font-size:12px;font-weight:600;line-height:1.35}
+.mp-meal-title-one{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:2px}
+.mp-ing-list{list-style:none;padding:0;margin:2px 0 0;font-size:11px;line-height:1.55}
+.mp-ing-list li{color:var(--tx);padding:1px 0;display:flex;gap:4px}
+.mp-ing-list li::before{content:"•";color:var(--amb);font-weight:700;margin-right:2px}
+.mp-ing-q{color:var(--amb);font-family:'JetBrains Mono',monospace;font-size:10px;flex-shrink:0}
+.mp-ing-n{color:var(--tx)}
 .mp-meal-macros{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
 .mp-meal-macros span{font-size:9px;font-family:'JetBrains Mono';font-weight:600}
 .mp-meal-macros .cal{color:var(--amb)}.mp-meal-macros .pro{color:#EF4444}.mp-meal-macros .carb{color:#3B82F6}.mp-meal-macros .fat{color:#A855F7}
@@ -2486,6 +2492,29 @@ let mpSwap=null;let mpAdd=null;let mpEdit=null;
 // Let the user open any meal (auto-generated or saved), see each ingredient
 // as its own editable row, then remove, replace, or adjust quantities. The
 // edited version replaces the meal in the plan with recalculated macros.
+// Composite / cooked dishes stay as a single named line — they already
+// carry combined macros and splitting them into 'rice + spice + oil' is
+// noise. Everything else is displayed ingredient-per-line.
+function isCompositeDish(name){
+  const n=(name||"").toLowerCase();
+  return /\bjollof\b|\bfried rice\b|smoothie|\bstew\b|\bsoup\b|\bbolognese\b|\bgoulash\b|\bchili\b|\bchilli\b|\bstir[\s-]*fry\b|\bcurry\b|\bporridge\b|\bpilaf\b|\bpaella\b|\brisotto\b|\bchowder\b|\blasagne?a?\b|\bcassoulet\b|\bjambalaya\b/.test(n);
+}
+function renderMealIngredientLines(ml){
+  if(!ml)return"";
+  // Composite dish? Show the whole name on one line.
+  if(isCompositeDish(ml))return`<div class="mp-meal-title-one">${esc(ml)}</div>`;
+  const items=_parseMealIngredients(ml);
+  if(items.length<=1)return`<div class="mp-meal-title-one">${esc(ml)}</div>`;
+  // Pull out the dish title before the em-dash if present (e.g. "Protein Pancakes (3) — ...").
+  let title="";const idx=ml.indexOf("—")>=0?ml.indexOf("—"):ml.indexOf(":");
+  if(idx>0)title=ml.slice(0,idx).trim();
+  let h=title?`<div class="mp-meal-title-one">${esc(title)}</div>`:"";
+  h+=`<ul class="mp-ing-list">`+items.map(function(it){
+    const qtyStr=(it.qty||"")+(it.unit&&it.unit!=="piece"?(" "+it.unit):"");
+    return `<li><span class="mp-ing-q">${esc(qtyStr.trim()||"1")}</span> <span class="mp-ing-n">${esc(it.name)}</span></li>`;
+  }).join("")+`</ul>`;
+  return h;
+}
 function _parseMealIngredients(ml){
   if(!ml)return[];
   const str=ml.replace(/^[^—–:]*[—–:]\s*/,"");
@@ -2763,7 +2792,7 @@ function closeRecipe(){const o=document.getElementById('recipeOverlay');if(o){o.
 function rMealCards(meals,mealIdx){
 const tk=tdk();const dl=S.flog[tk]||[];
 return meals.opts.map((o,oi)=>{const lg=dl.some(l=>l.mi===mealIdx&&l.oi===oi);const emoji=getMealEmoji(o.ml);const grad=getMealGrad(meals.nm);
-return`<div class="meal-card${lg?' logged':''}" onclick="showRecipeDetail('${esc(meals.nm)}','${o.ml.replace(/'/g,"\\'")}',${o.cal},${o.p},${o.c},${o.f},${mealIdx},${oi})"><div class="mc-hero" style="background:${grad}"><div class="mc-emoji">${emoji}</div>${lg?'<div class="mc-badge">✓ Logged</div>':''}</div><div class="mc-body"><div class="mc-title">${o.ml}</div><div class="mc-macros"><span class="mc-macro cal">${o.cal} kcal</span><span class="mc-macro pro">${o.p}g P</span><span class="mc-macro carb">${o.c}g C</span><span class="mc-macro fat">${o.f}g F</span></div><button class="mc-log-btn" onclick="event.stopPropagation();${lg?`ulMeal(${mealIdx},${oi})`:`lMeal(${mealIdx},${oi})`}">${lg?'✕ Remove':'+ Log This Meal'}</button></div></div>`}).join('')}
+return`<div class="meal-card${lg?' logged':''}" onclick="showRecipeDetail('${esc(meals.nm)}','${o.ml.replace(/'/g,"\\'")}',${o.cal},${o.p},${o.c},${o.f},${mealIdx},${oi})"><div class="mc-hero" style="background:${grad}"><div class="mc-emoji">${emoji}</div>${lg?'<div class="mc-badge">✓ Logged</div>':''}</div><div class="mc-body"><div class="mc-title">${renderMealIngredientLines(o.ml)}</div><div class="mc-macros"><span class="mc-macro cal">${o.cal} kcal</span><span class="mc-macro pro">${o.p}g P</span><span class="mc-macro carb">${o.c}g C</span><span class="mc-macro fat">${o.f}g F</span></div><button class="mc-log-btn" onclick="event.stopPropagation();${lg?`ulMeal(${mealIdx},${oi})`:`lMeal(${mealIdx},${oi})`}">${lg?'✕ Remove':'+ Log This Meal'}</button></div></div>`}).join('')}
 function rFoodOverview(dl,tl,t){
 const calRemain=t.cal-tl.cal;const pRemain=t.protein-tl.p;const cRemain=t.carbs-tl.c;const fRemain=t.fat-tl.f;
 return`<div class="mac-bar">${ring(tl.cal,t.cal,"#38BDF8","Calories","kcal")}${ring(tl.p,t.protein,"#EF4444","Protein","g")}${ring(tl.c,t.carbs,"#3B82F6","Carbs","g")}${ring(tl.f,t.fat,"#A855F7","Fat","g")}</div><p class="intro" style="text-align:center;margin-bottom:8px">Target: ${t.cal} kcal · ${t.protein}g P · ${t.carbs}g C · ${t.fat}g F</p><div class="card" style="margin-top:8px;padding:12px">${renderMacroBar('Protein',tl.p,t.protein,'#EF4444')}${renderMacroBar('Carbs',tl.c,t.carbs,'#3B82F6')}${renderMacroBar('Fat',tl.f,t.fat,'#A855F7')}<div class="macro-bar"><span class="mb-lbl">Calories</span><div class="mb-track"><div class="mb-fill" style="width:${Math.min(100,Math.round(tl.cal/t.cal*100))}%;background:#38BDF8"></div></div><span class="mb-val">${tl.cal}/${t.cal}</span></div></div>`+
@@ -2810,7 +2839,7 @@ d.meals.forEach((m,mIdx)=>{
 const emoji=getMealEmoji(m.ml);
 h+=`<div class="mp-meal-row" style="cursor:pointer">`;
 h+=`<div class="mp-meal-emoji" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})">${emoji}</div>`;
-h+=`<div class="mp-meal-info" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})"><div class="mp-meal-type">${m.type}</div><div class="mp-meal-name">${m.ml}</div>`;
+h+=`<div class="mp-meal-info" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})"><div class="mp-meal-type">${m.type}</div><div class="mp-meal-name">${renderMealIngredientLines(m.ml)}</div>`;
 h+=`<div class="mp-meal-macros"><span class="cal">${m.cal} kcal</span><span class="pro">${m.p}g P</span><span class="carb">${m.c}g C</span><span class="fat">${m.f}g F</span></div>`;
 h+=`</div>`;
 h+=`<div class="mp-meal-actions"><button class="mp-meal-act ed" onclick="event.stopPropagation();openMealEditor(${dIdx},${mIdx})" title="Edit ingredients">✏️</button><button class="mp-meal-act sw" onclick="event.stopPropagation();openSwapMeal(${dIdx},${mIdx})" title="Swap meal">⇄</button><button class="mp-meal-act rm" onclick="event.stopPropagation();removeMealFromDay(${dIdx},${mIdx})" title="Remove meal">✕</button></div>`;
