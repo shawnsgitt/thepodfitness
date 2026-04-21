@@ -175,8 +175,18 @@ button{font-family:'Inter',sans-serif;cursor:pointer}.hide{display:none!importan
 /* TRACKER */
 .pb-out{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:5px}.pb-in{height:100%;background:linear-gradient(90deg,var(--amb),var(--amb2));border-radius:4px;transition:width .4s}
 .pb-tx{font-size:11px;color:var(--sub);font-family:'JetBrains Mono'}
-.s-hdr{display:grid;grid-template-columns:28px 1fr 1fr 40px 34px;gap:5px;font-size:8px;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;text-align:center;margin-bottom:5px}
-.s-row{display:grid;grid-template-columns:28px 1fr 1fr 40px 34px;gap:5px;align-items:center;margin-bottom:4px;transition:opacity .2s}.s-row.dn{opacity:.4}
+.s-hdr{display:grid;grid-template-columns:24px 1.3fr 1.3fr 1.5fr 30px;gap:4px;font-size:8px;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;text-align:center;margin-bottom:5px}
+.s-row{display:grid;grid-template-columns:24px 1.3fr 1.3fr 1.5fr 30px;gap:4px;align-items:center;margin-bottom:6px;transition:opacity .2s}.s-row.dn{opacity:.45}
+.s-stepper{display:flex;align-items:center;gap:2px}
+.s-step{width:24px;height:30px;border:1px solid var(--bdr);background:var(--input);color:var(--amb);font-weight:700;font-size:14px;border-radius:6px;cursor:pointer;flex-shrink:0;padding:0}
+.s-step:active{background:rgba(191,255,0,.15)}
+.s-inp-sm{flex:1;min-width:0;padding:8px 2px;font-size:12px}
+.rpe-row{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+.rpe-p{background:var(--input);border:1px solid var(--bdr);color:var(--sub);font-size:10px;font-weight:700;padding:4px 0;min-width:22px;flex:1;border-radius:5px;cursor:pointer}
+.rpe-p.on{background:rgba(191,255,0,.18);border-color:var(--amb);color:var(--amb)}
+.set-spark{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.02);border-radius:8px;padding:6px 8px;margin-bottom:6px}
+.set-spark svg{flex:1;height:24px;width:100%}
+.set-spark-info{font-size:10px;color:var(--sub);white-space:nowrap}
 .s-sn{text-align:center;font-size:12px;font-weight:600;color:var(--sub);font-family:'JetBrains Mono'}
 .s-inp{background:var(--input);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 3px;color:var(--tx);font-size:13px;text-align:center;outline:none;width:100%;font-family:'JetBrains Mono';transition:border-color .2s}.s-inp:focus{border-color:var(--amb)}
 .chk{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;border:2px solid var(--bdr);background:none;color:var(--sub)}.chk.dn{background:var(--grn);border-color:var(--grn);color:#0D0D0D;font-weight:700;animation:popIn .25s ease}
@@ -3583,7 +3593,40 @@ function getSupersetGroup(ei){return supersetGroups.find(g=>g.includes(ei))}
 function isCircuitMode(){return supersetGroups.some(g=>g.length>=3)}
 
 // ═══════ TRACKER ═══════
-function startWO(i){S.aw=i;S.rat=null;S._woDiff=5;S._woComment="";S.cs={};S.plan[i].exs.forEach((e,ei)=>{S.cs[ei]=Array.from({length:e.s},()=>({w:"",r:"",d:false,rpe:""}))});var savedSession=LS('sp-cs-'+S.user.id);if(savedSession&&savedSession.aw===i)S.cs=savedSession.cs;swTab("track");startWOTimer()}
+// Pre-fill weight + reps from the user's last logged session for each
+// exercise — massive friction win. The inputs still accept edits as normal.
+function _lastSessionFor(exName){
+  const entries=[];
+  Object.entries(S.logs||{}).forEach(function(kv){
+    const k=kv[0],log=kv[1];const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;
+    const day=S.plan[+wm[2]];if(!day)return;
+    Object.entries(log.sets||{}).forEach(function(entry){
+      const sei=entry[0],sets=entry[1];const ex=day.exs[+sei];
+      if(!ex||ex.n!==exName)return;
+      const done=(sets||[]).filter(function(s){return s&&s.done&&+s.weight>0});
+      if(!done.length)return;
+      const avgW=done.reduce(function(a,b){return a+(+b.weight||0)},0)/done.length;
+      const avgR=done.reduce(function(a,b){return a+(+b.reps||0)},0)/done.length;
+      entries.push({date:log.date,avgW:Math.round(avgW*10)/10,maxW:Math.max.apply(null,done.map(function(s){return+s.weight||0})),avgR:Math.round(avgR)});
+    });
+  });
+  entries.sort(function(a,b){return new Date(b.date)-new Date(a.date)});
+  return entries[0]||null;
+}
+function startWO(i){
+  S.aw=i;S.rat=null;S._woDiff=5;S._woComment="";S.cs={};
+  const isLbs=getUnit()==="lbs";
+  S.plan[i].exs.forEach(function(e,ei){
+    const prev=_lastSessionFor(e.n);
+    // Pre-fill in the user's current display unit. S.logs stores kg, so
+    // convert here if they're in lbs mode.
+    const wDefault=prev?String(isLbs?kgToDisplay(prev.avgW):prev.avgW):"";
+    const rDefault=prev?String(prev.avgR):"";
+    S.cs[ei]=Array.from({length:e.s},function(){return{w:wDefault,r:rDefault,d:false,rpe:""}});
+  });
+  var savedSession=LS('sp-cs-'+S.user.id);if(savedSession&&savedSession.aw===i)S.cs=savedSession.cs;
+  swTab("track");startWOTimer();
+}
 function rTrack(){const el=document.getElementById("tab-track");if(S.aw===null){el.innerHTML=`<div class="empty"><div class="empty-i">📋</div><p class="empty-t">No active session</p><p class="empty-s">Go to Plan → Start Session.</p></div>`;return}
 const w=S.plan[S.aw];if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
 el.innerHTML=`<div style="margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:5px">${w.day}</div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
@@ -3591,7 +3634,20 @@ w.exs.map((e,ei)=>{
 // Find previous session data for this exercise
 const prevData=(()=>{const entries=[];Object.entries(S.logs).forEach(([k,log])=>{const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;const di=+wm[2];const day=S.plan[di];if(!day)return;Object.entries(log.sets).forEach(([sei,sets])=>{const ex=day.exs[+sei];if(ex&&ex.n===e.n){const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);if(weights.length)entries.push({date:log.date,avgW:+(weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1),maxW:Math.max(...weights),avgR:reps.length?+(reps.reduce((a,b)=>a+b,0)/reps.length).toFixed(0):0})}})});entries.sort((a,b)=>new Date(b.date)-new Date(a.date));return entries[0]||null})();
 const rec=analyzeProgression().find(r=>r.name===e.n);
-return`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div>${getSupersetGroup(ei)?'<span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--amb);color:#000;font-size:8px;font-weight:800">'+(getSupersetGroup(ei).length>=3?'CIRCUIT':'SUPERSET')+'</span>':''}<button onclick="toggleSuperset(${ei})" style="float:right;padding:1px 6px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg);color:var(--sub);font-size:8px;cursor:pointer">${getSupersetGroup(ei)?'Unlink':'Link SS'}</button><div style="font-size:10px;color:var(--sub);margin-bottom:4px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div>${prevData?`<div style="font-size:9px;padding:4px 8px;background:rgba(56,189,248,.06);border-radius:6px;margin-bottom:6px;border:1px solid rgba(56,189,248,.1)"><span style="color:var(--amb);font-weight:600">Last session:</span> <span style="color:var(--sub);font-family:'JetBrains Mono'">${prevData.avgW} kg avg · ${prevData.avgR} reps</span>${rec&&rec.change?` <span style="color:${rec.color};font-weight:700;margin-left:4px">${rec.icon} ${rec.change}</span>`:''}</div>`:''}<div class="s-hdr"><span>Set</span><span>kg</span><span>Reps</span><span>RPE</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><input class="s-inp" type="number" inputmode="decimal" placeholder="${prevData?prevData.avgW:'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><input class="s-inp" type="number" inputmode="numeric" placeholder="0" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><select class="rpe-sel" onchange="updS(${ei},${si},'rpe',this.value)"><option value="">-</option>${[6,6.5,7,7.5,8,8.5,9,9.5,10].map(v=>`<option value="${v}" ${s.rpe==v?'selected':''}>${v}</option>`).join('')}</select><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`}).join("")+
+const unitLbl=getUnit();
+const wBump=unitLbl==="lbs"?5:2.5;
+// Last-8-sessions mini sparkline for this exercise (SVG, no chart.js)
+const historyW=(function(){const entries=[];Object.entries(S.logs||{}).forEach(function(kv){const k=kv[0],log=kv[1];const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;const day=S.plan[+wm[2]];if(!day)return;Object.entries(log.sets||{}).forEach(function(se){const sei=se[0],sets=se[1];const ex=day.exs[+sei];if(!ex||ex.n!==e.n)return;const done=(sets||[]).filter(function(s){return s&&s.done&&+s.weight>0});if(!done.length)return;const avg=done.reduce(function(a,b){return a+(+b.weight||0)},0)/done.length;entries.push({t:new Date(log.date).getTime(),w:avg})});});entries.sort(function(a,b){return a.t-b.t});return entries.slice(-8).map(function(x){return x.w})})();
+let spark="";
+if(historyW.length>=2){
+  const maxW=Math.max.apply(null,historyW),minW=Math.min.apply(null,historyW),range=Math.max(0.5,maxW-minW);
+  const pts=historyW.map(function(w,i){const x=(i/(historyW.length-1))*100;const y=30-((w-minW)/range)*26;return x+","+y}).join(" ");
+  const last=kgToDisplay(historyW[historyW.length-1]);const prev=historyW.length>1?kgToDisplay(historyW[historyW.length-2]):null;
+  const trend=prev!=null?(last>prev?"▲":last<prev?"▼":"→"):"";
+  const trendCol=prev!=null?(last>prev?"var(--grn)":last<prev?"var(--red)":"var(--sub)"):"var(--sub)";
+  spark=`<div class="set-spark"><svg viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--amb)" stroke-width="1.5"/></svg><div class="set-spark-info">Last ${historyW.length} <span style="color:${trendCol};font-weight:700">${trend} ${last}${unitLbl}</span></div></div>`;
+}
+return`<div class="card"><div style="font-weight:700;font-size:12px;margin-bottom:1px">${e.n}</div>${getSupersetGroup(ei)?'<span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--amb);color:#000;font-size:8px;font-weight:800">'+(getSupersetGroup(ei).length>=3?'CIRCUIT':'SUPERSET')+'</span>':''}<button onclick="toggleSuperset(${ei})" style="float:right;padding:1px 6px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg);color:var(--sub);font-size:8px;cursor:pointer">${getSupersetGroup(ei)?'Unlink':'Link SS'}</button><div style="font-size:10px;color:var(--sub);margin-bottom:4px;font-family:'JetBrains Mono'">Target: ${e.s} × ${e.r}</div>${prevData?`<div style="font-size:9px;padding:4px 8px;background:rgba(56,189,248,.06);border-radius:6px;margin-bottom:6px;border:1px solid rgba(56,189,248,.1)"><span style="color:var(--amb);font-weight:600">Last session:</span> <span style="color:var(--sub);font-family:'JetBrains Mono'">${kgToDisplay(prevData.avgW)} ${unitLbl} avg · ${prevData.avgR} reps</span>${rec&&rec.change?` <span style="color:${rec.color};font-weight:700;margin-left:4px">${rec.icon} ${rec.change}</span>`:''}</div>`:''}${spark}<div class="s-hdr"><span>Set</span><span>${unitLbl}</span><span>Reps</span><span>RPE</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'w',-${wBump})">−</button><input class="s-inp s-inp-sm" type="number" inputmode="decimal" placeholder="${prevData?kgToDisplay(prevData.avgW):'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'w',${wBump})">+</button></div><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'r',-1)">−</button><input class="s-inp s-inp-sm" type="number" inputmode="numeric" placeholder="${prevData?prevData.avgR:'0'}" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'r',1)">+</button></div><div class="rpe-row">${[6,7,8,9,10].map(v=>`<button class="rpe-p ${s.rpe==v?'on':''}" onclick="updS(${ei},${si},'rpe','${v}');rTrack()">${v}</button>`).join("")}</div><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`}).join("")+
 `<div class="finish-panel">
   <div class="fp-title">Session Feedback</div>
   ${(()=>{const alerts=getOverloadAlerts();const dayExNames=w.exs.map(e=>e.n);const relevant=alerts.filter(a=>dayExNames.includes(a.name));if(!relevant.length)return'';return'<div class="fp-alerts">'+relevant.map(a=>'<div class="overload-alert">💪 <strong>'+a.name+'</strong>: Ready to increase! Try <strong>'+a.suggestedW+'kg</strong></div>').join('')+'</div>'})()}
@@ -3612,8 +3668,19 @@ return`<div class="card"><div style="font-weight:700;font-size:12px;margin-botto
   </div>
   <button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>Save & Finish Session</button>
 </div>`}
-function updS(ei,si,f,v){S.cs[ei][si][f]=v;SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw})}function togS(ei,si){const wasUndone=!S.cs[ei][si].d;S.cs[ei][si].d=!S.cs[ei][si].d;if(wasUndone&&S.restPref>0)startRestTimer(S.restPref);SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw});rTrack()}function setRat(r){S.rat=r;rTrack()}
-function finWO(){clearRestTimer();const key="w"+S.week+"-d"+S.aw;const mapped={};Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:s.w,reps:s.r,done:s.d,rpe:s.rpe||""}))});const woDuration=stopWOTimer();S.logs[key]={sets:mapped,rating:S.rat,difficulty:S._woDiff||5,comment:S._woComment||"",duration:woDuration,date:new Date().toISOString(),dayIndex:S.aw};savLogs();
+function updS(ei,si,f,v){S.cs[ei][si][f]=v;SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw})}
+// +/- steppers for weight / reps. Small deltas (1 or 2.5) match the
+// typical small jumps users make mid-session.
+function bumpS(ei,si,f,delta){
+  const cur=parseFloat(S.cs[ei][si][f])||0;
+  const next=Math.max(0,Math.round((cur+delta)*10)/10);
+  S.cs[ei][si][f]=String(next);
+  SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw});
+  rTrack();
+}
+function togS(ei,si){const wasUndone=!S.cs[ei][si].d;S.cs[ei][si].d=!S.cs[ei][si].d;if(wasUndone&&S.restPref>0)startRestTimer(S.restPref);SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw});rTrack()}
+function setRat(r){S.rat=r;rTrack()}
+function finWO(){clearRestTimer();const key="w"+S.week+"-d"+S.aw;const mapped={};const isLbs=getUnit()==="lbs";Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:isLbs?String(displayToKg(s.w)):s.w,reps:s.r,done:s.d,rpe:s.rpe||""}))});const woDuration=stopWOTimer();S.logs[key]={sets:mapped,rating:S.rat,difficulty:S._woDiff||5,comment:S._woComment||"",duration:woDuration,date:new Date().toISOString(),dayIndex:S.aw};savLogs();
 // Show post-workout progression summary
 const postRecs=analyzeProgression();const day=S.plan[S.aw];
 if(postRecs.length&&day){const dayExNames=day.exs.map(e=>e.n);const relevantRecs=postRecs.filter(r=>dayExNames.includes(r.name));
@@ -3905,12 +3972,33 @@ function scheduleRestNotif(endTime){
   },ms);
 }
 function cancelRestNotif(){if(_rtNotifTimeout){clearTimeout(_rtNotifTimeout);_rtNotifTimeout=null}}
+// Request the screen stay on during rest so the user doesn't have to
+// keep unlocking to check the timer. Fails gracefully where the API
+// isn't available (Firefox, older Safari).
+let _wakeLock=null;
+async function requestWakeLock(){
+  try{
+    if(!("wakeLock" in navigator))return;
+    if(_wakeLock)return;
+    _wakeLock=await navigator.wakeLock.request("screen");
+    _wakeLock.addEventListener("release",function(){_wakeLock=null});
+  }catch(e){}
+}
+async function releaseWakeLock(){
+  try{if(_wakeLock){await _wakeLock.release();_wakeLock=null}}catch(e){_wakeLock=null}
+}
+// Re-acquire if the user tabs away and back mid-rest — browsers release
+// the lock on visibility changes by default.
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="visible"&&S.restTimer)requestWakeLock();
+});
 function startRestTimer(secs){
   clearRestTimer();
   const s=Math.max(1,secs||S.restPref);
   S.restTimer={endTime:Date.now()+s*1000,total:s,remaining:s};
   try{SS(_rtLsKey(),S.restTimer)}catch(e){}
   requestNotifPerm();
+  requestWakeLock();
   scheduleRestNotif(S.restTimer.endTime);
   _rtInterval=setInterval(tickRestTimer,500);
   tickRestTimer();
@@ -3941,6 +4029,7 @@ function clearRestTimer(completed){
   if(_rtInterval)clearInterval(_rtInterval);_rtInterval=null;
   S.restTimer=null;
   if(!completed)cancelRestNotif();
+  releaseWakeLock();
   try{localStorage.removeItem(_rtLsKey())}catch(e){}
   const el=document.getElementById('rest-timer-float');if(el)el.remove();
 }
