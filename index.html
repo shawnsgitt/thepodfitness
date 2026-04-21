@@ -1041,13 +1041,39 @@ const MEALS=[
 function genPlan(p){const{goal,areas,days,level}=p;const inclCardio=p.cardio!==false;const g=GM[goal];const lv=level||"intermediate";const splits=mkSplit(areas,days);const dn=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];const sd={1:[0],2:[0,3],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,4,5],6:[0,1,2,3,4,5]}[days]||[0];
 const sAdj=lv==="beginner"?{sm:3,sa:2,rm:"10-12",ri:"12-15",rstm:"2-3 min",rsti:"90s"}:lv==="veteran"?{sm:5,sa:4,rm:g.rm,ri:g.ri,rstm:"90s",rsti:"45s"}:{sm:4,sa:3,rm:g.rm,ri:g.ri,rstm:g.rstm,rsti:g.rsti};
 const maxEx=lv==="beginner"?5:lv==="veteran"?8:7;
+// Week-wide trackers: avoid reusing the same exercise across days (variety)
+// and steer equipment picks so the plan isn't 8x barbell or 8x machine.
+const weekUsed=new Set();const eqCount={};
+function _eqOf(n){return(EX_META[n]||{}).eq||"other"}
+function _rankPool(arr){
+  // Preserve compound/isolation buckets but sort within by (week-used=yes → last),
+  // then equipment-underuse, then original order (preset). Tiny stable jitter keeps
+  // the sort deterministic when re-running with the same state.
+  return arr.slice().map(function(e,idx){
+    const used=weekUsed.has(e.n)?1:0;
+    const eqn=eqCount[_eqOf(e.n)]||0;
+    return{e,idx,key:used*1000+eqn*10+idx};
+  }).sort(function(a,b){return a.key-b.key}).map(function(r){return r.e});
+}
 return splits.map((sp,i)=>{const exs=[];const seenPats=new Set();sp.groups.forEach(grp=>{let pool=EX_DB[grp]||[];
 if(lv==="beginner")pool=pool.filter(e=>e.diff==="beg");else if(lv==="intermediate")pool=pool.filter(e=>e.diff==="beg"||e.diff==="inter");
-const cpAll=pool.filter(e=>e.t==="compound");const ipAll=pool.filter(e=>e.t!=="compound"&&e.t!=="cardio"&&e.t!=="hiit"&&e.t!=="stretch"&&e.t!=="plyo");
+const cpAll=_rankPool(pool.filter(e=>e.t==="compound"));
+const ipAll=_rankPool(pool.filter(e=>e.t!=="compound"&&e.t!=="cardio"&&e.t!=="hiit"&&e.t!=="stretch"&&e.t!=="plyo"));
 // Deduplicate by movement pattern so we never prescribe two same-pattern
 // isolation lifts in the same day (e.g. Cable Lat Raises + DB Lat Raises).
 const cp=uniquePatList(cpAll,seenPats);const ip=uniquePatList(ipAll,seenPats);
-function takeAndRegister(arr,n,setsCfg){arr.slice(0,n).forEach(function(e){const p=getPat(e.n);if(p)seenPats.add(p);exs.push(Object.assign({},e,setsCfg(e)))})}
+function takeAndRegister(arr,n,setsCfg){
+  let taken=0;
+  for(const e of arr){
+    if(taken>=n)break;
+    const pat=getPat(e.n);if(pat&&seenPats.has(pat))continue;
+    if(pat)seenPats.add(pat);
+    weekUsed.add(e.n);
+    eqCount[_eqOf(e.n)]=(eqCount[_eqOf(e.n)]||0)+1;
+    exs.push(Object.assign({},e,setsCfg(e)));
+    taken++;
+  }
+}
 if(sp.groups.length<=2){takeAndRegister(cp,2,function(){return{s:sp.primary===grp?sAdj.sm:sAdj.sa,r:sAdj.rm,rest:sAdj.rstm}});takeAndRegister(ip,2,function(){return{s:sAdj.sa,r:sAdj.ri,rest:sAdj.rsti}})}
 else{takeAndRegister(cp,1,function(){return{s:sp.primary===grp?sAdj.sm:sAdj.sa,r:sAdj.rm,rest:sAdj.rstm}});takeAndRegister(ip,1,function(){return{s:sAdj.sa,r:sAdj.ri,rest:sAdj.rsti}})}});
 const fe=exs.slice(0,maxEx);
@@ -1451,10 +1477,14 @@ function fixDuplicates(di){
   setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
   ftoast("✓ Swapped "+swaps+" duplicate"+(swaps!==1?"s":"")+" for fresh patterns");
 }
-function shuffleDay(di){
-  const d=S.plan[di];if(!d||!d.exs||!d.exs.length)return;
-  if(!confirm("Shuffle this day's workout?\n\nYou'll get a fresh set of exercises for the same muscle groups, difficulty and training style. Your other days stay the same."))return;
-  // Count slots per (category, type) so we pick replacements bucket-by-bucket
+function _eqOfName(n){return(EX_META[n]||{}).eq||"other"}
+// Reshuffle one day's exercises. `skipConfirm` suppresses the dialog (used by
+// the whole-plan shuffle) and `extraExclude` lets the caller pass names that
+// are already used on other days so variety holds across the week.
+function shuffleDay(di,skipConfirm,extraExclude){
+  const d=S.plan[di];if(!d||!d.exs||!d.exs.length)return 0;
+  if(!skipConfirm&&!confirm("Shuffle this day's workout?\n\nYou'll get a fresh set of exercises for the same muscle groups, difficulty and training style. Your other days stay the same."))return 0;
+  // Bucket slots by (category, type) so each replacement sits in a like-for-like slot
   const buckets={};
   d.exs.forEach(function(e,idx){
     const db=findExInDB(e.n);
@@ -1464,36 +1494,66 @@ function shuffleDay(di){
     if(!buckets[key])buckets[key]={cat:cat,typ:typ,slots:[]};
     buckets[key].slots.push(idx);
   });
-  // Pick distinct replacements for each bucket, avoiding ALL current names + anything already chosen
-  const chosen=new Set();const chosenPats=new Set();
+  const chosen=new Set();const chosenPats=new Set();const eqSeen={};
   const currentNames=new Set(d.exs.map(function(e){return e.n}));
+  const weekNames=extraExclude?new Set(extraExclude):new Set();
   const replacements={};
-  function rnd(arr){return arr[Math.floor(Math.random()*arr.length)]}
-  function pickFromPool(pool,k){
-    // Prefer a fresh movement pattern; fall back only if we run out
-    const shuffled=pool.slice().sort(function(){return Math.random()-0.5});
-    for(const c of shuffled){const p=getPat(c.n);if(p&&chosenPats.has(p))continue;if(!chosen.has(c.n))return c}
-    return shuffled[k]||shuffled[0];
+  function pickFromPool(pool){
+    // 3-tier preference: (1) fresh name + fresh pattern + under-used equipment
+    // (2) fresh name + fresh pattern + any equipment
+    // (3) fresh name, allow pattern reuse
+    // Pool is ranked by "week-used yes last, then eq frequency, then random" so
+    // iterating order naturally follows variety preferences.
+    const ranked=pool.slice().map(function(e){
+      let score=0;
+      if(weekNames.has(e.n))score+=500;         // big penalty: already used this week
+      if(chosen.has(e.n))score+=1000;           // huge penalty: already picked this shuffle
+      score+=(eqSeen[_eqOfName(e.n)]||0)*6;     // moderate penalty: equipment repetition
+      score+=Math.random()*2;                   // small jitter
+      return {e:e,score:score};
+    }).sort(function(a,b){return a.score-b.score}).map(function(r){return r.e});
+    for(const c of ranked){const p=getPat(c.n);if(p&&chosenPats.has(p))continue;if(!chosen.has(c.n))return c}
+    for(const c of ranked){if(!chosen.has(c.n))return c}
+    return ranked[0];
   }
   Object.values(buckets).forEach(function(b){
-    b.slots.forEach(function(slotIdx,k){
-      let pool=(EX_DB[b.cat]||[]).filter(function(x){return x.t===b.typ&&!currentNames.has(x.n)&&!chosen.has(x.n)});
-      if(!pool.length)pool=(EX_DB[b.cat]||[]).filter(function(x){return !currentNames.has(x.n)&&!chosen.has(x.n)});
-      if(!pool.length)pool=(EX_DB[b.cat]||[]).filter(function(x){return !chosen.has(x.n)});
+    b.slots.forEach(function(slotIdx){
+      let pool=(EX_DB[b.cat]||[]).filter(function(x){return x.t===b.typ&&!currentNames.has(x.n)});
+      if(pool.length<2)pool=(EX_DB[b.cat]||[]).filter(function(x){return !currentNames.has(x.n)});
+      if(pool.length<2)pool=(EX_DB[b.cat]||[]).slice();
       if(!pool.length){replacements[slotIdx]={n:d.exs[slotIdx].n,nt:""};return}
-      const pick=pickFromPool(pool,k)||pool[0];
+      const pick=pickFromPool(pool);
       chosen.add(pick.n);const pp=getPat(pick.n);if(pp)chosenPats.add(pp);
+      eqSeen[_eqOfName(pick.n)]=(eqSeen[_eqOfName(pick.n)]||0)+1;
       replacements[slotIdx]=pick;
     });
   });
-  // Apply replacements; keep set/rep scheme from the original slot
   d.exs=d.exs.map(function(e,idx){
     const pick=replacements[idx];if(!pick)return e;
     return Object.assign({},e,{n:pick.n,note:pick.nt||e.note});
   });
+  const changed=Object.keys(replacements).length;
+  if(!skipConfirm){
+    savPlan();rPlan();
+    setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
+    if(typeof ftoast==="function")ftoast("🔄 Day shuffled — "+changed+" fresh exercises");
+  }
+  return changed;
+}
+
+// Full-plan shuffle: regenerate every day, carrying a running set of names
+// that have already been placed so exercises don't repeat across the week.
+function shuffleWholePlan(){
+  if(!S.plan||!S.plan.length){if(typeof ftoast==="function")ftoast("No plan yet");return}
+  if(!confirm("Shuffle your ENTIRE workout plan?\n\nEvery day gets a fresh set of exercises, rebalanced for variety across the week (no duplicates where possible) and across equipment types. Your scheduled days, sets, reps and rest stay the same — only the exercises change."))return;
+  const used=new Set();
+  let total=0;
+  S.plan.forEach(function(d,di){
+    total+=shuffleDay(di,true,Array.from(used));
+    (S.plan[di].exs||[]).forEach(function(e){used.add(e.n)});
+  });
   savPlan();rPlan();
-  setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
-  if(typeof ftoast==="function")ftoast("🔄 Day shuffled — "+d.exs.length+" new exercises");
+  if(typeof ftoast==="function")ftoast("🔀 Whole plan shuffled — "+total+" fresh exercises across "+S.plan.length+" days");
 }
 function renderDayBody(d, i){
   const dn=S.logs["w"+S.week+"-d"+i];
@@ -1582,6 +1642,7 @@ rCoachCard()+
 `<div class="sec-title">Week ${S.week} Schedule</div>`+
 `<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — do any workout on any day. Completed days show the actual date you trained, not the planned day. Streak and progress track real behaviour.</div>`+
 `<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
+`<button class="s-btn amb" style="margin:6px 0 10px;font-size:12px;font-weight:700" onclick="shuffleWholePlan()">🔀 Shuffle entire plan (every day)</button><div style="font-size:10px;color:var(--sub);text-align:center;margin:-4px 0 10px">Use 🔀 to reshuffle the whole week · or tap 🔄 on any single day to reshuffle just that session.</div>`+
 S.plan.map((d,i)=>{
   const dn=S.logs["w"+S.week+"-d"+i];
   const isToday=(i===todayIdx);
