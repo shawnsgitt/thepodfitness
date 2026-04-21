@@ -1580,15 +1580,32 @@ return`<div class="sec-title">Weekly Habits</div>`+
 </div>`+
 rCoachCard()+
 `<div class="sec-title">Week ${S.week} Schedule</div>`+
-`<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — tap any day below to do that workout on any calendar date. Scheduled day is just a suggestion; your streak counts the actual day you train.</div>`+
+`<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — do any workout on any day. Completed days show the actual date you trained, not the planned day. Streak and progress track real behaviour.</div>`+
 `<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
 S.plan.map((d,i)=>{
   const dn=S.logs["w"+S.week+"-d"+i];
   const isToday=(i===todayIdx);
   const statusClass=dn?'completed':isToday?'current':'upcoming';
-  const statusBadge=dn?'<div class="wo-status-badge done">✓ Done</div>':isToday?'<div class="wo-status-badge current">● Today</div>':'<div class="wo-status-badge upcoming">○ Day '+(i+1)+'</div>';
+  // When a day is completed, read the actual completion date from the log
+  // so the schedule reflects real behaviour instead of the planned day.
+  let completedWhen="";
+  if(dn&&dn.date){
+    const dt=new Date(dn.date);
+    if(!isNaN(dt)){
+      const wd=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
+      const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][dt.getMonth()];
+      completedWhen=wd+" "+dt.getDate()+" "+mo;
+    }
+  }
+  const statusBadge=dn
+    ?('<div class="wo-status-badge done">✓ Done'+(completedWhen?" · "+completedWhen:"")+'</div>')
+    :isToday?'<div class="wo-status-badge current">● Today</div>':'<div class="wo-status-badge upcoming">○ Day '+(i+1)+'</div>';
   const dayLabel=d.day.replace(/Day \d+ — /,'');
-  return`<div class="wo-stack-card ${statusClass}" id="dc${i}"><div class="wo-stack-head" onclick="togDay(${i})"><div class="wo-stack-left"><div class="wo-stack-indicator"></div><div class="wo-stack-info"><div class="wo-stack-title">${dayLabel}</div><div class="wo-stack-meta">${d.sched} · ${d.dur} · ${d.exs.length} exercises</div></div></div><div class="wo-stack-right">${statusBadge}<span class="chv">▸</span></div></div><div class="day-body">${renderDayBody(d, i)}</div></div>`;
+  // Show real completion day on completed cards; scheduled day on upcoming ones.
+  const metaLine=dn&&completedWhen
+    ?`<span style="color:var(--grn)">Completed ${completedWhen}</span> · ${d.dur} · ${d.exs.length} exercises${d.sched&&d.sched!=="Flexible"&&d.sched!=="Any day"?` · <span style="color:var(--sub);opacity:.7">planned ${d.sched}</span>`:""}`
+    :`${d.sched||"Any day"} · ${d.dur} · ${d.exs.length} exercises`;
+  return`<div class="wo-stack-card ${statusClass}" id="dc${i}"><div class="wo-stack-head" onclick="togDay(${i})"><div class="wo-stack-left"><div class="wo-stack-indicator"></div><div class="wo-stack-info"><div class="wo-stack-title">${dayLabel}</div><div class="wo-stack-meta">${metaLine}</div></div></div><div class="wo-stack-right">${statusBadge}<span class="chv">▸</span></div></div><div class="day-body">${renderDayBody(d, i)}</div></div>`;
 }).join('')+
 `<button class="s-btn out" style="margin-top:12px" onclick="swTab('library')">📚 Browse Exercise Library</button>`}
 function togDay(i){document.getElementById("dc"+i).classList.toggle("open")}
