@@ -540,6 +540,25 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .mp-mode-b.on{background:rgba(191,255,0,.1);border-color:var(--amb);color:var(--amb)}
 .mp-mode-hint{font-size:10px;color:var(--sub);line-height:1.5;padding:6px 10px;background:rgba(255,255,255,.02);border-radius:8px;margin-bottom:10px}
 .mp-day-fit{font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;margin:6px 0 2px;background:rgba(255,255,255,.02);line-height:1.4}
+.mp-meal-act.ed{color:var(--blu)}
+.mp-editor{background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.25);border-radius:10px;padding:10px 12px;margin-top:6px}
+.mp-editor-head{font-size:12px;font-weight:700;color:var(--blu);margin-bottom:8px}
+.mp-edit-grp{margin-bottom:8px}
+.mp-edit-grp label{font-size:10px;color:var(--sub);display:block;margin-bottom:3px}
+.mp-edit-in{width:100%;background:var(--input);border:1px solid var(--bdr);border-radius:6px;color:var(--tx);padding:6px 8px;font-family:inherit;font-size:12px}
+.mp-edit-list{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.mp-edit-row{display:flex;gap:4px;align-items:center}
+.mp-edit-qty{width:56px;background:var(--input);border:1px solid var(--bdr);border-radius:6px;color:var(--tx);padding:5px 6px;font-size:11px;text-align:center}
+.mp-edit-u{width:76px;background:var(--input);border:1px solid var(--bdr);border-radius:6px;color:var(--tx);padding:5px 4px;font-size:11px}
+.mp-edit-name{flex:1;background:var(--input);border:1px solid var(--bdr);border-radius:6px;color:var(--tx);padding:5px 8px;font-size:11px;min-width:0}
+.mp-edit-x{background:none;border:1px solid rgba(239,68,68,.3);color:var(--red);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer}
+.mp-edit-x:active{background:rgba(239,68,68,.1)}
+.mp-edit-warn{font-size:9px;color:var(--amb);padding-left:4px}
+.mp-edit-add{width:100%;background:rgba(59,130,246,.08);border:1px dashed rgba(59,130,246,.35);color:var(--blu);font-size:11px;font-weight:700;padding:8px;border-radius:8px;cursor:pointer;margin:4px 0}
+.mp-edit-totals{font-size:11px;font-weight:700;color:var(--tx);background:rgba(0,0,0,.2);padding:8px 10px;border-radius:6px;margin:6px 0;text-align:center}
+.mp-edit-hint{font-size:10px;color:var(--sub);line-height:1.4;margin:6px 0 8px}
+.mp-edit-actions{display:flex;gap:6px;flex-wrap:wrap}
+.mp-edit-actions .s-btn{flex:1;min-width:100px;font-size:11px;padding:8px;margin:0}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -2355,7 +2374,149 @@ meals:generateDayMealPlan(training[i],goal,cal,prot,mpd)
 function savMealPlan(){if(S.user&&cachedMealPlan)try{SS("sp-mplan-"+S.user.id,cachedMealPlan)}catch(e){}}
 function loadMealPlan(){if(S.user){const m=LS("sp-mplan-"+S.user.id);if(m&&Array.isArray(m)&&m.length)cachedMealPlan=m}}
 function refreshMealPlan(){cachedMealPlan=generateWeekMealPlan();savMealPlan();rFood()}
-let mpSwap=null;let mpAdd=null;
+let mpSwap=null;let mpAdd=null;let mpEdit=null;
+
+// ─── Ingredient-level meal editor ─────────────────────────────────────────
+// Let the user open any meal (auto-generated or saved), see each ingredient
+// as its own editable row, then remove, replace, or adjust quantities. The
+// edited version replaces the meal in the plan with recalculated macros.
+function _parseMealIngredients(ml){
+  if(!ml)return[];
+  const str=ml.replace(/^[^—–:]*[—–:]\s*/,"");
+  const parts=str.split(/,\s*(?![^()]*\))/).flatMap(function(p){return p.split(/\s+with\s+|\s+&\s+/i)}).map(function(s){return s.trim()}).filter(Boolean);
+  return parts.map(function(raw){
+    // Reuse the same patterns parseQtyName handles inside generateGroceryList
+    let m=raw.match(/^([\d½¼¾⅓⅔]+(?:\.\d+)?)\s*(kg|g|ml|l|tbsp|tsp|cup|cups|scoop|scoops|cob|pack|packs|slice|slices|wrap|wraps|piece|pieces)\s+(.+)/i);
+    if(m)return{qty:String(m[1]),unit:m[2].toLowerCase(),name:m[3]};
+    m=raw.match(/^([\d½¼¾⅓⅔]+(?:\.\d+)?)\s+(.+)/);
+    if(m){
+      let n=String(m[1]),nm=m[2],u="piece";
+      if(/\btoast\b|\bslice/i.test(nm))u="slice";
+      else if(/\bwrap/i.test(nm))u="wrap";
+      else if(/\btbsp/i.test(nm)){u="tbsp";nm=nm.replace(/\btbsp\b/i,"").trim()}
+      else if(/\btsp/i.test(nm)){u="tsp";nm=nm.replace(/\btsp\b/i,"").trim()}
+      return{qty:n,unit:u,name:nm};
+    }
+    m=raw.match(/^(.+?)\s*\(([\d.]+)\s*(kg|g|ml|l|tbsp|tsp)\)\s*(.*)$/i);
+    if(m)return{qty:String(m[2]),unit:m[3].toLowerCase(),name:(m[1]+(m[4]?" "+m[4]:"")).trim()};
+    return{qty:"1",unit:"piece",name:raw};
+  });
+}
+function _fracNum(s){const FR={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667};if(FR[s]!==undefined)return FR[s];const f=parseFloat(s);return isNaN(f)?0:f}
+function _ingGrams(item){
+  if(!item)return 0;
+  const info=lookupIngredient(item.name);const n=_fracNum(item.qty);const u=(item.unit||"").toLowerCase();
+  if(u==="kg")return n*1000;
+  if(u==="g")return n;
+  if(u==="ml"&&info&&info.c==="dairy_liquid")return n;
+  if(u==="l")return n*1000;
+  if(u==="tbsp"||u==="tsp"||u==="scoop"||u==="scoops"){
+    if(info&&info.unit&&info.unitWeight)return n*info.unitWeight*(u==="tsp"?1/3:1);
+    return n*(u==="tbsp"?14:u==="tsp"?4:30);
+  }
+  if((u==="piece"||u==="pieces")&&info){
+    if(info.unit==="egg")return n*50;
+    if(info.unit==="piece"&&info.unitWeight)return n*info.unitWeight;
+    if(info.unitWeight)return n*info.unitWeight;
+    return n*100;
+  }
+  if(u==="slice"||u==="slices"){if(info&&info.unit==="slice"&&info.unitWeight)return n*info.unitWeight;return n*30}
+  if(u==="wrap"||u==="wraps"){if(info&&info.unitWeight)return n*info.unitWeight;return n*45}
+  return n;
+}
+function _recalcMealMacros(items){
+  let cal=0,p=0,c=0,f=0;
+  items.forEach(function(it){
+    const info=lookupIngredient(it.name);if(!info)return;
+    const g=_ingGrams(it);const factor=g/100;
+    cal+=info.kcal*factor;p+=info.p*factor;c+=info.cb*factor;f+=info.f*factor;
+  });
+  return{cal:Math.round(cal),p:Math.round(p),c:Math.round(c),f:Math.round(f)};
+}
+function _stringifyIngredients(name,items){
+  const parts=items.filter(function(x){return x.name&&x.qty}).map(function(x){
+    const u=x.unit;const n=x.name;
+    if(u==="piece"||u==="pieces")return x.qty+" "+n;
+    if(u==="slice"||u==="slices")return x.qty+" slice"+(+x.qty!==1?"s":"")+" "+n;
+    if(u==="wrap"||u==="wraps")return x.qty+" "+n+(+x.qty!==1?"s":"");
+    if(u==="tbsp"||u==="tsp")return x.qty+" "+u+" "+n;
+    if(u==="kg"||u==="l")return x.qty+" "+u+" "+n;
+    return x.qty+u+" "+n;
+  });
+  return name+" — "+parts.join(", ");
+}
+function openMealEditor(dayIdx,mealIdx){
+  if(!cachedMealPlan||!cachedMealPlan[dayIdx])return;
+  const meal=cachedMealPlan[dayIdx].meals[mealIdx];if(!meal)return;
+  const items=_parseMealIngredients(meal.ml);
+  // Guess a sensible base name from the original ml (before the em-dash).
+  let baseName=meal.type||"Custom";
+  const dashIdx=meal.ml.indexOf("—")>=0?meal.ml.indexOf("—"):meal.ml.indexOf(":");
+  if(dashIdx>0)baseName=meal.ml.slice(0,dashIdx).trim();
+  mpEdit={dayIdx:dayIdx,mealIdx:mealIdx,name:baseName,items:items};
+  mpSwap=null;mpAdd=null;rFood();
+}
+function closeMealEditor(){mpEdit=null;rFood()}
+function _updateEdit(field,value,idx){
+  if(!mpEdit)return;
+  if(idx==null){mpEdit[field]=value}
+  else{if(!mpEdit.items[idx])return;mpEdit.items[idx][field]=value}
+  // Re-render the editor in place without losing focus — update only the
+  // totals row to avoid re-rendering the whole form on every keystroke.
+  const totEl=document.getElementById("mpEditTotals");
+  if(totEl){
+    const t=_recalcMealMacros(mpEdit.items);
+    totEl.innerHTML=`${t.cal} kcal · ${t.p}g P · ${t.c}g C · ${t.f}g F`;
+  }
+}
+function _addEditIngredient(){if(!mpEdit)return;mpEdit.items.push({qty:"100",unit:"g",name:""});rFood()}
+function _removeEditIngredient(idx){if(!mpEdit)return;mpEdit.items.splice(idx,1);rFood()}
+function _saveEditedMeal(saveToLibrary){
+  if(!mpEdit)return;
+  const items=mpEdit.items.filter(function(x){return x.name&&x.qty});
+  if(!items.length){alert("Add at least one ingredient");return}
+  const totals=_recalcMealMacros(items);
+  const ml=_stringifyIngredients(mpEdit.name||"Custom Meal",items);
+  const meal=cachedMealPlan[mpEdit.dayIdx].meals[mpEdit.mealIdx];
+  if(meal){
+    cachedMealPlan[mpEdit.dayIdx].meals[mpEdit.mealIdx]=Object.assign({},meal,{ml:ml,cal:totals.cal,p:totals.p,c:totals.c,f:totals.f,origMl:meal.origMl||meal.ml,edited:true});
+    savMealPlan();
+  }
+  if(saveToLibrary){
+    const typ=meal?(meal.type||"Snack"):"Snack";
+    S.customMeals.push({name:mpEdit.name||"Custom Meal",cal:totals.cal,p:totals.p,c:totals.c,f:totals.f,mealType:typ,mealTypes:[typ],description:ml,ingredients:items.map(function(x){return (x.qty+(x.unit&&x.unit!=="piece"?x.unit:" "))+" "+x.name}).join(", ")});
+    savCMeals();
+    if(typeof ftoast==="function")ftoast("✓ Saved edited meal · applied to plan");
+  } else {
+    if(typeof ftoast==="function")ftoast("✓ Meal updated in this plan");
+  }
+  mpEdit=null;rFood();
+}
+function rMealEditor(){
+  if(!mpEdit)return "";
+  const units=["g","kg","ml","l","piece","slice","wrap","tbsp","tsp","scoop"];
+  const t=_recalcMealMacros(mpEdit.items);
+  let h=`<div class="mp-editor"><div class="mp-editor-head">✏️ Edit ingredients</div>`;
+  h+=`<div class="mp-edit-grp"><label>Meal name</label><input class="mp-edit-in" type="text" value="${esc(mpEdit.name||"")}" oninput="_updateEdit('name',this.value)"></div>`;
+  h+=`<div class="mp-edit-list">`;
+  mpEdit.items.forEach(function(it,idx){
+    const info=lookupIngredient(it.name||"");
+    const warn=!info&&it.name?` <span style="color:var(--amb);font-size:10px">⚠ not in food DB</span>`:"";
+    h+=`<div class="mp-edit-row">`+
+      `<input class="mp-edit-qty" type="text" inputmode="decimal" value="${esc(String(it.qty||""))}" oninput="_updateEdit('qty',this.value,${idx})" placeholder="qty">`+
+      `<select class="mp-edit-u" onchange="_updateEdit('unit',this.value,${idx});rFood()">${units.map(function(u){return`<option value="${u}"${(it.unit||"g")===u?" selected":""}>${u}</option>`}).join("")}</select>`+
+      `<input class="mp-edit-name" type="text" value="${esc(it.name||"")}" oninput="_updateEdit('name',this.value,${idx})" placeholder="ingredient"${warn?` title="not in food DB"`:""}>`+
+      `<button class="mp-edit-x" onclick="_removeEditIngredient(${idx})" title="Remove">✕</button>`+
+      `</div>${warn?`<div class="mp-edit-warn">${warn}</div>`:""}`;
+  });
+  h+=`</div>`;
+  h+=`<button class="mp-edit-add" onclick="_addEditIngredient()">+ Add ingredient</button>`;
+  h+=`<div class="mp-edit-totals">Totals: <span id="mpEditTotals">${t.cal} kcal · ${t.p}g P · ${t.c}g C · ${t.f}g F</span></div>`;
+  h+=`<div class="mp-edit-hint">Remove ingredients you don't want, change quantities, or replace a name (e.g. 'tomatoes' → 'bell pepper'). Macros recompute from the food DB.</div>`;
+  h+=`<div class="mp-edit-actions"><button class="s-btn pri" onclick="_saveEditedMeal(false)">✓ Save to plan</button><button class="s-btn grn" onclick="_saveEditedMeal(true)">💾 Save + add to My Meals</button><button class="s-btn out" onclick="closeMealEditor()">Cancel</button></div>`;
+  h+=`</div>`;
+  return h;
+}
 function removeMealFromDay(dayIdx,mealIdx){if(!cachedMealPlan||!cachedMealPlan[dayIdx])return;if(!confirm("Remove this meal from your plan?"))return;cachedMealPlan[dayIdx].meals.splice(mealIdx,1);savMealPlan();rFood()}
 function openSwapMeal(dayIdx,mealIdx){mpSwap={dayIdx:dayIdx,mealIdx:mealIdx};mpAdd=null;rFood()}
 function openAddMeal(dayIdx){mpAdd={dayIdx:dayIdx};mpSwap=null;rFood()}
@@ -2546,8 +2707,9 @@ h+=`<div class="mp-meal-emoji" onclick="showRecipeDetail('${esc(m.type)}','${m.m
 h+=`<div class="mp-meal-info" onclick="showRecipeDetail('${esc(m.type)}','${m.ml.replace(/'/g,"\\'")}',${m.cal},${m.p},${m.c},${m.f})"><div class="mp-meal-type">${m.type}</div><div class="mp-meal-name">${m.ml}</div>`;
 h+=`<div class="mp-meal-macros"><span class="cal">${m.cal} kcal</span><span class="pro">${m.p}g P</span><span class="carb">${m.c}g C</span><span class="fat">${m.f}g F</span></div>`;
 h+=`</div>`;
-h+=`<div class="mp-meal-actions"><button class="mp-meal-act sw" onclick="event.stopPropagation();openSwapMeal(${dIdx},${mIdx})" title="Swap meal">⇄</button><button class="mp-meal-act rm" onclick="event.stopPropagation();removeMealFromDay(${dIdx},${mIdx})" title="Remove meal">✕</button></div>`;
+h+=`<div class="mp-meal-actions"><button class="mp-meal-act ed" onclick="event.stopPropagation();openMealEditor(${dIdx},${mIdx})" title="Edit ingredients">✏️</button><button class="mp-meal-act sw" onclick="event.stopPropagation();openSwapMeal(${dIdx},${mIdx})" title="Swap meal">⇄</button><button class="mp-meal-act rm" onclick="event.stopPropagation();removeMealFromDay(${dIdx},${mIdx})" title="Remove meal">✕</button></div>`;
 h+=`</div>`;
+if(mpEdit&&mpEdit.dayIdx===dIdx&&mpEdit.mealIdx===mIdx){h+=rMealEditor()}
 if(mpSwap&&mpSwap.dayIdx===dIdx&&mpSwap.mealIdx===mIdx){h+=rMealPicker("swap",dIdx,mIdx)}
 });
 if(mpAdd&&mpAdd.dayIdx===dIdx){h+=rMealPicker("add",dIdx,null)}
