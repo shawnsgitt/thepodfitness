@@ -1171,12 +1171,58 @@ function rCoachCard(){
     `</div>`;
 }
 
+function shuffleDay(di){
+  const d=S.plan[di];if(!d||!d.exs||!d.exs.length)return;
+  if(!confirm("Shuffle this day's workout?\n\nYou'll get a fresh set of exercises for the same muscle groups, difficulty and training style. Your other days stay the same."))return;
+  // Count slots per (category, type) so we pick replacements bucket-by-bucket
+  const buckets={};
+  d.exs.forEach(function(e,idx){
+    const db=findExInDB(e.n);
+    const cat=db?db.cat:"legs";
+    const typ=db?db.t:"compound";
+    const key=cat+"|"+typ;
+    if(!buckets[key])buckets[key]={cat:cat,typ:typ,slots:[]};
+    buckets[key].slots.push(idx);
+  });
+  // Pick distinct replacements for each bucket, avoiding ALL current names + anything already chosen
+  const chosen=new Set();
+  const currentNames=new Set(d.exs.map(function(e){return e.n}));
+  const replacements={};
+  function rnd(arr){return arr[Math.floor(Math.random()*arr.length)]}
+  Object.values(buckets).forEach(function(b){
+    const need=b.slots.length;
+    let pool=(EX_DB[b.cat]||[]).filter(function(x){return x.t===b.typ&&!currentNames.has(x.n)&&!chosen.has(x.n)});
+    if(pool.length<need){
+      // widen: drop type constraint
+      pool=(EX_DB[b.cat]||[]).filter(function(x){return !currentNames.has(x.n)&&!chosen.has(x.n)});
+    }
+    if(pool.length<need){
+      // last resort: allow repeats of current names but still distinct within the new set
+      pool=(EX_DB[b.cat]||[]).filter(function(x){return !chosen.has(x.n)});
+    }
+    // Shuffle pool and take the first `need`
+    const shuffled=pool.slice().sort(function(){return Math.random()-0.5});
+    b.slots.forEach(function(slotIdx,k){
+      const pick=shuffled[k]||rnd(EX_DB[b.cat]||[{n:d.exs[slotIdx].n,nt:""}]);
+      chosen.add(pick.n);
+      replacements[slotIdx]=pick;
+    });
+  });
+  // Apply replacements; keep set/rep scheme from the original slot
+  d.exs=d.exs.map(function(e,idx){
+    const pick=replacements[idx];if(!pick)return e;
+    return Object.assign({},e,{n:pick.n,note:pick.nt||e.note});
+  });
+  savPlan();rPlan();
+  setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10);
+  if(typeof ftoast==="function")ftoast("🔄 Day shuffled — "+d.exs.length+" new exercises");
+}
 function renderDayBody(d, i){
   const dn=S.logs["w"+S.week+"-d"+i];
   const inProg=!dn&&hasActiveProgress(i);
   const startLbl=dn?'Redo':inProg?'▶ Continue Session':'Start Session →';
   const startCls=dn?'out':inProg?'amb':'pri';
-  return rDayAim(d)+`<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn out" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();chgSched(${i})">📅 Scheduled: ${d.sched||'Any day'} (tap to change)</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
+  return rDayAim(d)+`<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}<button class="s-btn out" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();chgSched(${i})">📅 Scheduled: ${d.sched||'Any day'} (tap to change)</button><button class="s-btn amb" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();shuffleDay(${i})">🔄 Reset / Shuffle Day</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
 }
 function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
@@ -1353,30 +1399,50 @@ const url=EX_IMGS[name];
 if(url)return`<div class="ex-thumb ${cat}"><img src="${url}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=et-fallback>${cm.e}</div>'"></div>`;
 return`<div class="ex-thumb ${cat}"><div class="et-fallback">${cm.e}</div></div>`}
 let libTypeFilter="all";
-function rLib(){const el=document.getElementById("tab-library");
-const allExs=Object.entries(EX_DB).flatMap(([cat,exs])=>exs.map((e,i)=>({...e,cat,idx:i})));
-const filtered=allExs.filter(e=>{
-  if(S.libFilter!=="all"&&e.cat!==S.libFilter)return false;
-  if(libTypeFilter!=="all"&&e.t!==libTypeFilter)return false;
-  if(S.libSearch&&!e.n.toLowerCase().includes(S.libSearch.toLowerCase()))return false;
-  return true;
-});
-// Active filter chips
-const activeFilters=[];
-if(S.libFilter!=='all'){const cm=CAT_META[S.libFilter];activeFilters.push({label:(cm?cm.l:S.libFilter),key:'region',val:S.libFilter})}
-if(libTypeFilter!=='all'){activeFilters.push({label:libTypeFilter.charAt(0).toUpperCase()+libTypeFilter.slice(1),key:'type',val:libTypeFilter})}
-const chipHtml=activeFilters.length?`<div class="filter-chips">${activeFilters.map(f=>`<div class="filter-chip active">${f.label}<span class="fc-x" onclick="${f.key==='region'?"S.libFilter='all'":"libTypeFilter='all'"};rLib()">✕</span></div>`).join('')}</div>`:'';
-el.innerHTML=
-`<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" placeholder="Search exercises..." value="${esc(S.libSearch)}" oninput="S.libSearch=this.value;rLib()"></div>`+
-chipHtml+
-`<div class="pills" style="margin-bottom:6px"><button class="pill ${S.libFilter==='all'?'on':''}" onclick="S.libFilter='all';rLib()">All</button>${Object.entries(CAT_META).map(([k,v])=>`<button class="pill ${S.libFilter===k?'on':''}" onclick="S.libFilter='${k}';rLib()">${v.e} ${v.l}</button>`).join("")}</div>`+
-`<div class="pills" style="margin-bottom:10px"><button class="pill ${libTypeFilter==='all'?'on':''}" onclick="libTypeFilter='all';rLib()">All Types</button><button class="pill ${libTypeFilter==='compound'?'on':''}" onclick="libTypeFilter='compound';rLib()">Compound</button><button class="pill ${libTypeFilter==='isolation'?'on':''}" onclick="libTypeFilter='isolation';rLib()">Isolation</button><button class="pill ${libTypeFilter==='cardio'?'on':''}" onclick="libTypeFilter='cardio';rLib()">Cardio</button><button class="pill ${libTypeFilter==='hiit'?'on':''}" onclick="libTypeFilter='hiit';rLib()">HIIT</button><button class="pill ${libTypeFilter==='stretch'?'on':''}" onclick="libTypeFilter='stretch';rLib()">Stretch</button><button class="pill ${libTypeFilter==='plyo'?'on':''}" onclick="libTypeFilter='plyo';rLib()">Plyo</button></div>`+
-`<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} exercise${filtered.length!==1?'s':''}</div>`+
-filtered.map(e=>{const cm=CAT_META[e.cat]||{l:e.cat,e:"🏋️"};
-return`<div class="ex-list-item" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}')">${exThumb(e.n,e.cat)}<div class="ex-list-info"><div class="eli-name">${e.n}</div><div class="eli-meta">${cm.l} · ${e.t} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div></div><div class="ex-list-chv">›</div></div>`}).join("")+
-(filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No exercises found</p><p class="empty-s">Try a different search or filter.</p></div>`:'')+
-`<div style="margin-top:16px"><div class="log-t">📋 Quick Custom Workout</div><p class="intro">Add exercises above to build a custom workout day, then save it.</p><div id="libCart"></div></div>`;
-rLibCart();renderWeeklyVolume();}
+function rLib(){
+  const el=document.getElementById("tab-library");
+  // First render builds the stable shell (search + results container). Subsequent
+  // calls only update the results region so the search input keeps focus.
+  if(!el.dataset.built){
+    el.innerHTML=
+      `<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" id="libSearchInp" placeholder="Search exercises..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>`+
+      `<div id="libResultsRegion"></div>`+
+      `<div style="margin-top:16px"><div class="log-t">📋 Quick Custom Workout</div><p class="intro">Add exercises above to build a custom workout day, then save it.</p><div id="libCart"></div></div>`;
+    const inp=document.getElementById("libSearchInp");
+    inp.value=S.libSearch||"";
+    inp.addEventListener("input",function(e){S.libSearch=e.target.value;rLibResults()});
+    el.dataset.built="1";
+  } else {
+    // Keep the input value in sync without nuking focus
+    const inp=document.getElementById("libSearchInp");
+    if(inp&&inp.value!==S.libSearch&&document.activeElement!==inp)inp.value=S.libSearch||"";
+  }
+  rLibResults();
+  rLibCart();
+  renderWeeklyVolume();
+}
+function rLibResults(){
+  const host=document.getElementById("libResultsRegion");if(!host)return;
+  const allExs=Object.entries(EX_DB).flatMap(function(entry){return entry[1].map(function(e,i){return Object.assign({},e,{cat:entry[0],idx:i})})});
+  const filtered=allExs.filter(function(e){
+    if(S.libFilter!=="all"&&e.cat!==S.libFilter)return false;
+    if(libTypeFilter!=="all"&&e.t!==libTypeFilter)return false;
+    if(S.libSearch&&!e.n.toLowerCase().includes(S.libSearch.toLowerCase()))return false;
+    return true;
+  });
+  const activeFilters=[];
+  if(S.libFilter!=='all'){const cm=CAT_META[S.libFilter];activeFilters.push({label:(cm?cm.l:S.libFilter),key:'region',val:S.libFilter})}
+  if(libTypeFilter!=='all'){activeFilters.push({label:libTypeFilter.charAt(0).toUpperCase()+libTypeFilter.slice(1),key:'type',val:libTypeFilter})}
+  const chipHtml=activeFilters.length?`<div class="filter-chips">${activeFilters.map(function(f){return`<div class="filter-chip active">${f.label}<span class="fc-x" onclick="${f.key==='region'?"S.libFilter='all'":"libTypeFilter='all'"};rLibResults()">✕</span></div>`}).join('')}</div>`:'';
+  host.innerHTML=
+    chipHtml+
+    `<div class="pills" style="margin-bottom:6px"><button class="pill ${S.libFilter==='all'?'on':''}" onclick="S.libFilter='all';rLibResults()">All</button>${Object.entries(CAT_META).map(function(e){const k=e[0],v=e[1];return`<button class="pill ${S.libFilter===k?'on':''}" onclick="S.libFilter='${k}';rLibResults()">${v.e} ${v.l}</button>`}).join("")}</div>`+
+    `<div class="pills" style="margin-bottom:10px"><button class="pill ${libTypeFilter==='all'?'on':''}" onclick="libTypeFilter='all';rLibResults()">All Types</button><button class="pill ${libTypeFilter==='compound'?'on':''}" onclick="libTypeFilter='compound';rLibResults()">Compound</button><button class="pill ${libTypeFilter==='isolation'?'on':''}" onclick="libTypeFilter='isolation';rLibResults()">Isolation</button><button class="pill ${libTypeFilter==='cardio'?'on':''}" onclick="libTypeFilter='cardio';rLibResults()">Cardio</button><button class="pill ${libTypeFilter==='hiit'?'on':''}" onclick="libTypeFilter='hiit';rLibResults()">HIIT</button><button class="pill ${libTypeFilter==='stretch'?'on':''}" onclick="libTypeFilter='stretch';rLibResults()">Stretch</button><button class="pill ${libTypeFilter==='plyo'?'on':''}" onclick="libTypeFilter='plyo';rLibResults()">Plyo</button></div>`+
+    `<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} exercise${filtered.length!==1?'s':''}</div>`+
+    filtered.map(function(e){const cm=CAT_META[e.cat]||{l:e.cat,e:"🏋️"};
+      return`<div class="ex-list-item" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}')">${exThumb(e.n,e.cat)}<div class="ex-list-info"><div class="eli-name">${e.n}</div><div class="eli-meta">${cm.l} · ${e.t} · ${e.diff==="beg"?"Beginner":e.diff==="adv"?"Advanced":"Intermediate"}</div></div><div class="ex-list-chv">›</div></div>`}).join("")+
+    (filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No exercises found</p><p class="empty-s">Try a different search or filter.</p></div>`:'');
+}
 
 let libCart=[];
 let libWONameVal="";
@@ -1461,23 +1527,40 @@ const EQUIP_DB=[
 const EQ_CAT_META={cardio:{l:"Cardio Machines",e:"🏃",c:"#EC4899"},chest:{l:"Chest Equipment",e:"🫁",c:"#EF4444"},back:{l:"Back Equipment",e:"🔙",c:"#3B82F6"},shoulders:{l:"Shoulder Equipment",e:"🏔️",c:"#A855F7"},arms:{l:"Arm Equipment",e:"💪",c:"#38BDF8"},legs:{l:"Leg Equipment",e:"🦵",c:"#22C55E"},glutes:{l:"Glute Equipment",e:"🍑",c:"#F472B6"},core:{l:"Core Equipment",e:"🎯",c:"#06B6D4"},functional:{l:"Functional & HIIT",e:"⚡",c:"#F97316"}};
 
 let eqFilter="all";let eqSearch="";let eqExpanded={};
-function rEquip(){const el=document.getElementById("tab-equip");
-const allItems=EQUIP_DB.flatMap(c=>c.items.map(i=>({...i,cat:c.cat})));
-const filtered=allItems.filter(i=>{
-if(eqFilter!=="all"&&i.cat!==eqFilter)return false;
-if(eqSearch&&!i.n.toLowerCase().includes(eqSearch.toLowerCase())&&!i.desc.toLowerCase().includes(eqSearch.toLowerCase()))return false;
-return true;
-});
-const totalEquip=allItems.length;
-el.innerHTML=`<div class="eq-hero"><div class="eq-h-title">GYM <span>EQUIPMENT</span></div><div class="eq-h-sub">${totalEquip} pieces of equipment.<br>Tap any item to see exercises you can do with it.</div></div>`+
-`<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" placeholder="Search equipment..." value="${esc(eqSearch)}" oninput="eqSearch=this.value;rEquip()"></div>`+
-`<div class="pills"><button class="pill ${eqFilter==='all'?'on':''}" onclick="eqFilter='all';rEquip()">All (${totalEquip})</button>${EQUIP_DB.map(c=>{const m=EQ_CAT_META[c.cat];const catCount=allItems.filter(i=>i.cat===c.cat).length;if(!catCount)return'';return`<button class="pill ${eqFilter===c.cat?'on':''}" onclick="eqFilter='${c.cat}';rEquip()">${m.e} ${m.l.replace(' Equipment','').replace(' Machines','')} (${catCount})</button>`}).join("")}</div>`+
-`<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} item${filtered.length!==1?'s':''} found</div>`+
-(eqFilter==="all"?EQUIP_DB.map(c=>{const m=EQ_CAT_META[c.cat];const catItems=filtered.filter(i=>i.cat===c.cat);if(!catItems.length)return'';return`<div class="eq-cat-hdr" style="color:${m.c}">${m.e} ${m.l}</div>`+catItems.map(i=>eqCard(i)).join("")}).join(""):filtered.map(i=>eqCard(i)).join(""))+
-(filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No equipment found</p><p class="empty-s">Try a different search or filter.</p></div>`:'')
+function rEquip(){
+  const el=document.getElementById("tab-equip");
+  const totalEquip=EQUIP_DB.flatMap(function(c){return c.items}).length;
+  if(!el.dataset.built){
+    el.innerHTML=`<div class="eq-hero"><div class="eq-h-title">GYM <span>EQUIPMENT</span></div><div class="eq-h-sub">${totalEquip} pieces of equipment.<br>Tap any item to see exercises you can do with it.</div></div>`+
+      `<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-inp" id="eqSearchInp" placeholder="Search equipment..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>`+
+      `<div id="eqResultsRegion"></div>`;
+    const inp=document.getElementById("eqSearchInp");
+    inp.value=eqSearch||"";
+    inp.addEventListener("input",function(e){eqSearch=e.target.value;rEquipResults()});
+    el.dataset.built="1";
+  } else {
+    const inp=document.getElementById("eqSearchInp");
+    if(inp&&inp.value!==eqSearch&&document.activeElement!==inp)inp.value=eqSearch||"";
+  }
+  rEquipResults();
+}
+function rEquipResults(){
+  const host=document.getElementById("eqResultsRegion");if(!host)return;
+  const allItems=EQUIP_DB.flatMap(function(c){return c.items.map(function(i){return Object.assign({},i,{cat:c.cat})})});
+  const filtered=allItems.filter(function(i){
+    if(eqFilter!=="all"&&i.cat!==eqFilter)return false;
+    if(eqSearch&&!i.n.toLowerCase().includes(eqSearch.toLowerCase())&&!i.desc.toLowerCase().includes(eqSearch.toLowerCase()))return false;
+    return true;
+  });
+  const totalEquip=allItems.length;
+  host.innerHTML=
+    `<div class="pills"><button class="pill ${eqFilter==='all'?'on':''}" onclick="eqFilter='all';rEquipResults()">All (${totalEquip})</button>${EQUIP_DB.map(function(c){const m=EQ_CAT_META[c.cat];const catCount=allItems.filter(function(i){return i.cat===c.cat}).length;if(!catCount)return'';return`<button class="pill ${eqFilter===c.cat?'on':''}" onclick="eqFilter='${c.cat}';rEquipResults()">${m.e} ${m.l.replace(' Equipment','').replace(' Machines','')} (${catCount})</button>`}).join("")}</div>`+
+    `<div style="font-size:11px;color:var(--sub);margin-bottom:10px">${filtered.length} item${filtered.length!==1?'s':''} found</div>`+
+    (eqFilter==="all"?EQUIP_DB.map(function(c){const m=EQ_CAT_META[c.cat];const catItems=filtered.filter(function(i){return i.cat===c.cat});if(!catItems.length)return'';return`<div class="eq-cat-hdr" style="color:${m.c}">${m.e} ${m.l}</div>`+catItems.map(function(i){return eqCard(i)}).join("")}).join(""):filtered.map(function(i){return eqCard(i)}).join(""))+
+    (filtered.length===0?`<div class="empty"><div class="empty-i">🔍</div><p class="empty-t">No equipment found</p><p class="empty-s">Try a different search or filter.</p></div>`:'');
 }
 function eqCard(i){const m=EQ_CAT_META[i.cat]||{e:"🔧",c:"#888"};const key=i.n.replace(/\s/g,'_');const exp=eqExpanded[key];
-return`<div class="eq-card"><div class="eq-top"><div class="eq-ico" style="background:${m.c}22">${i.ico}</div><div class="eq-info"><div class="eq-nm">${i.n}</div><div class="eq-desc">${i.desc}</div><div class="eq-muscles">${i.muscles.map(m=>`<span class="eq-muscle">${m}</span>`).join("")}</div></div></div>${i.exercises.length?`<button class="eq-toggle" onclick="eqExpanded['${key}']=!eqExpanded['${key}'];rEquip()">${exp?'▾ Hide':'▸ Show'} ${i.exercises.length} exercise${i.exercises.length>1?'s':''}</button>`:''}${exp?`<div class="eq-card eq-exercises" style="margin:6px 0 0;padding:8px;background:rgba(255,255,255,.02)"><div class="eq-ex-title">Exercises you can do:</div>${i.exercises.map(e=>`<div class="eq-ex-item">${e}</div>`).join("")}</div>`:''}</div>`}
+return`<div class="eq-card"><div class="eq-top"><div class="eq-ico" style="background:${m.c}22">${i.ico}</div><div class="eq-info"><div class="eq-nm">${i.n}</div><div class="eq-desc">${i.desc}</div><div class="eq-muscles">${i.muscles.map(m=>`<span class="eq-muscle">${m}</span>`).join("")}</div></div></div>${i.exercises.length?`<button class="eq-toggle" onclick="eqExpanded['${key}']=!eqExpanded['${key}'];rEquipResults()">${exp?'▾ Hide':'▸ Show'} ${i.exercises.length} exercise${i.exercises.length>1?'s':''}</button>`:''}${exp?`<div class="eq-card eq-exercises" style="margin:6px 0 0;padding:8px;background:rgba(255,255,255,.02)"><div class="eq-ex-title">Exercises you can do:</div>${i.exercises.map(e=>`<div class="eq-ex-item">${e}</div>`).join("")}</div>`:''}</div>`}
 
 // ═══════ DIET CONSISTENCY ═══════
 function calcDietConsistency(){const target=S.nutri.cal;const tolerance=0.15;const flog=S.flog;const today=new Date();today.setHours(0,0,0,0);
