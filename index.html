@@ -559,6 +559,28 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .mp-edit-hint{font-size:10px;color:var(--sub);line-height:1.4;margin:6px 0 8px}
 .mp-edit-actions{display:flex;gap:6px;flex-wrap:wrap}
 .mp-edit-actions .s-btn{flex:1;min-width:100px;font-size:11px;padding:8px;margin:0}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin:6px 0 10px}
+.rec-tile{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:10px 6px;cursor:pointer;text-align:center;transition:all .15s;min-height:94px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.rec-tile:active{transform:scale(.97)}
+.rec-tile .rec-emoji{font-size:22px}
+.rec-tile .rec-name{font-size:10px;font-weight:700;color:var(--tx)}
+.rec-tile .rec-pct{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.rec-tile .rec-sub{font-size:9px;color:var(--sub)}
+.rec-grn{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.4)}
+.rec-grn .rec-pct{color:var(--grn)}
+.rec-amb{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.4)}
+.rec-amb .rec-pct{color:var(--amb)}
+.rec-red{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.4)}
+.rec-red .rec-pct{color:var(--red)}
+.rec-tips{background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.18);border-radius:10px;padding:8px 10px;margin-bottom:6px}
+.rec-tip{font-size:11px;color:var(--tx);line-height:1.5;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.04)}
+.rec-tip:last-child{border-bottom:none}
+.mg-block{background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.mg-head{font-size:11px;font-weight:700;color:var(--amb);margin-bottom:6px}
+.mg-stat-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--tx);border-top:1px solid rgba(255,255,255,.04)}
+.mg-stat-row:first-of-type{border-top:none}
+.mg-stat-row span:first-child{color:var(--sub)}
+.mg-ex{font-size:11px;color:var(--tx);padding:3px 0}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -3086,9 +3108,157 @@ function rFH(){const days=Object.keys(S.flog).filter(k=>k!==tdk()).sort().revers
 function ring(v,mx,col,lbl,u){const p=Math.min(100,Math.round(v/mx*100)),r=22,ci=2*Math.PI*r,off=ci-(p/100)*ci;return`<div class="mac-i"><svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3.5"/><circle cx="26" cy="26" r="${r}" fill="none" stroke="${col}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${ci}" stroke-dashoffset="${off}" transform="rotate(-90 26 26)" style="transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)"/><text x="26" y="24" text-anchor="middle" fill="white" font-size="10" font-weight="700" font-family="JetBrains Mono">${v}</text><text x="26" y="34" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="7">${u}</text></svg><div class="mac-l">${lbl}</div></div>`}
 
 // ═══════ BODY COMPOSITION TAB ═══════
+// ═══════ MUSCLE RECOVERY + ANALYTICS ═══════
+// Evidence-based recovery windows (hours) per muscle group. Compound
+// muscles that take heavier loading need longer; arms / shoulders / core
+// recover faster because they're hit more often through other lifts.
+const RECOVERY_HOURS={chest:72,back:72,legs:72,glutes:72,shoulders:48,arms:48,core:36};
+const MUSCLE_ORDER=["chest","back","shoulders","arms","legs","glutes","core"];
+
+function muscleStats(){
+  const now=Date.now();const weekAgo=now-7*86400000;const monthAgo=now-30*86400000;
+  const out={};
+  MUSCLE_ORDER.forEach(function(m){out[m]={muscle:m,lastDate:null,lastVol:0,setsWeek:0,repsWeek:0,volWeek:0,setsMonth:0,volMonth:0,sessionsWeek:0,sessionsMonth:0,exercises:[]}});
+  Object.values(S.logs||{}).forEach(function(log){
+    if(!log||!log.date||log.dayIndex==null||log.dayIndex<0)return;
+    const day=S.plan[log.dayIndex];if(!day)return;
+    const date=new Date(log.date).getTime();if(isNaN(date))return;
+    const inWeek=date>=weekAgo;const inMonth=date>=monthAgo;
+    const musInLog=new Set();
+    Object.entries(log.sets||{}).forEach(function(e){
+      const ei=e[0],sets=e[1];const ex=day.exs[ei];if(!ex)return;
+      const mus=(typeof getMus==="function"?getMus(ex.n):null)||(findExInDB(ex.n)||{}).cat;
+      if(!out[mus])return;
+      const stat=out[mus];
+      if(!stat.lastDate||date>stat.lastDate){stat.lastDate=date;stat.lastVol=0}
+      (sets||[]).filter(function(s){return s&&s.done}).forEach(function(s){
+        const w=parseFloat(s.weight)||0;const r=parseInt(s.reps,10)||0;const v=w*r;
+        if(date===stat.lastDate)stat.lastVol+=v;
+        if(inWeek){stat.setsWeek++;stat.repsWeek+=r;stat.volWeek+=v}
+        if(inMonth){stat.setsMonth++;stat.volMonth+=v}
+      });
+      if(inWeek&&(sets||[]).some(function(s){return s&&s.done})){
+        if(stat.exercises.indexOf(ex.n)<0)stat.exercises.push(ex.n);
+      }
+      musInLog.add(mus);
+    });
+    musInLog.forEach(function(m){if(!out[m])return;if(inWeek)out[m].sessionsWeek++;if(inMonth)out[m].sessionsMonth++});
+  });
+  Object.values(out).forEach(function(stat){
+    const windowH=RECOVERY_HOURS[stat.muscle]||48;
+    if(!stat.lastDate){stat.recoveryPct=100;stat.hoursSince=null}
+    else{
+      const hrs=(now-stat.lastDate)/3600000;stat.hoursSince=hrs;
+      // Heavier last session = longer recovery.
+      const bonus=stat.lastVol>10000?24:stat.lastVol>5000?12:0;
+      stat.recoveryPct=Math.min(100,Math.round(hrs/(windowH+bonus)*100));
+    }
+  });
+  return out;
+}
+
+function weeklyVolumeSeries(weeks){
+  weeks=weeks||8;const now=new Date();now.setHours(0,0,0,0);
+  const start=new Date(now);start.setDate(start.getDate()-now.getDay()-(weeks-1)*7);
+  const series=[];
+  for(let w=0;w<weeks;w++){
+    const ws=new Date(start);ws.setDate(ws.getDate()+w*7);
+    const we=new Date(ws);we.setDate(we.getDate()+7);
+    let vol=0,sets=0,sess=0;const dates=new Set();
+    Object.values(S.logs||{}).forEach(function(log){
+      if(!log||!log.date||log.dayIndex==null)return;
+      const d=new Date(log.date);if(d<ws||d>=we)return;
+      const day=S.plan[log.dayIndex];if(!day)return;
+      dates.add(d.toISOString().slice(0,10));
+      Object.entries(log.sets||{}).forEach(function(e){
+        (e[1]||[]).filter(function(s){return s&&s.done}).forEach(function(s){
+          sets++;vol+=(parseFloat(s.weight)||0)*(parseInt(s.reps,10)||0);
+        });
+      });
+    });
+    sess=dates.size;
+    const label=(ws.getMonth()+1)+"/"+ws.getDate();
+    series.push({week:label,volume:Math.round(vol),sets:sets,sessions:sess});
+  }
+  return series;
+}
+
+function trainingInsights(){
+  const stats=muscleStats();const tips=[];
+  const ready=Object.values(stats).filter(function(s){return s.recoveryPct>=90&&s.lastDate}).map(function(s){return(CAT_META[s.muscle]||{l:s.muscle}).l});
+  if(ready.length)tips.push("✅ Recovered and ready: "+ready.join(", "));
+  Object.values(stats).forEach(function(s){
+    if(s.recoveryPct<40&&s.lastDate)tips.push("😴 "+(CAT_META[s.muscle]||{l:s.muscle}).l+" still fatigued ("+Math.round(s.hoursSince)+"h since last session) — consider another muscle today");
+  });
+  Object.values(stats).forEach(function(s){
+    if(!s.lastDate)tips.push("📝 No "+(CAT_META[s.muscle]||{l:s.muscle}).l+" training logged yet");
+    else if(s.setsWeek<6&&s.sessionsWeek>=0)tips.push("⚠️ "+(CAT_META[s.muscle]||{l:s.muscle}).l+" volume low — only "+s.setsWeek+" sets this week (minimum 10 for growth)");
+  });
+  // Trend check on total volume
+  const series=weeklyVolumeSeries(4);
+  if(series.length>=4){
+    const last=series[series.length-1].volume;
+    const prev=series[series.length-2].volume;
+    const mean=(series[0].volume+series[1].volume+series[2].volume+series[3].volume)/4;
+    if(last>prev*1.1&&last>0)tips.push("📈 Volume trending up — "+last+" kg this week vs "+prev+" last week");
+    else if(prev>0&&last<prev*0.7)tips.push("📉 Volume dropped sharply — "+last+" kg this week vs "+prev+" last. Rest week, or push harder?");
+    else if(Math.abs(last-mean)/Math.max(mean,1)<0.1&&last>0)tips.push("⏸️ Volume plateau over 4 weeks (~"+Math.round(mean)+" kg/week). Add weight, add a set, or try a new variation");
+  }
+  return tips.slice(0,6);
+}
+
+function rRecoveryGrid(){
+  const stats=muscleStats();
+  let h=`<div class="log-t">💪 Muscle Recovery</div><p class="intro" style="margin-bottom:8px">Tap any muscle for sets · reps · volume · recent exercises.</p><div class="rec-grid">`;
+  MUSCLE_ORDER.forEach(function(m){
+    const s=stats[m];
+    const col=s.recoveryPct>=80?"grn":s.recoveryPct>=40?"amb":"red";
+    const label=!s.lastDate?"No data":(s.recoveryPct>=100?"Ready":Math.round(s.hoursSince)+"h ago");
+    const cm=CAT_META[m]||{e:"💪",l:m};
+    h+=`<div class="rec-tile rec-${col}" onclick="showMuscleDetail('${m}')"><div class="rec-emoji">${cm.e}</div><div class="rec-name">${cm.l}</div><div class="rec-pct">${s.recoveryPct}%</div><div class="rec-sub">${label}</div></div>`;
+  });
+  h+=`</div>`;
+  const tips=trainingInsights();
+  if(tips.length){
+    h+=`<div class="rec-tips">`+tips.map(function(t){return`<div class="rec-tip">${t}</div>`}).join("")+`</div>`;
+  }
+  return h;
+}
+
+function showMuscleDetail(m){
+  const stats=muscleStats()[m];if(!stats)return;
+  const cm=CAT_META[m]||{l:m,e:"💪"};
+  const existing=document.getElementById("mgDetailOverlay");if(existing)existing.remove();
+  const overlay=document.createElement("div");overlay.className="gl-overlay";overlay.id="mgDetailOverlay";
+  const col=stats.recoveryPct>=80?"var(--grn)":stats.recoveryPct>=40?"var(--amb)":"var(--red)";
+  const last=stats.lastDate?new Date(stats.lastDate).toLocaleDateString()+" ("+Math.round(stats.hoursSince)+"h ago)":"—";
+  let h=`<div class="gl-header"><h2>${cm.e} ${cm.l}</h2><button class="gl-close" onclick="document.getElementById('mgDetailOverlay').remove()">✕</button></div><div class="gl-body">`;
+  h+=`<div class="mg-block"><div class="mg-head">🛏 Recovery</div><div class="mg-stat-row"><span>Recovery</span><span style="color:${col};font-weight:700">${stats.recoveryPct}%</span></div><div class="mg-stat-row"><span>Last session</span><span>${last}</span></div></div>`;
+  h+=`<div class="mg-block"><div class="mg-head">📊 This week</div><div class="mg-stat-row"><span>Sets</span><span>${stats.setsWeek}</span></div><div class="mg-stat-row"><span>Reps</span><span>${stats.repsWeek}</span></div><div class="mg-stat-row"><span>Volume</span><span>${stats.volWeek} kg</span></div><div class="mg-stat-row"><span>Sessions</span><span>${stats.sessionsWeek}</span></div></div>`;
+  h+=`<div class="mg-block"><div class="mg-head">📅 Last 30 days</div><div class="mg-stat-row"><span>Sets</span><span>${stats.setsMonth}</span></div><div class="mg-stat-row"><span>Volume</span><span>${stats.volMonth} kg</span></div><div class="mg-stat-row"><span>Sessions</span><span>${stats.sessionsMonth}</span></div></div>`;
+  h+=`<div class="mg-block"><div class="mg-head">🏋️ Recent exercises</div>${stats.exercises.length?stats.exercises.slice(0,8).map(function(e){return'<div class="mg-ex">'+e+'</div>'}).join(""):'<div style="color:var(--sub);font-size:11px">None logged this week</div>'}</div>`;
+  h+=`</div>`;
+  overlay.innerHTML=h;
+  document.body.appendChild(overlay);
+}
+
+let _volRange="week"; // 'week' | 'month'
+function setVolRange(r){_volRange=r;rBody()}
+function renderVolumeTrendChart(){
+  const weeks=_volRange==="month"?12:8;
+  const series=weeklyVolumeSeries(weeks);
+  const canvas=document.getElementById("volTrendChart");if(!canvas||typeof Chart==="undefined")return;
+  if(_chartInstances["volTrendChart"]){_chartInstances["volTrendChart"].destroy()}
+  const ctx=canvas.getContext("2d");
+  _chartInstances["volTrendChart"]=new Chart(ctx,{type:"line",data:{labels:series.map(function(s){return s.week}),datasets:[{label:"Volume (kg)",data:series.map(function(s){return s.volume}),borderColor:"#BFFF00",backgroundColor:"rgba(191,255,0,.12)",fill:true,tension:.3,pointBackgroundColor:"#BFFF00",pointRadius:4},{label:"Sets",data:series.map(function(s){return s.sets}),borderColor:"#A855F7",backgroundColor:"rgba(168,85,247,.08)",tension:.3,pointRadius:3,yAxisID:"y1"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#8A8A8A",font:{size:10}}}},scales:{x:{ticks:{color:"#8A8A8A",font:{size:9}},grid:{color:"rgba(255,255,255,.04)"}},y:{ticks:{color:"#8A8A8A",font:{size:9}},grid:{color:"rgba(255,255,255,.04)"},title:{display:true,text:"Volume (kg)",color:"#8A8A8A",font:{size:9}}},y1:{position:"right",ticks:{color:"#8A8A8A",font:{size:9}},grid:{drawOnChartArea:false},title:{display:true,text:"Sets",color:"#8A8A8A",font:{size:9}}}}}});
+}
+
 function rBody(){Object.keys(_chartInstances).forEach(function(k){try{_chartInstances[k].destroy()}catch(e){}delete _chartInstances[k]});const el=document.getElementById("tab-body");const p=S.user.profile;if(!p){el.innerHTML=`<div class="empty"><p class="empty-t">No profile</p></div>`;return}
 const bc=calcBodyComp(p,S.nutri,S.flog);
-el.innerHTML=`<div class="log-t">📐 Body Composition Analysis</div><p class="intro">Based on your stats: ${p.gender==='female'?'♀':'♂'} ${p.age}yrs · ${p.height}cm · ${p.weight}kg</p>`+
+el.innerHTML=rRecoveryGrid()+
+`<div class="log-t" style="margin-top:14px">📈 Training Trends</div>`+
+`<div class="card" style="margin-top:4px;padding:10px"><div style="display:flex;gap:6px;margin-bottom:8px"><button class="pill ${_volRange==='week'?'on':''}" onclick="setVolRange('week')">8 weeks</button><button class="pill ${_volRange==='month'?'on':''}" onclick="setVolRange('month')">12 weeks</button></div><div class="chart-wrap" style="height:180px"><canvas id="volTrendChart"></canvas></div><div style="font-size:10px;color:var(--sub);text-align:center;margin-top:4px">Total working volume (kg) and set count per week</div></div>`+
+`<div class="log-t" style="margin-top:14px">📐 Body Composition Analysis</div><p class="intro">Based on your stats: ${p.gender==='female'?'♀':'♂'} ${p.age}yrs · ${p.height}cm · ${p.weight}kg</p>`+
 // BMI
 `<div class="bc-card"><div class="bc-title">⚖️ BMI (Body Mass Index)</div><div class="bc-row"><div class="bc-label">Your BMI</div><div class="bc-val" style="color:${bc.bmiStatus==='good'?'var(--grn)':bc.bmiStatus==='warn'?'var(--amb)':'var(--red)'}">${bc.bmi}</div></div><div class="bc-bar-wrap"><div class="bc-bar-label"><span>Underweight</span><span>Normal</span><span>Overweight</span><span>Obese</span></div><div class="bc-indicator"><div class="bc-marker" style="left:${Math.min(95,Math.max(2,(bc.bmi-15)/(40-15)*100))}%"></div></div></div><span class="bc-status ${bc.bmiStatus}">${bc.bmiCat}</span><div style="font-size:10px;color:var(--sub);margin-top:6px">Healthy weight range for your height: <b style="color:var(--tx)">${bc.hwLow} – ${bc.hwHigh} kg</b></div></div>`+
 // Body Fat Estimate
@@ -3142,6 +3312,8 @@ ${(()=>{const prs=getAllPRs();const entries=Object.entries(prs).sort((a,b)=>b[1]
 </div>
 <div id="plate-result"></div>
 </div>`;
+// Render analytics chart after innerHTML paints.
+setTimeout(function(){try{renderVolumeTrendChart()}catch(e){}},30);
 }
 
 // ═══════ WEIGHT PROGRESSION & SMART RECOMMENDATIONS ═══════
