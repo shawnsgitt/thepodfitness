@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shawnspod-v43';
+const CACHE_NAME = 'shawnspod-v44';
 const ASSETS = ['./index.html', './manifest.json'];
 
 // Bring the app to focus when the user taps a rest-timer notification.
