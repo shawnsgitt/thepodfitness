@@ -2128,6 +2128,249 @@ return`<div class="diet-consist"><div class="dc-title">📅 Diet Consistency Tra
 // ═══════ FOOD TAB ═══════
 // Ingredient database — values per 100g unless unit is specified.
 // c = category | kcal,p,cb,f = macros | unit,unitWeight = unit-based items
+// ═════════════ BUNDLED UK FOOD DATABASE ═════════════
+// ~180 common UK foods + branded items with per-100g macros. Ships inside
+// the app so searching works offline and instantly. Open Food Facts is
+// still queried as a fallback for anything not in here.
+// Format: {n:name, k:kcal/100g, p:protein, c:carbs, f:fat, br:brand?}
+const UK_FOOD_DB=[
+  // Lean proteins (raw)
+  {n:"Chicken Breast (raw)",k:106,p:24,c:0,f:1.1},
+  {n:"Chicken Thigh (skinless, raw)",k:172,p:20,c:0,f:10},
+  {n:"Chicken Drumstick (skinless)",k:166,p:24,c:0,f:8},
+  {n:"Chicken Wings",k:203,p:30,c:0,f:9},
+  {n:"Turkey Breast (raw)",k:111,p:23,c:0,f:1.7},
+  {n:"Turkey Mince 5% fat",k:150,p:19,c:0,f:8},
+  {n:"Turkey Rashers",k:147,p:23,c:1,f:5},
+  // Beef
+  {n:"Beef Mince 5% fat",k:137,p:21,c:0,f:5.5},
+  {n:"Beef Mince 15% fat",k:215,p:17,c:0,f:15},
+  {n:"Beef Sirloin Steak (lean)",k:156,p:27,c:0,f:5},
+  {n:"Beef Ribeye Steak",k:271,p:24,c:0,f:20},
+  {n:"Beef Rump Steak",k:177,p:28,c:0,f:7},
+  {n:"Beef Fillet Steak",k:202,p:29,c:0,f:9},
+  // Pork
+  {n:"Pork Loin (lean)",k:173,p:26,c:0,f:7},
+  {n:"Pork Chops",k:231,p:24,c:0,f:14},
+  {n:"Gammon Steak",k:164,p:25,c:0,f:7},
+  {n:"Bacon Back Rashers",k:215,p:24,c:0,f:13},
+  {n:"Bacon Streaky Rashers",k:541,p:37,c:1.4,f:42},
+  {n:"Pork Sausages",k:301,p:13,c:2,f:27},
+  {n:"Cumberland Sausage",k:276,p:14,c:3,f:22},
+  // Lamb
+  {n:"Lamb Leg (lean)",k:203,p:26,c:0,f:11},
+  {n:"Lamb Chops",k:294,p:25,c:0,f:21},
+  {n:"Lamb Mince",k:282,p:19,c:0,f:23},
+  // Fish
+  {n:"Salmon Fillet",k:208,p:20,c:0,f:13},
+  {n:"Smoked Salmon",k:117,p:18,c:0,f:4.3},
+  {n:"Cod Fillet",k:82,p:18,c:0,f:0.7},
+  {n:"Haddock",k:74,p:16,c:0,f:0.5},
+  {n:"Sea Bass Fillet",k:82,p:18,c:0,f:0.8},
+  {n:"Tuna (fresh)",k:144,p:30,c:0,f:1},
+  {n:"Tuna in Spring Water (tinned)",k:116,p:26,c:0,f:0.5},
+  {n:"Tuna in Olive Oil (tinned)",k:198,p:26,c:0,f:10},
+  {n:"Sardines in Tomato Sauce",k:180,p:20,c:2,f:10},
+  {n:"Mackerel Fillet",k:262,p:19,c:0,f:21},
+  {n:"King Prawns (cooked)",k:92,p:20,c:0,f:1},
+  {n:"Prawns (cooked, peeled)",k:85,p:20,c:0,f:0.5},
+  {n:"Mussels (cooked)",k:86,p:12,c:3.7,f:2},
+  {n:"Scampi Breaded",k:232,p:9,c:23,f:12},
+  {n:"Fish Fingers (Birds Eye)",k:203,p:13,c:18,f:9,br:"Birds Eye"},
+  // Plant proteins
+  {n:"Firm Tofu",k:76,p:8,c:2,f:5},
+  {n:"Silken Tofu",k:55,p:5,c:2,f:3},
+  {n:"Tempeh",k:193,p:20,c:7.6,f:11},
+  {n:"Quorn Pieces",k:88,p:14,c:4,f:2,br:"Quorn"},
+  {n:"Quorn Mince",k:94,p:15,c:4.5,f:2,br:"Quorn"},
+  {n:"Quorn Nuggets",k:189,p:14,c:12,f:9,br:"Quorn"},
+  {n:"Linda McCartney Sausages",k:220,p:15,c:14,f:12,br:"Linda McCartney"},
+  {n:"Beyond Burger",k:248,p:20,c:8,f:18,br:"Beyond"},
+  // Eggs & dairy
+  {n:"Egg (whole, 1 large)",k:70,p:6,c:0.6,f:5},
+  {n:"Egg Whites",k:52,p:11,c:0.7,f:0.2},
+  {n:"Whole Milk",k:61,p:3.2,c:4.8,f:3.3},
+  {n:"Semi-Skimmed Milk",k:46,p:3.3,c:4.7,f:1.7},
+  {n:"Skimmed Milk",k:34,p:3.4,c:5,f:0.2},
+  {n:"Alpro Oat Milk",k:42,p:0.3,c:6.8,f:1.5,br:"Alpro"},
+  {n:"Oatly Oat Drink",k:45,p:1,c:6.5,f:1.5,br:"Oatly"},
+  {n:"Alpro Almond Milk",k:24,p:0.5,c:2.4,f:1.1,br:"Alpro"},
+  {n:"Alpro Soya Milk",k:41,p:3.3,c:3,f:1.8,br:"Alpro"},
+  {n:"Greek Yoghurt 0% Fat",k:57,p:10,c:4,f:0},
+  {n:"Greek Yoghurt Full Fat (Total)",k:97,p:9,c:3.6,f:5,br:"Fage Total"},
+  {n:"Natural Yoghurt",k:79,p:5.7,c:7.8,f:3.3},
+  {n:"Skyr (Icelandic)",k:60,p:11,c:4,f:0.2},
+  {n:"Cottage Cheese",k:98,p:11,c:3.4,f:4.3},
+  {n:"Cheddar Cheese",k:402,p:25,c:3,f:33},
+  {n:"Red Leicester",k:389,p:24,c:0.4,f:32},
+  {n:"Mozzarella",k:280,p:22,c:2.2,f:22},
+  {n:"Parmesan",k:431,p:38,c:4,f:29},
+  {n:"Halloumi",k:321,p:21,c:2,f:26},
+  {n:"Feta",k:264,p:14,c:4,f:21},
+  {n:"Goats Cheese",k:364,p:22,c:0.1,f:30},
+  {n:"Philadelphia Original",k:250,p:5,c:4,f:24,br:"Philadelphia"},
+  {n:"Philadelphia Light",k:150,p:6,c:5,f:12,br:"Philadelphia"},
+  {n:"Butter (salted)",k:717,p:0.9,c:0.1,f:81},
+  {n:"Lurpak Spreadable",k:604,p:0.6,c:0.6,f:66,br:"Lurpak"},
+  {n:"Stork Margarine",k:538,p:0.3,c:0.5,f:59,br:"Stork"},
+  {n:"Double Cream",k:445,p:1.7,c:2.7,f:48},
+  {n:"Single Cream",k:191,p:2.5,c:4,f:19},
+  // Grains & cereals
+  {n:"Oats (Scots Porage, dry)",k:372,p:11,c:60,f:8},
+  {n:"Oats (Quaker Rolled)",k:378,p:12,c:60,f:9,br:"Quaker"},
+  {n:"Weetabix (per biscuit 19g)",k:69,p:2.2,c:13,f:0.4,br:"Weetabix"},
+  {n:"Shreddies",k:362,p:10,c:73,f:2,br:"Nestle"},
+  {n:"Kellogg's Cornflakes",k:376,p:7,c:85,f:1.3,br:"Kellogg's"},
+  {n:"Kellogg's Special K",k:375,p:17,c:72,f:1.5,br:"Kellogg's"},
+  {n:"Fruit and Fibre",k:358,p:7,c:73,f:5,br:"Kellogg's"},
+  {n:"Granola (Tesco Finest)",k:482,p:10,c:62,f:22,br:"Tesco"},
+  {n:"White Rice (cooked)",k:130,p:2.7,c:28,f:0.3},
+  {n:"Brown Rice (cooked)",k:111,p:2.6,c:23,f:0.9},
+  {n:"Basmati Rice (cooked)",k:121,p:3,c:25,f:0.4},
+  {n:"Jasmine Rice (cooked)",k:130,p:2.7,c:28,f:0.3},
+  {n:"Pasta (cooked)",k:158,p:6,c:31,f:1},
+  {n:"Wholewheat Pasta (cooked)",k:124,p:5,c:27,f:1},
+  {n:"Spaghetti (cooked)",k:158,p:6,c:31,f:1},
+  {n:"Quinoa (cooked)",k:120,p:4,c:21,f:2},
+  {n:"Couscous (cooked)",k:112,p:4,c:23,f:0.2},
+  {n:"Bulgur Wheat (cooked)",k:83,p:3,c:19,f:0.2},
+  {n:"Noodles (cooked)",k:138,p:5,c:25,f:2},
+  {n:"Indomie Noodles (dry pack)",k:434,p:9,c:57,f:19,br:"Indomie"},
+  // Bread
+  {n:"Warburtons Toastie Loaf (per slice 44g)",k:110,p:3.5,c:19,f:1.5,br:"Warburtons"},
+  {n:"Hovis Seeded Sensations (per slice 44g)",k:115,p:5,c:15,f:3.5,br:"Hovis"},
+  {n:"Warburtons Protein Bread (per slice)",k:98,p:6,c:12,f:2.5,br:"Warburtons"},
+  {n:"Sourdough Bread",k:256,p:9,c:49,f:1},
+  {n:"Wholemeal Bread",k:253,p:13,c:45,f:2.8},
+  {n:"White Bread",k:265,p:9,c:49,f:3.2},
+  {n:"Pita Bread",k:275,p:9,c:55,f:1.2},
+  {n:"Tortilla Wrap (45g)",k:140,p:4,c:24,f:3},
+  {n:"Bagel (plain)",k:278,p:11,c:54,f:1.5},
+  {n:"Ciabatta",k:270,p:10,c:50,f:3},
+  {n:"Crumpet (per 40g)",k:96,p:3.3,c:18,f:0.4},
+  {n:"Naan Bread",k:310,p:10,c:51,f:7},
+  // Potatoes / starches
+  {n:"White Potato (boiled)",k:77,p:2,c:17,f:0.1},
+  {n:"Sweet Potato (boiled)",k:86,p:1.6,c:20,f:0.1},
+  {n:"Jacket Potato",k:93,p:2.5,c:21,f:0.1},
+  {n:"McCain Home Chips",k:156,p:2.5,c:25,f:5,br:"McCain"},
+  {n:"Sweet Potato Fries",k:144,p:2,c:28,f:3},
+  {n:"Mashed Potato",k:108,p:1.8,c:16,f:4.3},
+  {n:"Plantain (boiled)",k:122,p:1.3,c:32,f:0.4},
+  {n:"Plantain (fried)",k:215,p:1.5,c:41,f:6},
+  // Veg
+  {n:"Broccoli",k:34,p:2.8,c:7,f:0.4},
+  {n:"Tenderstem Broccoli",k:40,p:3,c:5,f:0.5},
+  {n:"Spinach",k:23,p:2.9,c:3.6,f:0.4},
+  {n:"Kale",k:49,p:4.3,c:9,f:0.9},
+  {n:"Rocket",k:25,p:2.6,c:3.6,f:0.7},
+  {n:"Lettuce",k:15,p:1.4,c:2.9,f:0.2},
+  {n:"Mixed Salad Leaves",k:20,p:1.5,c:3.5,f:0.2},
+  {n:"Tomato",k:18,p:0.9,c:3.9,f:0.2},
+  {n:"Cherry Tomatoes",k:18,p:0.9,c:3.9,f:0.2},
+  {n:"Onion (raw)",k:40,p:1.1,c:9,f:0.1},
+  {n:"Red Onion",k:42,p:1.1,c:10,f:0.1},
+  {n:"Spring Onion",k:32,p:1.8,c:7,f:0.2},
+  {n:"Bell Pepper",k:31,p:1,c:6,f:0.3},
+  {n:"Carrot",k:41,p:0.9,c:10,f:0.2},
+  {n:"Cucumber",k:16,p:0.7,c:3.6,f:0.1},
+  {n:"Peas (garden)",k:81,p:5,c:14,f:0.4},
+  {n:"Sweetcorn",k:86,p:3,c:19,f:1},
+  {n:"Mushrooms (white)",k:22,p:3,c:3,f:0.3},
+  {n:"Cauliflower",k:25,p:1.9,c:5,f:0.3},
+  {n:"Courgette",k:17,p:1.2,c:3.1,f:0.3},
+  {n:"Asparagus",k:20,p:2.2,c:3.9,f:0.1},
+  {n:"Green Beans",k:31,p:1.8,c:7,f:0.2},
+  {n:"Aubergine",k:25,p:1,c:6,f:0.2},
+  {n:"Beetroot",k:43,p:1.6,c:10,f:0.2},
+  {n:"Avocado",k:160,p:2,c:8,f:15},
+  {n:"Garlic",k:149,p:6.4,c:33,f:0.5},
+  // Fruit
+  {n:"Apple",k:52,p:0.3,c:14,f:0.2},
+  {n:"Banana",k:89,p:1.1,c:23,f:0.3},
+  {n:"Orange",k:47,p:0.9,c:12,f:0.1},
+  {n:"Strawberries",k:32,p:0.7,c:8,f:0.3},
+  {n:"Blueberries",k:57,p:0.7,c:14,f:0.3},
+  {n:"Raspberries",k:52,p:1.2,c:12,f:0.7},
+  {n:"Blackberries",k:43,p:1.4,c:10,f:0.5},
+  {n:"Mango",k:60,p:0.8,c:15,f:0.4},
+  {n:"Pineapple",k:50,p:0.5,c:13,f:0.1},
+  {n:"Grapes",k:69,p:0.7,c:18,f:0.2},
+  {n:"Watermelon",k:30,p:0.6,c:8,f:0.2},
+  {n:"Pear",k:57,p:0.4,c:15,f:0.1},
+  {n:"Kiwi",k:61,p:1.1,c:15,f:0.5},
+  {n:"Peach",k:39,p:0.9,c:10,f:0.3},
+  {n:"Plum",k:46,p:0.7,c:11,f:0.3},
+  {n:"Pomegranate Seeds",k:83,p:1.7,c:19,f:1.2},
+  // Nuts, seeds, spreads
+  {n:"Almonds",k:579,p:21,c:22,f:50},
+  {n:"Walnuts",k:654,p:15,c:14,f:65},
+  {n:"Cashews",k:553,p:18,c:30,f:44},
+  {n:"Brazil Nuts",k:656,p:14,c:12,f:66},
+  {n:"Pistachios",k:560,p:20,c:28,f:45},
+  {n:"Peanuts",k:567,p:25,c:16,f:49},
+  {n:"Peanut Butter (Meridian)",k:588,p:25,c:20,f:50,br:"Meridian"},
+  {n:"Almond Butter",k:614,p:21,c:19,f:56},
+  {n:"Chia Seeds",k:486,p:17,c:42,f:31},
+  {n:"Flax Seeds",k:534,p:18,c:29,f:42},
+  {n:"Sunflower Seeds",k:584,p:21,c:20,f:51},
+  // Pulses
+  {n:"Red Lentils (dry)",k:353,p:25,c:60,f:1.1},
+  {n:"Chickpeas (cooked)",k:164,p:9,c:27,f:2.6},
+  {n:"Black Beans (cooked)",k:132,p:9,c:24,f:0.5},
+  {n:"Kidney Beans (cooked)",k:127,p:9,c:23,f:0.5},
+  {n:"Butter Beans",k:113,p:8,c:20,f:0.5},
+  {n:"Edamame (shelled)",k:122,p:11,c:9,f:5},
+  {n:"Baked Beans (Heinz)",k:94,p:5,c:15,f:0.6,br:"Heinz"},
+  // Oils & fats
+  {n:"Olive Oil (extra virgin)",k:884,p:0,c:0,f:100},
+  {n:"Rapeseed Oil",k:884,p:0,c:0,f:100},
+  {n:"Coconut Oil",k:862,p:0,c:0,f:100},
+  {n:"Hellmann's Mayonnaise",k:680,p:1.1,c:1.3,f:75,br:"Hellmann's"},
+  {n:"Hellmann's Light Mayo",k:300,p:1.1,c:8,f:29,br:"Hellmann's"},
+  {n:"Hummus",k:166,p:8,c:14,f:10},
+  // Sauces & condiments
+  {n:"Heinz Ketchup",k:99,p:1.1,c:24,f:0.1,br:"Heinz"},
+  {n:"Heinz Salad Cream",k:348,p:1.5,c:17,f:30,br:"Heinz"},
+  {n:"English Mustard (Colman's)",k:174,p:10,c:6,f:11,br:"Colman's"},
+  {n:"Soy Sauce (Kikkoman)",k:53,p:8,c:5,f:0.6,br:"Kikkoman"},
+  {n:"Worcestershire Sauce (Lea & Perrins)",k:78,p:0,c:20,f:0,br:"Lea & Perrins"},
+  {n:"BBQ Sauce",k:172,p:1.5,c:40,f:0.5},
+  {n:"Sriracha",k:93,p:1.9,c:19,f:0.9},
+  // Snacks
+  {n:"Walkers Ready Salted (25g)",k:133,p:1.7,c:12.5,f:8.2,br:"Walkers"},
+  {n:"Quavers Cheese (16g)",k:82,p:0.9,c:8.7,f:4.9,br:"Walkers"},
+  {n:"Pringles Original",k:533,p:4,c:49,f:34,br:"Pringles"},
+  {n:"Popchips Salted",k:408,p:5.5,c:66,f:15,br:"Popchips"},
+  {n:"Popcorn (plain)",k:387,p:12,c:78,f:5},
+  {n:"Rice Cakes",k:387,p:8,c:82,f:2.8},
+  {n:"Nairn's Oatcakes (per cake 10g)",k:42,p:0.9,c:6.9,f:1,br:"Nairn's"},
+  {n:"McVitie's Digestive",k:468,p:7,c:67,f:20,br:"McVitie's"},
+  // Protein bars & shakes
+  {n:"Grenade Carb Killa (per 60g bar)",k:215,p:20,c:16,f:7.5,br:"Grenade"},
+  {n:"Barebells Salty Peanut (55g)",k:200,p:20,c:17,f:6,br:"Barebells"},
+  {n:"Fulfil Vitamin Bar",k:203,p:20,c:18,f:7,br:"Fulfil"},
+  {n:"Trek Protein Nut Bar",k:430,p:13,c:33,f:25,br:"Trek"},
+  {n:"Kind Nut Bar",k:500,p:10,c:40,f:30,br:"Kind"},
+  {n:"Misfits Protein Bar",k:177,p:15,c:19,f:5,br:"Misfits"},
+  {n:"MyProtein Impact Whey (per 30g scoop)",k:120,p:23,c:2,f:2,br:"MyProtein"},
+  {n:"Optimum Nutrition Gold Standard Whey (per 30g)",k:120,p:24,c:3,f:1.5,br:"Optimum Nutrition"},
+  {n:"Huel Black Edition (per 90g scoop)",k:351,p:40,c:17,f:13,br:"Huel"},
+  {n:"Huel Ready-to-Drink",k:80,p:5,c:12,f:1.6,br:"Huel"},
+  // Drinks
+  {n:"Ribena (per 100ml)",k:53,p:0,c:13,f:0,br:"Ribena"},
+  {n:"Coca-Cola (per 100ml)",k:42,p:0,c:10.6,f:0,br:"Coca-Cola"},
+  {n:"Coca-Cola Zero",k:0.2,p:0,c:0,f:0,br:"Coca-Cola"},
+  {n:"Lucozade Original (per 100ml)",k:70,p:0,c:17.5,f:0,br:"Lucozade"},
+  {n:"Lucozade Sport (per 100ml)",k:28,p:0,c:6.4,f:0,br:"Lucozade"},
+  {n:"Innocent Orange Juice (per 100ml)",k:45,p:0.7,c:10,f:0.1,br:"Innocent"},
+  {n:"Apple Juice",k:46,p:0.1,c:11,f:0.1},
+  {n:"Coconut Water",k:19,p:0.3,c:3.7,f:0.2},
+  {n:"Robinsons Squash (made up)",k:10,p:0,c:2,f:0,br:"Robinsons"},
+  {n:"Monster Energy (per 100ml)",k:46,p:0,c:11,f:0,br:"Monster"},
+  {n:"Red Bull Original (per 100ml)",k:46,p:0,c:11,f:0,br:"Red Bull"}
+];
+
 const INGREDIENT_DB={
   // Lean proteins
   "chicken breast":{c:"prot_lean",kcal:165,p:31,cb:0,f:3.6},
@@ -3368,7 +3611,7 @@ let _fsTimer=null;
 function openFoodSearch(){
   const existing=document.getElementById('fsOverlay');if(existing)existing.remove();
   const overlay=document.createElement('div');overlay.className='gl-overlay';overlay.id='fsOverlay';
-  overlay.innerHTML=`<div class="gl-header"><h2>🔍 Search Food</h2><button class="gl-close" onclick="closeFoodSearch()">✕</button></div><div class="gl-body"><input id="fsIn" type="text" placeholder="e.g. Tesco chicken breast, Alpro oat milk, banana" oninput="doFoodSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="width:100%;padding:10px 12px;background:var(--input);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-size:14px"><div id="fsOut" style="margin-top:10px"></div><div style="font-size:10px;color:var(--sub);margin-top:12px;padding-top:8px;border-top:1px solid var(--bdr);line-height:1.4">Searches your local food DB first, then the free <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener" style="color:var(--amb)">Open Food Facts</a> database for UK-branded products.</div></div>`;
+  overlay.innerHTML=`<div class="gl-header"><h2>🔍 Search Food</h2><button class="gl-close" onclick="closeFoodSearch()">✕</button></div><div class="gl-body"><input id="fsIn" type="text" placeholder="e.g. Tesco chicken breast, Alpro oat milk, banana" oninput="doFoodSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="width:100%;padding:10px 12px;background:var(--input);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-size:14px"><div id="fsOut" style="margin-top:10px"></div><div style="font-size:10px;color:var(--sub);margin-top:12px;padding-top:8px;border-top:1px solid var(--bdr);line-height:1.4">Searches the app's bundled UK food library first (works offline · ${UK_FOOD_DB.length} products incl. Tesco, Warburtons, Hovis, Alpro, Weetabix, Grenade, Huel…), then extends to <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener" style="color:var(--amb)">Open Food Facts</a> online for long-tail items.</div></div>`;
   document.body.appendChild(overlay);
   setTimeout(function(){const i=document.getElementById('fsIn');if(i)i.focus()},100);
 }
@@ -3400,12 +3643,24 @@ async function runFoodSearch(q){
   }
   out.innerHTML='<div style="text-align:center;color:var(--sub);padding:10px">Searching…</div>';
   const qLower=q.toLowerCase();
-  const local=[];
-  for(const k in INGREDIENT_DB){if(k.indexOf(qLower)>=0)local.push({name:k,info:INGREDIENT_DB[k]})}
+  // Tier 1: bundled UK_FOOD_DB (~180 common UK foods + branded items)
+  const bundled=UK_FOOD_DB.filter(function(f){
+    const hay=(f.n+" "+(f.br||"")).toLowerCase();
+    return hay.indexOf(qLower)>=0;
+  });
+  // Tier 2: ingredient DB (composite dishes + cooking components)
+  const ingr=[];
+  for(const k in INGREDIENT_DB){if(k.indexOf(qLower)>=0)ingr.push({name:k,info:INGREDIENT_DB[k]})}
   let html='';
-  if(local.length){
-    html+='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:6px 0 4px">My Food DB</div>';
-    html+=local.slice(0,6).map(function(x){const i=x.info;const nm=x.name.charAt(0).toUpperCase()+x.name.slice(1);
+  if(bundled.length){
+    html+='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:6px 0 4px">📱 App Food Library · offline</div>';
+    html+=bundled.slice(0,14).map(function(f){
+      return`<div class="fs-row" onclick="pickFoodFromSearch('${esc(f.n).replace(/'/g,"\\'")}',${f.k},${f.p},${f.c},${f.f})"><div class="fs-name">${esc(f.n)}${f.br?' <span style="font-size:9px;color:var(--amb)">· '+esc(f.br)+'</span>':''}</div><div class="fs-macros">${f.k} kcal · ${f.p}P · ${f.c}C · ${f.f}F per 100g</div></div>`;
+    }).join('');
+  }
+  if(ingr.length){
+    html+='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:12px 0 4px">🥘 Ingredients & dishes</div>';
+    html+=ingr.slice(0,6).map(function(x){const i=x.info;const nm=x.name.charAt(0).toUpperCase()+x.name.slice(1);
       return`<div class="fs-row" onclick="pickFoodFromSearch('${nm.replace(/'/g,"\\'")}',${i.kcal},${i.p},${i.cb},${i.f})"><div class="fs-name">${esc(nm)}</div><div class="fs-macros">${i.kcal} kcal · ${i.p}P · ${i.cb}C · ${i.f}F per 100g</div></div>`;
     }).join('');
   }
@@ -3423,7 +3678,7 @@ async function runFoodSearch(q){
       remote=remote.concat(more);
     }
     if(remote.length){
-      html+='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:12px 0 4px">🌍 Open Food Facts · UK-first</div>';
+      html+='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:12px 0 4px">🌍 Open Food Facts · extended (online)</div>';
       html+=remote.slice(0,12).map(function(p){
         const n=p.nutriments||{};
         const kcal=Math.round(+n['energy-kcal_100g']||0);
