@@ -3374,9 +3374,30 @@ function openFoodSearch(){
 }
 function closeFoodSearch(){const o=document.getElementById('fsOverlay');if(o)o.remove()}
 function doFoodSearch(q){if(_fsTimer)clearTimeout(_fsTimer);_fsTimer=setTimeout(function(){runFoodSearch(q)},350)}
+function _recentLoggedFoods(){
+  // Pull unique foods logged in the last 30 days so 'same thing again'
+  // is one tap (Nutracheck-style 'Frequent Foods').
+  const out=[];const seen=new Set();const now=Date.now();
+  Object.entries(S.flog||{}).forEach(function(kv){
+    const d=new Date(kv[0]);if(!(now-d.getTime()<=30*86400000))return;
+    (kv[1]||[]).forEach(function(m){
+      const key=(m.ml||"").toLowerCase();if(!key||seen.has(key))return;
+      if(!m.cal)return;seen.add(key);
+      out.push({name:m.ml,cal:m.cal,p:m.p||0,c:m.c||0,f:m.f||0});
+    });
+  });
+  return out.slice(0,8);
+}
 async function runFoodSearch(q){
   const out=document.getElementById('fsOut');if(!out)return;
-  if(!q||q.length<2){out.innerHTML='';return}
+  if(!q||q.length<2){
+    // Empty query: show 'Recent' foods as quick-pick suggestions.
+    const recent=_recentLoggedFoods();
+    if(!recent.length){out.innerHTML='<div style="color:var(--sub);text-align:center;padding:14px;font-size:12px">Type to search. Barcode scan is also available from the Food tab.</div>';return}
+    out.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:6px 0 4px">⏱ Recent (last 30 days) — tap to re-log</div>'+
+      recent.map(function(r){return`<div class="fs-row" onclick="relogFood('${esc(r.name).replace(/'/g,"\\'")}',${r.cal},${r.p},${r.c},${r.f})"><div class="fs-name">${esc(r.name)}</div><div class="fs-macros">${r.cal} kcal · ${r.p}P · ${r.c}C · ${r.f}F</div></div>`}).join('');
+    return;
+  }
   out.innerHTML='<div style="text-align:center;color:var(--sub);padding:10px">Searching…</div>';
   const qLower=q.toLowerCase();
   const local=[];
@@ -3389,24 +3410,42 @@ async function runFoodSearch(q){
     }).join('');
   }
   try{
-    const res=await fetch('https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&action=process&json=1&page_size=10&fields=product_name,brands,nutriments');
-    const data=await res.json();
-    const remote=(data.products||[]).filter(function(p){return p.nutriments&&p.nutriments['energy-kcal_100g']});
+    // Two-pass: UK-only first (fast, 15 results), then wider fallback if
+    // empty. Nutracheck-style — UK brands surface first without us hosting
+    // a database.
+    const ukUrl='https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&action=process&json=1&page_size=15&fields=product_name,brands,countries_tags,nutriments&tagtype_0=countries&tag_contains_0=contains&tag_0=united-kingdom';
+    const ukRes=await fetch(ukUrl);const ukData=await ukRes.json();
+    let remote=(ukData.products||[]).filter(function(p){return p.nutriments&&p.nutriments['energy-kcal_100g']});
+    if(remote.length<3){
+      const anyRes=await fetch('https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&action=process&json=1&page_size=10&fields=product_name,brands,countries_tags,nutriments');
+      const anyData=await anyRes.json();
+      const more=(anyData.products||[]).filter(function(p){return p.nutriments&&p.nutriments['energy-kcal_100g']&&!remote.some(function(r){return r.product_name===p.product_name&&r.brands===p.brands})});
+      remote=remote.concat(more);
+    }
     if(remote.length){
-      html+='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:12px 0 4px">🌍 Open Food Facts</div>';
-      html+=remote.slice(0,10).map(function(p){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--sub);margin:12px 0 4px">🌍 Open Food Facts · UK-first</div>';
+      html+=remote.slice(0,12).map(function(p){
         const n=p.nutriments||{};
         const kcal=Math.round(+n['energy-kcal_100g']||0);
         const prot=Math.round((+n.proteins_100g||0)*10)/10;
         const carb=Math.round((+n.carbohydrates_100g||0)*10)/10;
         const fat=Math.round((+n.fat_100g||0)*10)/10;
+        const isUK=(p.countries_tags||[]).indexOf('en:united-kingdom')>=0;
         const nm=((p.brands?p.brands+' · ':'')+(p.product_name||'Unknown')).slice(0,80);
         if(!kcal)return"";
-        return`<div class="fs-row" onclick="pickFoodFromSearch('${esc(nm).replace(/'/g,"\\'")}',${kcal},${prot},${carb},${fat})"><div class="fs-name">${esc(nm)}</div><div class="fs-macros">${kcal} kcal · ${prot}P · ${carb}C · ${fat}F per 100g</div></div>`;
+        return`<div class="fs-row" onclick="pickFoodFromSearch('${esc(nm).replace(/'/g,"\\'")}',${kcal},${prot},${carb},${fat})"><div class="fs-name">${esc(nm)}${isUK?' <span style="font-size:9px;color:var(--amb);font-weight:700">🇬🇧 UK</span>':''}</div><div class="fs-macros">${kcal} kcal · ${prot}P · ${carb}C · ${fat}F per 100g</div></div>`;
       }).join('');
     }
   }catch(e){}
   out.innerHTML=html||'<div style="color:var(--sub);text-align:center;padding:14px;font-size:12px">No foods matched "'+esc(q)+'"</div>';
+}
+function relogFood(name,cal,p,c,f){
+  // Re-log an already-portioned food (from Recents) at exactly the same
+  // amount the user logged before — no gram prompt needed.
+  const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];
+  S.flog[tk].push({meal:'Snack',ml:name,cal:cal,p:p,c:c,f:f,isCustom:true});
+  savFlog();updHdr();closeFoodSearch();rFood();
+  if(typeof ftoast==="function")ftoast("✓ Logged "+name);
 }
 function pickFoodFromSearch(name,kcal100,p100,c100,f100){
   const q=prompt('Amount (g) of '+name+'?','100');
