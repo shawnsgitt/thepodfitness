@@ -659,6 +659,26 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .wi-spark{width:100%;height:34px;display:block}
 .wi-chart-sub{font-size:9px;text-align:right;font-family:'JetBrains Mono',monospace;margin-top:2px}
 .wi-input-row{display:flex;gap:6px}
+/* Pantry Plan Builder */
+.pantry-list{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.pantry-row{display:grid;grid-template-columns:26px 1fr 88px auto 26px;gap:6px;align-items:center;padding:8px 6px;background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:8px}
+.pantry-cat{font-size:16px;text-align:center}
+.pantry-info{min-width:0}
+.pantry-name{font-size:12px;font-weight:700;color:var(--tx);line-height:1.3;word-break:break-word}
+.pantry-macro{font-size:9px;color:var(--sub);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.pantry-qty{display:flex;align-items:center;gap:2px}
+.pantry-qty input{width:56px;padding:6px;background:var(--input);border:1px solid var(--bdr);border-radius:6px;color:var(--tx);font-size:12px;text-align:center}
+.pantry-unit{font-size:10px;color:var(--sub)}
+.pantry-totals{font-size:10px;font-weight:700;color:var(--amb);font-family:'JetBrains Mono',monospace;text-align:right;white-space:nowrap}
+.pantry-x{background:none;border:1px solid rgba(239,68,68,.3);color:var(--red);font-size:10px;padding:4px 6px;border-radius:6px;cursor:pointer}
+.pantry-summary{background:rgba(191,255,0,.04);border:1px solid rgba(191,255,0,.2);border-radius:10px;padding:10px 12px;margin-top:10px}
+.pantry-summary-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;color:var(--tx)}
+.pantry-summary-row span:first-child{color:var(--sub)}
+.pantry-coverage{font-size:11px;margin-top:6px;border-top:1px solid rgba(255,255,255,.05);padding-top:6px;line-height:1.4}
+.pantry-day{background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.pantry-day-head{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px}
+.pantry-meal{padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.04)}
+.pantry-meal:last-child{border-bottom:none}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -3086,7 +3106,203 @@ const tk=tdk();const dl=S.flog[tk]||[];
 return meals.opts.map((o,oi)=>{const lg=dl.some(l=>l.mi===mealIdx&&l.oi===oi);const emoji=getMealEmoji(o.ml);const grad=getMealGrad(meals.nm);
 return`<div class="meal-card${lg?' logged':''}" onclick="showRecipeDetail('${esc(meals.nm)}','${o.ml.replace(/'/g,"\\'")}',${o.cal},${o.p},${o.c},${o.f},${mealIdx},${oi})"><div class="mc-hero" style="background:${grad}"><div class="mc-emoji">${emoji}</div>${lg?'<div class="mc-badge">✓ Logged</div>':''}</div><div class="mc-body"><div class="mc-title">${renderMealIngredientLines(o.ml)}</div><div class="mc-macros"><span class="mc-macro cal">${o.cal} kcal</span><span class="mc-macro pro">${o.p}g P</span><span class="mc-macro carb">${o.c}g C</span><span class="mc-macro fat">${o.f}g F</span></div><button class="mc-log-btn" onclick="event.stopPropagation();${lg?`ulMeal(${mealIdx},${oi})`:`lMeal(${mealIdx},${oi})`}">${lg?'✕ Remove':'+ Log This Meal'}</button></div></div>`}).join('')}
 function rQuickLogRow(){
-  return`<div class="quick-log-row"><button class="quick-log-b" onclick="openBarcodeScanner()"><div class="ql-emoji">📷</div><div class="ql-label">Scan Barcode</div><div class="ql-sub">UK-branded foods</div></button><button class="quick-log-b" onclick="openFoodSearch()"><div class="ql-emoji">🔍</div><div class="ql-label">Search Foods</div><div class="ql-sub">Find + log in 2 taps</div></button></div>`;
+  return`<div class="quick-log-row"><button class="quick-log-b" onclick="openBarcodeScanner()"><div class="ql-emoji">📷</div><div class="ql-label">Scan Barcode</div><div class="ql-sub">UK-branded foods</div></button><button class="quick-log-b" onclick="openFoodSearch()"><div class="ql-emoji">🔍</div><div class="ql-label">Search Foods</div><div class="ql-sub">Find + log in 2 taps</div></button><button class="quick-log-b" onclick="openPantryPlanner()" style="grid-column:1/-1"><div class="ql-emoji">📦</div><div class="ql-label">Pantry Plan</div><div class="ql-sub">Enter what you have → get a full week plan with exact portions</div></button></div>`;
+}
+
+// ═════════════ PANTRY-TO-PLAN BUILDER ═════════════
+// User lists exact quantities of foods they have. The app categorises
+// each item (protein / carb / fat / veg / fruit) from its macros +
+// keywords, computes total available kcal and macros, then distributes
+// them across the week with transparent per-meal portions that hit each
+// meal's calorie target. Output replaces the current weekly meal plan.
+let pantryState={items:[],days:7,mealsPerDay:4,preview:null};
+
+function _pantryCategorise(item){
+  const nameLower=(item.name||"").toLowerCase();
+  const total=(item.p||0)+(item.c||0)+(item.f||0);
+  // Keyword overrides first
+  if(/\b(oil|butter|mayo|margarine|cream|ghee|lard|tallow)\b/.test(nameLower)&&!/peanut|almond|coconut/.test(nameLower))return "fat";
+  if(/\b(nut|almond|cashew|walnut|brazil|pistachio|peanut|pecan|hazel|chia|flax|seed|avocado|olive)\b/.test(nameLower))return "fat";
+  if(/\b(apple|banana|orange|mango|kiwi|pear|grape|plum|peach|nectarine|watermelon|pineapple|strawberr|blueberr|raspberr|blackberr|tangerine|berry|berries|pomegranate|lemon|lime|fruit)\b/.test(nameLower))return "fruit";
+  if(/\b(broccoli|spinach|kale|lettuce|rocket|salad|cabbage|tomato|onion|pepper|carrot|cucumber|courgette|aubergine|asparagus|bean|pea|corn|mushroom|cauliflower|beetroot|celery|leek|garlic)\b/.test(nameLower))return "veg";
+  // Macro-ratio heuristic
+  const proPct=total>0?(item.p||0)/total:0;
+  const carbPct=total>0?(item.c||0)/total:0;
+  const fatPct=total>0?(item.f||0)/total:0;
+  if(proPct>=0.35)return "protein";
+  if(fatPct>=0.55)return "fat";
+  if(carbPct>=0.45)return "carb";
+  if(proPct>=0.25)return "protein";
+  return "carb";
+}
+function pantryAddFromFood(name,k,p,c,f,br){
+  const existing=pantryState.items.findIndex(function(x){return x.name===name});
+  if(existing>=0){pantryState.items[existing].grams+=100;_rPantryPlanner();return}
+  pantryState.items.push({name:name,brand:br||"",grams:100,k:k,p:p,c:c,f:f});
+  _rPantryPlanner();
+}
+function pantryUpdateGrams(idx,v){
+  const g=Math.max(0,parseInt(v,10)||0);
+  if(!pantryState.items[idx])return;
+  pantryState.items[idx].grams=g;
+  pantryState.preview=null;_rPantryPlanner();
+}
+function pantryRemove(idx){pantryState.items.splice(idx,1);pantryState.preview=null;_rPantryPlanner()}
+function pantrySetDays(n){pantryState.days=Math.max(1,Math.min(7,+n));pantryState.preview=null;_rPantryPlanner()}
+function pantrySetMeals(n){pantryState.mealsPerDay=Math.max(3,Math.min(6,+n));pantryState.preview=null;_rPantryPlanner()}
+
+function pantryBuild(){
+  if(!pantryState.items.length){alert("Add at least one food item first");return}
+  const days=pantryState.days;const mpd=pantryState.mealsPerDay;
+  const dailyCal=S.nutri?.cal||2500;
+  const slots=["Breakfast","Lunch","Dinner","Snack","Pre-Workout","Evening Snack"].slice(0,mpd);
+  const weights=[0.25,0.30,0.30,0.10,0.10,0.10].slice(0,mpd);
+  const wSum=weights.reduce(function(a,b){return a+b},0);
+  const normW=weights.map(function(w){return w/wSum});
+  const cats={protein:[],carb:[],fat:[],fruit:[],veg:[]};
+  pantryState.items.forEach(function(it,i){const c=_pantryCategorise(it);(cats[c]||cats.carb).push(Object.assign({_i:i},it))});
+  const counter={protein:0,carb:0,fat:0,fruit:0,veg:0};
+  const useCount={};
+  function pick(cat){
+    if(!cats[cat].length)return null;
+    const it=cats[cat][counter[cat]%cats[cat].length];counter[cat]++;
+    useCount[it.name]=(useCount[it.name]||0)+1;return it;
+  }
+  // Day / meal scaffold with picks
+  const DAY_NAMES=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const days_out=[];
+  for(let d=0;d<days;d++){
+    const day={day:DAY_NAMES[d%7],isTraining:true,meals:[]};
+    for(let m=0;m<mpd;m++){
+      const slot=slots[m];
+      const picks=[];
+      if(slot==="Breakfast"){
+        const pr=pick("protein");const cb=pick("carb");const fr=pick("fruit");
+        [pr,cb,fr].filter(Boolean).forEach(function(x){picks.push(x)});
+      } else if(slot==="Lunch"||slot==="Dinner"){
+        const pr=pick("protein");const cb=pick("carb");const vg=pick("veg");const ft=pick("fat");
+        [pr,cb,vg,ft].filter(Boolean).forEach(function(x){picks.push(x)});
+      } else {
+        const fr=pick("fruit")||pick("carb");const pr=pick("protein");const ft=pick("fat");
+        [fr,pr,ft].filter(Boolean).forEach(function(x){picks.push(x)});
+      }
+      day.meals.push({slot:slot,weight:normW[m],picks:picks});
+    }
+    days_out.push(day);
+  }
+  // Compute per-use grams for each item
+  const perUse={};
+  pantryState.items.forEach(function(it){
+    const n=useCount[it.name]||0;
+    perUse[it.name]=n>0?it.grams/n:0;
+  });
+  // Build meal outputs
+  const finalDays=days_out.map(function(day){
+    const meals=day.meals.map(function(meal){
+      const mealCalTarget=Math.round(dailyCal*meal.weight);
+      // Apply base grams per pick from perUse. Scale if way off target.
+      let sized=meal.picks.map(function(p){
+        return{item:p,grams:Math.max(5,Math.round((perUse[p.name]||0)/5)*5)};
+      }).filter(function(s){return s.grams>0});
+      if(!sized.length)return null;
+      // Compute totals
+      function totals(list){return list.reduce(function(a,x){
+        const f=x.grams/100;
+        return{cal:a.cal+x.item.k*f,p:a.p+x.item.p*f,c:a.c+x.item.c*f,f:a.f+x.item.f*f};
+      },{cal:0,p:0,c:0,f:0})}
+      const tot=totals(sized);
+      // If meal is >25% over target, gently scale down
+      if(tot.cal>mealCalTarget*1.25){
+        const f=mealCalTarget/tot.cal;
+        sized.forEach(function(s){s.grams=Math.max(5,Math.round(s.grams*f/5)*5)});
+      }
+      const t=totals(sized);
+      const lines=sized.map(function(x){return x.grams+"g "+x.item.name});
+      return{type:meal.slot,ml:meal.slot+" — "+lines.join(", "),cal:Math.round(t.cal),p:Math.round(t.p),c:Math.round(t.c),f:Math.round(t.f)};
+    }).filter(Boolean);
+    return{day:day.day,isTraining:day.isTraining,meals:meals};
+  });
+  // Pantry summary
+  const totalAvail=pantryState.items.reduce(function(a,it){
+    const f=it.grams/100;
+    return{cal:a.cal+it.k*f,p:a.p+it.p*f,c:a.c+it.c*f,f:a.f+it.f*f};
+  },{cal:0,p:0,c:0,f:0});
+  const targetTotal=dailyCal*days;
+  const coverage=targetTotal>0?totalAvail.cal/targetTotal:0;
+  pantryState.preview={days:finalDays,totalAvail:totalAvail,targetTotal:targetTotal,coverage:coverage};
+  _rPantryPlanner();
+}
+function pantryApplyToPlan(){
+  const pv=pantryState.preview;if(!pv){alert("Build a plan first");return}
+  if(!confirm("Apply this pantry-built plan to your weekly meal plan?\n\nIt'll replace the current week. Your individual meals are still editable afterwards."))return;
+  cachedMealPlan=pv.days.slice();
+  if(typeof savMealPlan==="function")savMealPlan();
+  if(typeof mpMode!=="undefined")mpMode="custom";
+  if(typeof saveMpMode==="function")saveMpMode();
+  closePantryPlanner();
+  if(typeof ftoast==="function")ftoast("✓ Pantry plan applied to your week");
+  foodSubTab="mealplan";
+  rFood();
+}
+function openPantryPlanner(){
+  if(!pantryState.items.length)pantryState.preview=null;
+  _rPantryPlanner();
+}
+function closePantryPlanner(){const o=document.getElementById("pantryOverlay");if(o)o.remove()}
+function pantryOpenSearch(){
+  // Reuse the food-search overlay but intercept selection to add to pantry.
+  window._pantryPicker=true;
+  openFoodSearch();
+}
+
+function _rPantryPlanner(){
+  let overlay=document.getElementById("pantryOverlay");
+  if(!overlay){overlay=document.createElement("div");overlay.id="pantryOverlay";overlay.className="gl-overlay";document.body.appendChild(overlay)}
+  const items=pantryState.items;
+  const days=pantryState.days;const mpd=pantryState.mealsPerDay;
+  const dailyCal=S.nutri?.cal||2500;
+  const totalAvail=items.reduce(function(a,it){const f=it.grams/100;return{cal:a.cal+it.k*f,p:a.p+it.p*f,c:a.c+it.c*f,f:a.f+it.f*f}},{cal:0,p:0,c:0,f:0});
+  const targetTotal=dailyCal*days;
+  const covPct=targetTotal>0?Math.round(totalAvail.cal/targetTotal*100):0;
+  const covCol=covPct<80?"var(--red)":covPct<120?"var(--grn)":"var(--amb)";
+  const covMsg=covPct<80?(`${covPct}% of target — pantry won't cover the full week, meals will be small. Add more items.`):covPct<120?(`${covPct}% of target — pantry covers the plan well.`):(`${covPct}% of target — you have more than needed, some meals will be oversized or you'll have leftovers.`);
+  let h=`<div class="gl-header"><h2>📦 Pantry Plan Builder</h2><button class="gl-close" onclick="closePantryPlanner()">✕</button></div><div class="gl-body">`;
+  h+=`<div style="font-size:11px;color:var(--sub);line-height:1.4;margin-bottom:10px">Enter the exact quantity of every item you have. The app distributes them across <b>${days} days × ${mpd} meals</b> to hit your <b>${dailyCal} kcal</b> daily target.</div>`;
+  h+=`<div class="log-t" style="margin:0 0 6px">1 · Your Items (${items.length})</div>`;
+  h+=`<div class="pantry-list">`;
+  if(!items.length)h+=`<div style="color:var(--sub);font-size:11px;text-align:center;padding:14px">No items yet. Tap <b>+ Add Food</b> to search the bundled UK library or OFF.</div>`;
+  else items.forEach(function(it,i){
+    const cat=_pantryCategorise(it);
+    const catEmoji={protein:"🥩",carb:"🌾",fat:"🧈",veg:"🥬",fruit:"🍎"}[cat];
+    const f=it.grams/100;
+    const totK=Math.round(it.k*f);const totP=Math.round(it.p*f);
+    h+=`<div class="pantry-row"><div class="pantry-cat">${catEmoji}</div><div class="pantry-info"><div class="pantry-name">${esc(it.name)}${it.brand?' <span style="color:var(--sub);font-size:10px">· '+esc(it.brand)+'</span>':''}</div><div class="pantry-macro">${it.k} kcal · ${it.p}P · ${it.c}C · ${it.f}F per 100g</div></div><div class="pantry-qty"><input type="number" value="${it.grams}" min="0" step="10" onchange="pantryUpdateGrams(${i},this.value)"><span class="pantry-unit">g</span></div><div class="pantry-totals">${totK}k · ${totP}P</div><button class="pantry-x" onclick="pantryRemove(${i})">✕</button></div>`;
+  });
+  h+=`</div>`;
+  h+=`<button class="s-btn pri" style="width:100%;margin-top:8px" onclick="pantryOpenSearch()">+ Add Food</button>`;
+  if(items.length){
+    h+=`<div class="pantry-summary"><div class="pantry-summary-row"><span>Total available</span><span><b style="color:var(--amb)">${Math.round(totalAvail.cal)} kcal</b> · ${Math.round(totalAvail.p)}g P · ${Math.round(totalAvail.c)}g C · ${Math.round(totalAvail.f)}g F</span></div><div class="pantry-summary-row"><span>Target (${days} days)</span><span>${Math.round(targetTotal)} kcal</span></div><div class="pantry-coverage" style="color:${covCol}">${covMsg}</div></div>`;
+  }
+  h+=`<div class="log-t" style="margin:14px 0 6px">2 · Plan Settings</div>`;
+  h+=`<div style="display:flex;gap:8px;margin-bottom:8px"><div style="flex:1"><label style="font-size:10px;color:var(--sub)">Days</label><select onchange="pantrySetDays(this.value)" style="width:100%;padding:8px;background:var(--input);border:1px solid var(--bdr);border-radius:8px;color:var(--tx)">${[1,2,3,4,5,6,7].map(function(n){return`<option value="${n}"${n===days?' selected':''}>${n} day${n!==1?"s":""}</option>`}).join("")}</select></div><div style="flex:1"><label style="font-size:10px;color:var(--sub)">Meals / day</label><select onchange="pantrySetMeals(this.value)" style="width:100%;padding:8px;background:var(--input);border:1px solid var(--bdr);border-radius:8px;color:var(--tx)">${[3,4,5,6].map(function(n){return`<option value="${n}"${n===mpd?' selected':''}>${n} meals</option>`}).join("")}</select></div></div>`;
+  h+=`<button class="s-btn grn" style="width:100%" onclick="pantryBuild()">⚡ Build plan from these items</button>`;
+  if(pantryState.preview){
+    h+=`<div class="log-t" style="margin:14px 0 6px">3 · Preview</div>`;
+    const pv=pantryState.preview;
+    h+=pv.days.map(function(d){
+      const totals=d.meals.reduce(function(a,m){return{cal:a.cal+m.cal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}},{cal:0,p:0,c:0,f:0});
+      const diff=totals.cal-dailyCal;const col=Math.abs(diff)/Math.max(1,dailyCal)<=0.15?"var(--grn)":"var(--amb)";
+      let dh=`<div class="pantry-day"><div class="pantry-day-head"><b>${d.day}</b><span style="font-size:10px;color:${col}">${totals.cal}/${dailyCal} kcal · ${totals.p}g P</span></div>`;
+      d.meals.forEach(function(m){
+        dh+=`<div class="pantry-meal"><div style="font-size:10px;color:var(--amb);font-weight:700">${esc(m.type)}</div><div style="font-size:11px;color:var(--tx);line-height:1.35">${esc(m.ml.replace(/^[^—]*—\s*/,""))}</div><div style="font-size:9px;color:var(--sub);font-family:'JetBrains Mono',monospace">${m.cal} kcal · ${m.p}P · ${m.c}C · ${m.f}F</div></div>`;
+      });
+      dh+=`</div>`;
+      return dh;
+    }).join("");
+    h+=`<button class="s-btn pri" style="width:100%;margin-top:10px" onclick="pantryApplyToPlan()">✓ Apply to Weekly Plan</button>`;
+  }
+  h+=`</div>`;
+  overlay.innerHTML=h;
 }
 function rFoodOverview(dl,tl,t){
 const calRemain=t.cal-tl.cal;const pRemain=t.protein-tl.p;const cRemain=t.carbs-tl.c;const fRemain=t.fat-tl.f;
@@ -3703,6 +3919,19 @@ function relogFood(name,cal,p,c,f){
   if(typeof ftoast==="function")ftoast("✓ Logged "+name);
 }
 function pickFoodFromSearch(name,kcal100,p100,c100,f100){
+  // If the food search was opened from the Pantry builder, route the
+  // selection back to the pantry list instead of logging a meal.
+  if(window._pantryPicker){
+    const q=prompt("How much "+name+" do you have? (grams)","500");
+    const qty=parseInt(q,10);if(!qty||qty<=0){return}
+    pantryState.items.push({name:name,brand:"",grams:qty,k:kcal100,p:p100,c:c100,f:f100});
+    pantryState.preview=null;
+    window._pantryPicker=false;
+    closeFoodSearch();
+    _rPantryPlanner();
+    if(typeof ftoast==="function")ftoast("+ Added "+qty+"g "+name);
+    return;
+  }
   const q=prompt('Amount (g) of '+name+'?','100');
   const qty=parseInt(q,10);if(!qty||qty<=0)return;
   const f=qty/100;
