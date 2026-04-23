@@ -679,6 +679,7 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .pantry-day-head{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px}
 .pantry-meal{padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.04)}
 .pantry-meal:last-child{border-bottom:none}
+.mb-status{font-size:12px;font-weight:700;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);line-height:1.4;margin-bottom:6px}
 .ex-r{cursor:pointer}.ex-r .ex-chv{color:var(--sub);font-size:10px;flex-shrink:0;transition:transform .2s;margin-left:4px}
 /* Exercise Detail Modal */
 .ex-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;flex-direction:column;animation:fadeUp .2s ease}
@@ -3106,7 +3107,7 @@ const tk=tdk();const dl=S.flog[tk]||[];
 return meals.opts.map((o,oi)=>{const lg=dl.some(l=>l.mi===mealIdx&&l.oi===oi);const emoji=getMealEmoji(o.ml);const grad=getMealGrad(meals.nm);
 return`<div class="meal-card${lg?' logged':''}" onclick="showRecipeDetail('${esc(meals.nm)}','${o.ml.replace(/'/g,"\\'")}',${o.cal},${o.p},${o.c},${o.f},${mealIdx},${oi})"><div class="mc-hero" style="background:${grad}"><div class="mc-emoji">${emoji}</div>${lg?'<div class="mc-badge">✓ Logged</div>':''}</div><div class="mc-body"><div class="mc-title">${renderMealIngredientLines(o.ml)}</div><div class="mc-macros"><span class="mc-macro cal">${o.cal} kcal</span><span class="mc-macro pro">${o.p}g P</span><span class="mc-macro carb">${o.c}g C</span><span class="mc-macro fat">${o.f}g F</span></div><button class="mc-log-btn" onclick="event.stopPropagation();${lg?`ulMeal(${mealIdx},${oi})`:`lMeal(${mealIdx},${oi})`}">${lg?'✕ Remove':'+ Log This Meal'}</button></div></div>`}).join('')}
 function rQuickLogRow(){
-  return`<div class="quick-log-row"><button class="quick-log-b" onclick="openBarcodeScanner()"><div class="ql-emoji">📷</div><div class="ql-label">Scan Barcode</div><div class="ql-sub">UK-branded foods</div></button><button class="quick-log-b" onclick="openFoodSearch()"><div class="ql-emoji">🔍</div><div class="ql-label">Search Foods</div><div class="ql-sub">Find + log in 2 taps</div></button><button class="quick-log-b" onclick="openPantryPlanner()" style="grid-column:1/-1"><div class="ql-emoji">📦</div><div class="ql-label">Pantry Plan</div><div class="ql-sub">Enter what you have → get a full week plan with exact portions</div></button></div>`;
+  return`<div class="quick-log-row"><button class="quick-log-b" onclick="openBarcodeScanner()"><div class="ql-emoji">📷</div><div class="ql-label">Scan Barcode</div><div class="ql-sub">UK-branded foods</div></button><button class="quick-log-b" onclick="openFoodSearch()"><div class="ql-emoji">🔍</div><div class="ql-label">Search Foods</div><div class="ql-sub">Find + log in 2 taps</div></button><button class="quick-log-b" onclick="openMealBuilder()"><div class="ql-emoji">🍽</div><div class="ql-label">Build a Meal</div><div class="ql-sub">Pick items → exact grams</div></button><button class="quick-log-b" onclick="openPantryPlanner()"><div class="ql-emoji">📦</div><div class="ql-label">Pantry Plan</div><div class="ql-sub">Whole-week plan</div></button></div>`;
 }
 
 // ═════════════ PANTRY-TO-PLAN BUILDER ═════════════
@@ -3253,6 +3254,125 @@ function pantryOpenSearch(){
   // Reuse the food-search overlay but intercept selection to add to pantry.
   window._pantryPicker=true;
   openFoodSearch();
+}
+
+// ═════════════ INSTANT MEAL BUILDER ═════════════
+// Pick ingredients → app assigns portions that hit your meal's target.
+// Smaller sibling of the pantry planner for single-meal use.
+let mealBuilderState={mealType:"Lunch",items:[]};
+function _mealTargetFor(type){
+  const dailyCal=S.nutri?.cal||2500;
+  const dailyP=S.nutri?.protein||150;
+  const shares={Breakfast:0.25,Lunch:0.30,Dinner:0.30,"Pre-Workout":0.10,"Evening Snack":0.10,Snack:0.15,"Mass Gainer Shake":0.25};
+  const share=shares[type]||0.25;
+  return{cal:Math.round(dailyCal*share),p:Math.round(dailyP*share)};
+}
+function _mbBasePortion(cat){
+  const goal=S.user?.profile?.goal||"general";
+  if(cat==="protein")return goal==="muscle_gain"?180:goal==="fat_loss"?200:150;
+  if(cat==="carb")return goal==="muscle_gain"?180:goal==="fat_loss"?120:150;
+  if(cat==="fat")return 15;
+  if(cat==="veg")return 120;
+  if(cat==="fruit")return 100;
+  return 100;
+}
+function openMealBuilder(){mealBuilderState={mealType:"Lunch",items:[]};_rMealBuilder()}
+function closeMealBuilder(){const o=document.getElementById("mbOverlay");if(o)o.remove()}
+function mealBuilderSetType(type){mealBuilderState.mealType=type;_rMealBuilder()}
+function mealBuilderAddItem(name,k,p,c,f,br){
+  const cat=_pantryCategorise({name:name,p:p,c:c,f:f});
+  const grams=_mbBasePortion(cat);
+  mealBuilderState.items.push({name:name,grams:grams,k:k,p:p,c:c,f:f,br:br||""});
+  _rMealBuilder();
+}
+function mealBuilderUpdateGrams(idx,v){
+  const g=Math.max(0,parseInt(v,10)||0);if(!mealBuilderState.items[idx])return;
+  mealBuilderState.items[idx].grams=g;_rMealBuilder();
+}
+function mealBuilderRemove(idx){mealBuilderState.items.splice(idx,1);_rMealBuilder()}
+function mealBuilderAutoFit(){
+  const items=mealBuilderState.items;if(!items.length)return;
+  const target=_mealTargetFor(mealBuilderState.mealType);
+  function total(){return items.reduce(function(a,x){const f=x.grams/100;return{cal:a.cal+x.k*f,p:a.p+x.p*f}},{cal:0,p:0})}
+  const t=total();
+  const diff=t.cal-target.cal;
+  if(Math.abs(diff)<=target.cal*0.08)return; // already close
+  // Scale starch + fat items to close the gap; protein stays to protect macros.
+  const scalable=items.filter(function(it){const c=_pantryCategorise(it);return c==="carb"||c==="fat"});
+  if(scalable.length){
+    let scalableCal=0;scalable.forEach(function(x){scalableCal+=x.k*x.grams/100});
+    if(scalableCal>0){
+      const newCal=Math.max(scalableCal-diff,scalableCal*0.4);
+      const sf=newCal/scalableCal;
+      scalable.forEach(function(x){x.grams=Math.max(5,Math.round(x.grams*sf/5)*5)});
+      _rMealBuilder();return;
+    }
+  }
+  // Fallback: scale everything proportionally.
+  const sf=target.cal/Math.max(1,t.cal);
+  items.forEach(function(x){x.grams=Math.max(5,Math.round(x.grams*sf/5)*5)});
+  _rMealBuilder();
+}
+function _mbTotals(){
+  return mealBuilderState.items.reduce(function(a,x){const f=x.grams/100;return{cal:a.cal+x.k*f,p:a.p+x.p*f,c:a.c+x.c*f,f:a.f+x.f*f}},{cal:0,p:0,c:0,f:0});
+}
+function mealBuilderLog(){
+  const items=mealBuilderState.items;if(!items.length){alert("Add at least one ingredient");return}
+  const t=_mbTotals();
+  const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];
+  const ml=mealBuilderState.mealType+" — "+items.map(function(i){return i.grams+"g "+i.name}).join(", ");
+  S.flog[tk].push({meal:mealBuilderState.mealType,ml:ml,cal:Math.round(t.cal),p:Math.round(t.p),c:Math.round(t.c),f:Math.round(t.f),isCustom:true});
+  savFlog();updHdr();closeMealBuilder();rFood();
+  if(typeof ftoast==="function")ftoast("✓ Logged "+mealBuilderState.mealType);
+}
+function mealBuilderSaveAsMeal(){
+  const items=mealBuilderState.items;if(!items.length){alert("Add at least one ingredient");return}
+  const defaultName=mealBuilderState.mealType+" — "+items.slice(0,2).map(function(i){return i.name.split(" ")[0]}).join(" & ");
+  const name=prompt("Name this meal:",defaultName);if(!name)return;
+  const t=_mbTotals();
+  const ml=name+" — "+items.map(function(i){return i.grams+"g "+i.name}).join(", ");
+  S.customMeals.push({name:name,cal:Math.round(t.cal),p:Math.round(t.p),c:Math.round(t.c),f:Math.round(t.f),mealType:mealBuilderState.mealType,mealTypes:[mealBuilderState.mealType],description:ml,ingredients:items.map(function(i){return i.grams+"g "+i.name})});
+  savCMeals();
+  mealBuilderLog();
+}
+function mbOpenSearch(){window._mbPicker=true;openFoodSearch()}
+function _rMealBuilder(){
+  let overlay=document.getElementById("mbOverlay");
+  if(!overlay){overlay=document.createElement("div");overlay.id="mbOverlay";overlay.className="gl-overlay";document.body.appendChild(overlay)}
+  const items=mealBuilderState.items;
+  const type=mealBuilderState.mealType;
+  const target=_mealTargetFor(type);
+  const t=_mbTotals();
+  const calPct=target.cal>0?Math.round(t.cal/target.cal*100):0;
+  const calDiff=Math.round(t.cal-target.cal);
+  const proDiff=Math.round(t.p-target.p);
+  const onTarget=Math.abs(calPct-100)<=12&&proDiff>=-5;
+  const statusCol=onTarget?"var(--grn)":calPct<80?"var(--amb)":calPct>120?"var(--amb)":"var(--grn)";
+  const statusMsg=!items.length?`📝 Add ingredients — target ${target.cal} kcal · ${target.p}g protein`:onTarget?`✅ On target — ${t.cal} kcal · ${Math.round(t.p)}g P (${calPct}%)`:calPct<80?`🟡 Under — add more or tap ⚡ Auto-fit (${calPct}% of ${target.cal} kcal)`:calPct>120?`🟡 Over — trim portions or tap ⚡ Auto-fit (${calPct}% of ${target.cal} kcal)`:`${t.cal} / ${target.cal} kcal · ${Math.round(t.p)} / ${target.p}g P`;
+  const types=["Breakfast","Lunch","Dinner","Pre-Workout","Evening Snack","Snack"];
+  let h=`<div class="gl-header"><h2>🍽 Build a Meal</h2><button class="gl-close" onclick="closeMealBuilder()">✕</button></div><div class="gl-body">`;
+  h+=`<div style="font-size:10px;color:var(--sub);line-height:1.4;margin-bottom:8px">Pick ingredients and the app sets exact grams for you. Composite dishes (Jollof Rice, Fried Rice, Smoothies…) work too — just search them as a single item.</div>`;
+  h+=`<div class="log-t" style="margin:0 0 6px">Meal Type</div>`;
+  h+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${types.map(function(mt){return`<button class="pill ${type===mt?"on":""}" onclick="mealBuilderSetType('${mt}')">${mt}</button>`}).join("")}</div>`;
+  h+=`<div class="mb-status" style="color:${statusCol}">${statusMsg}</div>`;
+  h+=`<div class="log-t" style="margin:12px 0 6px">Ingredients (${items.length})</div>`;
+  h+=`<div class="pantry-list">`;
+  if(!items.length)h+=`<div style="color:var(--sub);font-size:11px;text-align:center;padding:14px">No ingredients yet. Tap <b>+ Add Ingredient</b> to search the UK library.</div>`;
+  else items.forEach(function(it,i){
+    const cat=_pantryCategorise(it);
+    const catEmoji={protein:"🥩",carb:"🌾",fat:"🧈",veg:"🥬",fruit:"🍎"}[cat];
+    const f=it.grams/100;const totK=Math.round(it.k*f);const totP=Math.round(it.p*f);
+    h+=`<div class="pantry-row"><div class="pantry-cat">${catEmoji}</div><div class="pantry-info"><div class="pantry-name">${esc(it.name)}${it.br?' <span style="color:var(--sub);font-size:10px">· '+esc(it.br)+'</span>':''}</div><div class="pantry-macro">${it.k} kcal · ${it.p}P · ${it.c}C · ${it.f}F / 100g</div></div><div class="pantry-qty"><input type="number" value="${it.grams}" min="0" step="5" onchange="mealBuilderUpdateGrams(${i},this.value)"><span class="pantry-unit">g</span></div><div class="pantry-totals">${totK}k · ${totP}P</div><button class="pantry-x" onclick="mealBuilderRemove(${i})">✕</button></div>`;
+  });
+  h+=`</div>`;
+  h+=`<button class="s-btn pri" style="width:100%;margin-top:8px" onclick="mbOpenSearch()">+ Add Ingredient</button>`;
+  if(items.length){
+    h+=`<button class="s-btn amb" style="width:100%;margin-top:6px" onclick="mealBuilderAutoFit()">⚡ Auto-fit to target</button>`;
+    h+=`<div class="pantry-summary" style="margin-top:10px"><div class="pantry-summary-row"><span>Total this meal</span><span><b style="color:var(--amb)">${t.cal} kcal</b> · ${Math.round(t.p)}g P · ${Math.round(t.c)}g C · ${Math.round(t.f)}g F</span></div><div class="pantry-summary-row"><span>Target for ${type}</span><span>${target.cal} kcal · ${target.p}g P</span></div></div>`;
+    h+=`<div style="display:flex;gap:6px;margin-top:10px"><button class="s-btn pri" style="flex:1" onclick="mealBuilderLog()">+ Log Now</button><button class="s-btn grn" style="flex:1" onclick="mealBuilderSaveAsMeal()">💾 Save as meal</button></div>`;
+  }
+  h+=`</div>`;
+  overlay.innerHTML=h;
 }
 
 function _rPantryPlanner(){
@@ -3930,6 +4050,14 @@ function pickFoodFromSearch(name,kcal100,p100,c100,f100){
     closeFoodSearch();
     _rPantryPlanner();
     if(typeof ftoast==="function")ftoast("+ Added "+qty+"g "+name);
+    return;
+  }
+  // Routed from the instant Meal Builder: add with a smart default portion
+  // based on the food category and the user's goal (no prompt — portions
+  // are editable inline afterwards).
+  if(window._mbPicker){
+    mealBuilderAddItem(name,kcal100,p100,c100,f100,"");
+    window._mbPicker=false;closeFoodSearch();
     return;
   }
   const q=prompt('Amount (g) of '+name+'?','100');
