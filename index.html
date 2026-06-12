@@ -860,6 +860,8 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .q-fix-proj b{color:var(--amb);font-size:16px}
 .q-fix-proj .q-arrow{color:var(--amb);margin:0 2px}
 .q-opt-btn{display:block;width:100%;margin-top:10px;font-size:12px;font-weight:800;color:#000;background:var(--amb);border:none;border-radius:10px;padding:10px;cursor:pointer}
+.ex-next{margin-top:4px;font-size:10px;line-height:1.45;color:var(--sub);padding:4px 8px;border-left:2px solid var(--sub);background:rgba(255,255,255,.03);border-radius:0 6px 6px 0}
+.ex-next b{font-weight:700}
 /* ── Collapsible home sections ── */
 .hc{margin-bottom:6px}
 .hc-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
@@ -1883,7 +1885,7 @@ function renderDayBody(d, i){
   const inProg=!dn&&hasActiveProgress(i);
   const startLbl=dn?'Redo':inProg?'▶ Continue Session':'Start Session →';
   const startCls=dn?'out':inProg?'amb':'pri';
-  return rDayAim(d)+qPanel(d,i)+`<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div></div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}${rSchedPicker(i,d)}<button class="s-btn amb" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();shuffleDay(${i})">🔄 Reset / Shuffle Day</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
+  return rDayAim(d)+qPanel(d,i)+`<div class="ib"><strong>Warmup:</strong> ${d.warm}</div>${d.exs.map((e,j)=>{const exDb=findExInDB(e.n);const cat=exDb?exDb.cat:'legs';return`<div class="ex-r" onclick="showExDetail('${e.n.replace(/'/g,"\\'")}','${e.s}','${(e.r||'').replace(/'/g,"\\'")}','${(e.rest||'').replace(/'/g,"\\'")}')"><div class="ex-thumb plan ${cat}"><div class="et-fallback">${(CAT_META[cat]||{e:'🏋️'}).e}</div></div><div style="flex:1"><div class="ex-nm">${e.n}</div><div class="ex-d">${e.s} × ${e.r} · Rest ${e.rest}</div>${_progLine(e.n)}</div><button class="ex-swap-btn" onclick="event.stopPropagation();openSwapEx(${i},${j})" title="Swap exercise">⇄</button><button class="ex-rm-btn" onclick="event.stopPropagation();rmPlanEx(${i},${j})" title="Remove exercise">✕</button></div>${swapCtx&&swapCtx.di===i&&swapCtx.ei===j?rSwapPicker(i,j):''}`}).join("")}<div class="ib"><strong>Cooldown:</strong> ${d.cool}</div><div class="ib"><strong>Progression:</strong> ${d.prog}</div>${addExDay===i?rAddExPicker(i):`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();openAddEx(${i})">+ Add Exercise</button>`}${rSchedPicker(i,d)}<button class="s-btn amb" style="margin-top:4px;font-size:11px" onclick="event.stopPropagation();shuffleDay(${i})">🔄 Reset / Shuffle Day</button><button class="s-btn ${startCls}" onclick="startWO(${i})">${startLbl}</button><button class="s-btn red" style="margin-top:4px" onclick="event.stopPropagation();rmPlanDay(${i})">Remove Day</button>`;
 }
 function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div class="log-t" style="margin-top:14px">🟢 Pure Gym Presets</div><div class="preset-card" onclick="applyPreset('pg_kettlebell')"><div style="font-weight:700;font-size:13px">🔔 Kettlebell Full Body</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 6 lifts, 3 rounds</div></div><div class="preset-card" onclick="applyPreset('pg_circuit30')"><div style="font-weight:700;font-size:13px">⏱️ 30-Min Full Body Circuit</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 6 moves · 45s on / 15s off · 5 rounds</div></div><div class="preset-card" onclick="applyPreset('pg_dumbbell')"><div style="font-weight:700;font-size:13px">🏋️ Dumbbell Accumulator</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · DB-only progressive reps</div></div><div class="preset-card" onclick="applyPreset('pg_norwegian')"><div style="font-weight:700;font-size:13px">❤️ Norwegian 4×4 HIIT</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 4 min on / 3 min off × 4 · run, row or bike</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
@@ -1894,6 +1896,7 @@ const totalSessions=Object.keys(S.logs).length;
 const streak=(()=>{const dates=Object.values(S.logs).map(l=>l.date).filter(Boolean).sort();if(!dates.length)return 0;const logDates=new Set(dates.map(d=>new Date(d).toISOString().slice(0,10)));const today=new Date();today.setHours(0,0,0,0);let s=0,check=new Date(today);for(let w=0;w<52;w++){const ws=new Date(check);ws.setDate(ws.getDate()-ws.getDay());let has=false;for(let d=0;d<7;d++){const day=new Date(ws);day.setDate(day.getDate()+d);if(logDates.has(day.toISOString().slice(0,10))){has=true;break}}if(has)s++;else if(w>0)break;check.setDate(check.getDate()-7)}return s})();
 const greetHour=new Date().getHours();const greet=greetHour<12?"Good morning":greetHour<17?"Good afternoon":"Good evening";
 // Weekly calendar strip data
+_progByName={};(typeof analyzeProgression==="function"?analyzeProgression():[]).forEach(function(r){_progByName[r.name]=r});
 const now=new Date();const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
 let calStrip='';
@@ -1954,6 +1957,7 @@ rCoachCard()+
 `<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — do any workout on any day. Completed days show the actual date you trained, not the planned day. Streak and progress track real behaviour.</div>`+
 `<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
 `<button class="s-btn amb" style="margin:6px 0 10px;font-size:12px;font-weight:700" onclick="shuffleWholePlan()">🔀 Shuffle entire plan (every day)</button><div style="font-size:10px;color:var(--sub);text-align:center;margin:-4px 0 10px">Use 🔀 to reshuffle the whole week · or tap 🔄 on any single day to reshuffle just that session.</div>`+
+rWeekQuality()+
 S.plan.map((d,i)=>{
   const dn=S.logs["w"+S.week+"-d"+i];
   const isToday=(i===todayIdx);
@@ -2005,6 +2009,43 @@ function rSchedPicker(di,d){
   return btn+`<div class="pills" style="margin:6px 0 0;padding:0">${chips}</div>`;
 }
 function setSchedDay(di,day){S.plan[di].sched=day;schedPick=null;savPlan();rPlan();setTimeout(function(){var el=document.getElementById("dc"+di);if(el)el.classList.add("open")},10)}
+// ── Per-exercise progression surfaced inline on each plan day (built from logged history) ──
+let _progByName={};
+function _progLine(name){const r=_progByName[name];if(!r||r.status==="tracking")return"";const col=r.color||"var(--sub)";return `<div class="ex-next" style="border-left-color:${col}"><b style="color:${col}">${r.icon} ${r.change||"Next"}</b> — ${(r.msg||"").replace(/<[^>]+>/g,"")}</div>`}
+// ── Whole-week balance: total PLANNED hard sets per muscle across every day, vs weekly targets ──
+function plannedWeeklyVolume(){const vol={};(S.plan||[]).forEach(function(d){(d.exs||[]).forEach(function(e){const db=findExInDB(e.n);if(!db||(db.t!=="compound"&&db.t!=="isolation"))return;vol[db.cat]=(vol[db.cat]||0)+(+e.s||0)})});return vol}
+function scoreWeek(){
+  const areas=(S.user&&S.user.profile&&S.user.profile.areas)||[];
+  const vol=plannedWeeklyVolume();
+  const REC={chest:[10,20],back:[10,20],shoulders:[8,18],arms:[8,16],legs:[10,20],glutes:[8,16],core:[6,16],calisthenics:[8,20]};
+  let muscles=areas.filter(function(m){return REC[m]});
+  if(!muscles.length)muscles=Object.keys(REC).filter(function(m){return (vol[m]||0)>0});
+  if(!muscles.length)muscles=["chest","back","legs"];
+  const rows=[];let inRange=0;
+  muscles.forEach(function(m){const sets=vol[m]||0;const r=REC[m]||[8,20];const status=sets<r[0]?"low":sets>r[1]?"high":"ok";if(status==="ok")inRange++;rows.push({m:m,sets:sets,lo:r[0],hi:r[1],status:status})});
+  const push=(vol.chest||0)+(vol.shoulders||0)+(vol.arms||0)/2;
+  const pull=(vol.back||0)+(vol.arms||0)/2;
+  const upper=(vol.chest||0)+(vol.back||0)+(vol.shoulders||0)+(vol.arms||0);
+  const lower=(vol.legs||0)+(vol.glutes||0);
+  function ratio(a,b){const m=Math.max(a,b);return m?Math.min(a,b)/m:1}
+  const ppBal=ratio(push,pull),ulBal=(upper&&lower)?ratio(upper,lower):1;
+  let score=Math.round(inRange/Math.max(1,muscles.length)*70+ppBal*15+ulBal*15);if(score>100)score=100;
+  const tips=[];
+  rows.filter(function(x){return x.status==="low"}).forEach(function(x){tips.push({c:"bad",t:`<b>${(CAT_META[x.m]||{l:x.m}).l} under-trained</b> — only ${x.sets} set${x.sets!==1?"s":""}/week (aim ${x.lo}–${x.hi}). Add a ${(CAT_META[x.m]||{l:x.m}).l.toLowerCase()} exercise to one of your days, or +1 set on what's there.`})});
+  rows.filter(function(x){return x.status==="high"}).forEach(function(x){tips.push({c:"",t:`<b>${(CAT_META[x.m]||{l:x.m}).l} volume is high</b> — ${x.sets} sets/week (over ${x.hi}). Trim a set or two to aid recovery.`})});
+  if(ppBal<0.7)tips.push({c:"",t:`<b>Push / Pull imbalance</b> — ~${Math.round(push)} push vs ${Math.round(pull)} pull sets/week. Balance protects the shoulders and posture.`});
+  if(upper&&lower&&ulBal<0.6)tips.push({c:"",t:`<b>Upper / Lower imbalance</b> — ${Math.round(upper)} upper vs ${Math.round(lower)} lower sets/week. Don't skip legs.`});
+  if(!tips.length)tips.push({c:"good",t:`<b>Balanced week.</b> Every muscle you target sits in its productive weekly range — now just progress the loads.`});
+  const grade=score>=85?{l:"Well balanced",col:"var(--grn)"}:score>=70?{l:"Decent",col:"var(--amb)"}:{l:"Needs balancing",col:"var(--red)"};
+  return {score:score,grade:grade,rows:rows,tips:tips.slice(0,6),col:grade.col};
+}
+function rWeekQuality(){
+  if(!S.plan||!S.plan.length)return"";
+  const w=scoreWeek();
+  const bars=w.rows.map(function(x){const col=x.status==="ok"?"var(--grn)":x.status==="low"?"var(--amb)":"var(--red)";const pct=Math.min(100,Math.round(x.sets/Math.max(1,x.hi)*100));return `<div class="q-crit"><div class="q-crit-top"><span class="q-crit-lbl">${(CAT_META[x.m]||{l:x.m}).l}</span><span class="q-crit-val" style="color:${col}">${x.sets} sets · ${x.status==="ok"?"on target":x.status}</span></div><div class="q-bar"><i style="width:${pct}%;background:${col}"></i></div></div>`}).join("");
+  const tips=w.tips.map(function(t){return `<div class="q-tip ${t.c}">${t.t}</div>`}).join("");
+  return `<div class="q-panel" id="wkq"><div class="q-head" onclick="document.getElementById('wkq').classList.toggle('open')"><div><div class="q-title">📅 Week Balance</div><div class="q-grade">whole-week muscle balance · planned sets</div></div><div style="display:flex;align-items:center;gap:8px"><span class="q-score" style="color:${w.col}">${w.score}%</span><span class="q-grade" style="color:${w.col};font-weight:700">${w.grade.l}</span><span class="chv">▸</span></div></div><div class="q-body"><div style="font-size:10px;color:var(--sub);margin-bottom:8px">Total planned hard sets per muscle across your whole week. Hypertrophy sweet spot ≈ 10–20 sets/muscle/week.</div>${bars}${tips}</div></div>`;
+}
 let addExDay=null;let addExFilter="all";
 let swapCtx=null;
 function openSwapEx(di,ei){swapCtx={di:di,ei:ei};rPlan();setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10)}
