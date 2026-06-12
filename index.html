@@ -856,6 +856,10 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .q-fix-actions{display:flex;gap:8px}
 .q-fix-apply{flex:1;font-size:11px;font-weight:800;color:#000;background:var(--amb);border:none;border-radius:8px;padding:8px;cursor:pointer}
 .q-fix-cancel{flex:1;font-size:11px;font-weight:700;color:var(--sub);background:transparent;border:1px solid var(--bdr);border-radius:8px;padding:8px;cursor:pointer}
+.q-fix-proj{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--sub);margin-bottom:6px}
+.q-fix-proj b{color:var(--amb);font-size:16px}
+.q-fix-proj .q-arrow{color:var(--amb);margin:0 2px}
+.q-opt-btn{display:block;width:100%;margin-top:10px;font-size:12px;font-weight:800;color:#000;background:var(--amb);border:none;border-radius:10px;padding:10px;cursor:pointer}
 /* ── Collapsible home sections ── */
 .hc{margin-bottom:6px}
 .hc-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
@@ -1785,48 +1789,95 @@ function scoreDay(d){
   if(score>=85&&!tips.length)tips.push({c:"good",t:`<b>Great session.</b> Balanced volume, solid compounds and full coverage — progressively overload it.`});
   return{score:score,grade:grade,crit:crit,tips:tips.slice(0,5),col:grade.col};
 }
-// ── One-click fixes for quality tips: propose a concrete change, preview it, apply on approval. ──
+// ── Simulation-based fixes: every candidate change is scored first; only score-raising
+//    fixes are offered (with the projected %). Auto-optimise chains the best improving
+//    changes toward the maximum for the user's goal. Added lifts use goal-appropriate
+//    set/rep schemes (hypertrophy/fat-loss principles), prioritising compounds. ──
 let qPendingFix=null;
-function _pickAddEx(d,groups,preferCompound){
+function _scoreVal(d){const q=scoreDay(d);return q.na?0:q.score}
+function _cloneDay(d){return{day:d.day,sub:d.sub,exs:(d.exs||[]).map(function(e){return{n:e.n,s:e.s,r:e.r,rest:e.rest,note:e.note}})}}
+function _mkAddedEx(e){
+  const g=GM[S.user&&S.user.profile&&S.user.profile.goal]||GM.general;
+  const lv=(S.user&&S.user.profile&&S.user.profile.level)||"intermediate";
+  const sAdj=lv==="beginner"?{s:2,r:"10-12",rest:"2-3 min"}:lv==="veteran"?{s:4,r:g.rm,rest:"90s"}:{s:3,r:g.rm,rest:g.rstm};
+  const res=e.t==="compound"||e.t==="isolation";
+  return{n:e.n,s:res?sAdj.s:1,r:res?sAdj.r:(e.t==="cardio"?"20 min":e.t==="stretch"?"30s hold":sAdj.r),rest:res?sAdj.rest:"—",note:e.nt};
+}
+function _applyCandObj(d,c){
+  if(c.type==="add"){d.exs.push(_mkAddedEx(EX_DB[c.cat][c.idx]))}
+  else if(c.type==="setdelta"){d.exs.forEach(function(e){const db=findExInDB(e.n);if(!db||(db.t!=="compound"&&db.t!=="isolation"))return;if(c.scope==="all"||c.scope===db.t)e.s=Math.max(1,(+e.s||0)+c.delta)})}
+  else if(c.type==="remove"){d.exs.splice(c.exIndex,1)}
+  else if(c.type==="swap"){const ne=EX_DB[c.cat][c.idx];const old=d.exs[c.exIndex];if(old&&ne)d.exs[c.exIndex]={n:ne.n,s:old.s,r:old.r,rest:old.rest,note:ne.nt}}
+  return d;
+}
+function _simCand(d,c){return _applyCandObj(_cloneDay(d),c)}
+function _fixCandidates(d){
   const lv=(S.user&&S.user.profile&&S.user.profile.level)||"intermediate";
   const have={};(d.exs||[]).forEach(function(e){have[e.n]=1});
   function lvOk(e){return lv==="beginner"?e.diff==="beg":lv==="intermediate"?(e.diff==="beg"||e.diff==="inter"):true}
-  const passes=preferCompound?["compound","any"]:["any"];
-  for(const pass of passes){for(const g of (groups||[])){const arr=EX_DB[g]||[];for(let idx=0;idx<arr.length;idx++){const e=arr[idx];
-    if(have[e.n])continue;
-    if(e.t!=="compound"&&e.t!=="isolation")continue;
-    if(pass==="compound"&&e.t!=="compound")continue;
-    if(!lvOk(e))continue;
-    return{cat:g,idx:idx,name:e.n}}}}
-  return null;
+  let groups=dayTargetGroups(d).slice();
+  (d.exs||[]).forEach(function(e){const db=findExInDB(e.n);if(db&&(db.t==="compound"||db.t==="isolation")&&groups.indexOf(db.cat)<0)groups.push(db.cat)});
+  if(!groups.length)groups=["chest"];
+  const cands=[];
+  groups.forEach(function(g){(EX_DB[g]||[]).forEach(function(e,idx){
+    if(have[e.n]||(e.t!=="compound"&&e.t!=="isolation")||!lvOk(e))return;
+    cands.push({type:"add",cat:g,idx:idx,compound:e.t==="compound",label:"Add "+e.n+" — "+(CAT_META[g]||{l:g}).l+" "+e.t});
+  })});
+  cands.push({type:"setdelta",scope:"compound",delta:1,label:"Add 1 set to each compound lift"});
+  cands.push({type:"setdelta",scope:"all",delta:1,label:"Add 1 set to every exercise"});
+  cands.push({type:"setdelta",scope:"isolation",delta:-1,label:"Remove 1 set from each isolation lift"});
+  (d.exs||[]).forEach(function(e,i){const db=findExInDB(e.n);if(db&&db.t==="isolation")cands.push({type:"remove",exIndex:i,label:"Remove "+e.n})});
+  (d.exs||[]).forEach(function(e,i){const db=findExInDB(e.n);if(db&&DIFF_RANK[db.diff]>LVL_RANK[lv]){const arr=EX_DB[db.cat]||[];for(let idx=0;idx<arr.length;idx++){const ne=arr[idx];if(ne.n!==e.n&&!have[ne.n]&&(ne.t==="compound"||ne.t==="isolation")&&lvOk(ne)){cands.push({type:"swap",exIndex:i,cat:db.cat,idx:idx,label:"Swap "+e.n+" → "+ne.n+" (easier)"});break}}}});
+  return cands;
 }
-function computeFix(d,di,fk,fp){
-  if(fk==="compound"||fk==="addex"){const tg=dayTargetGroups(d);let groups=tg.length?tg:[];if(!groups.length){const db=d.exs[0]&&findExInDB(d.exs[0].n);if(db)groups=[db.cat]}const pk=_pickAddEx(d,groups,true);if(!pk)return null;return{fk:fk,di:di,pk:pk,desc:`Add <b>${pk.name}</b> — a ${(CAT_META[pk.cat]||{l:pk.cat}).l} ${fk==="compound"?"compound, to anchor the session":"exercise"}.`}}
-  if(fk==="addmuscle"){const pk=_pickAddEx(d,[fp],true);if(!pk)return null;return{fk:fk,di:di,pk:pk,desc:`Add <b>${pk.name}</b> to cover <b>${(CAT_META[fp]||{l:fp}).l}</b>.`}}
-  if(fk==="addvol"){const n=(d.exs||[]).filter(function(e){const db=findExInDB(e.n);return db&&(db.t==="compound"||db.t==="isolation")}).length;return{fk:fk,di:di,desc:`Add <b>1 set</b> to each of your ${n} working exercises to raise total volume.`}}
-  if(fk==="cutvol"){const iso=(d.exs||[]).filter(function(e){const db=findExInDB(e.n);return db&&db.t==="isolation"&&(+e.s||0)>2});if(!iso.length)return null;return{fk:fk,di:di,desc:`Remove <b>1 set</b> from ${iso.length} isolation exercise${iso.length!==1?"s":""} to trim junk volume.`}}
-  return null;
+function _bestCand(d,filterFn){
+  const from=_scoreVal(d);let best=null;
+  _fixCandidates(d).forEach(function(c){
+    if(filterFn&&!filterFn(c))return;
+    const sc=_scoreVal(_simCand(d,c));
+    if(sc<=from)return;
+    const better=!best||sc>best.score||(sc===best.score&&c.compound&&!best.c.compound)||(sc===best.score&&c.type==="add"&&best.c.type==="setdelta");
+    if(better)best={c:c,score:sc};
+  });
+  return best?{c:best.c,score:best.score,from:from}:null;
 }
+const _FK_FILTER={
+  compound:function(c){return c.type==="add"&&c.compound},
+  addex:function(c){return c.type==="add"},
+  addvol:function(c){return c.type==="add"||(c.type==="setdelta"&&c.delta>0)},
+  cutvol:function(c){return c.type==="remove"||(c.type==="setdelta"&&c.delta<0)},
+  level:function(c){return c.type==="swap"}
+};
 function qProposeFix(di,fk,fp){
-  const f=computeFix(S.plan[di],di,fk,fp);
-  if(!f){if(typeof ftoast==="function")ftoast("No auto-fix available — use + Add Exercise or Swap");else alert("No auto-fix available.");return}
-  qPendingFix=f;rPlan();setTimeout(function(){var el=document.getElementById("dc"+di);if(el)el.classList.add("open");var qp=document.getElementById("qp"+di);if(qp)qp.classList.add("open")},10);
+  const d=S.plan[di];if(!d)return;
+  let filt=_FK_FILTER[fk]||function(){return true};
+  if(fk==="addmuscle"&&fp)filt=function(c){return c.type==="add"&&c.cat===fp};
+  let best=_bestCand(d,filt)||_bestCand(d,null);
+  if(!best){if(typeof ftoast==="function")ftoast("That's already as good as it gets here 👍");else alert("Already optimal.");return}
+  qPendingFix={di:di,steps:[best.c],projected:best.score,from:best.from,desc:best.c.label};
+  rPlan();setTimeout(function(){var el=document.getElementById("dc"+di);if(el)el.classList.add("open");var qp=document.getElementById("qp"+di);if(qp)qp.classList.add("open")},10);
+}
+function qOptimize(di){
+  const d=S.plan[di];if(!d)return;const start=_scoreVal(d);
+  let work=_cloneDay(d),cur=start;const steps=[];let guard=0;
+  while(guard++<14&&cur<100){const best=_bestCand(work,null);if(!best||best.score<=cur)break;steps.push(best.c);work=_applyCandObj(work,best.c);cur=best.score}
+  if(!steps.length){if(typeof ftoast==="function")ftoast("Already optimal ✓ ("+start+"%)");return}
+  qPendingFix={di:di,steps:steps,projected:cur,from:start,desc:steps.map(function(c){return c.label}).join("\n"),optimize:true};
+  rPlan();setTimeout(function(){var el=document.getElementById("dc"+di);if(el)el.classList.add("open");var qp=document.getElementById("qp"+di);if(qp)qp.classList.add("open")},10);
 }
 function qCancelFix(){qPendingFix=null;rPlan();}
 function qApplyFix(){
   const f=qPendingFix;if(!f)return;qPendingFix=null;
   const d=S.plan[f.di];if(!d){rPlan();return}
-  if(f.pk&&(f.fk==="compound"||f.fk==="addmuscle"||f.fk==="addex")){addExToDay(f.di,f.pk.cat,f.pk.idx);if(typeof ftoast==="function")ftoast("Added "+f.pk.name+" ✓");return}
-  if(f.fk==="addvol"){d.exs.forEach(function(e){const db=findExInDB(e.n);if(db&&(db.t==="compound"||db.t==="isolation"))e.s=(+e.s||0)+1})}
-  else if(f.fk==="cutvol"){d.exs.forEach(function(e){const db=findExInDB(e.n);if(db&&db.t==="isolation"&&(+e.s||0)>2)e.s=(+e.s)-1})}
-  savPlan();rPlan();setTimeout(function(){var el=document.getElementById("dc"+f.di);if(el)el.classList.add("open")},10);
-  if(typeof ftoast==="function")ftoast("Fix applied ✓");
+  (f.steps||[]).forEach(function(c){_applyCandObj(d,c)});
+  savPlan();rPlan();setTimeout(function(){var el=document.getElementById("dc"+f.di);if(el)el.classList.add("open");var qp=document.getElementById("qp"+f.di);if(qp)qp.classList.add("open")},10);
+  if(typeof ftoast==="function")ftoast((f.optimize?"Optimised":"Applied")+" → "+f.projected+"% ✓");
 }
 function qChip(d){const q=scoreDay(d);if(q.na)return"";return`<span class="q-chip" style="color:${q.col}" title="Workout quality ${q.score}%">${q.score}%</span>`}
 function qPanel(d,di){const q=scoreDay(d);
   if(q.na)return`<div class="q-panel"><div class="q-title" style="color:var(--sub);font-size:11px">🧘 ${q.msg}</div></div>`;
   const bc=function(p){return p>=0.85?"var(--grn)":p>=0.6?"var(--amb)":"var(--red)"};
-  return`<div class="q-panel" id="qp${di}"><div class="q-head" onclick="event.stopPropagation();document.getElementById('qp${di}').classList.toggle('open')"><div><div class="q-title">🎯 Workout Quality</div><div class="q-grade">${q.tips.length} note${q.tips.length!==1?"s":""} · tap for detail</div></div><div style="display:flex;align-items:center;gap:8px"><span class="q-score" style="color:${q.col}">${q.score}%</span><span class="q-grade" style="color:${q.col};font-weight:700">${q.grade.l}</span><span class="chv">▸</span></div></div><div class="q-body">${q.crit.map(function(c){return`<div class="q-crit"><div class="q-crit-top"><span class="q-crit-lbl">${c.lbl}</span><span class="q-crit-val">${c.val}</span></div><div class="q-bar"><i style="width:${Math.round(c.pct*100)}%;background:${bc(c.pct)}"></i></div></div>`}).join("")}${qPendingFix&&qPendingFix.di===di?`<div class="q-fix-card"><div class="q-fix-desc">🔧 Proposed fix: ${qPendingFix.desc}</div><div class="q-fix-actions"><button class="q-fix-apply" onclick="event.stopPropagation();qApplyFix()">✓ Apply fix</button><button class="q-fix-cancel" onclick="event.stopPropagation();qCancelFix()">✕ Cancel</button></div></div>`:""}${q.tips.map(function(t){return`<div class="q-tip ${t.c}">${t.t}${t.fk?`<button class="q-fix-btn" onclick="event.stopPropagation();qProposeFix(${di},'${t.fk}','${t.fp||""}')">🔧 Fix it</button>`:""}</div>`}).join("")}</div></div>`}
+  return`<div class="q-panel" id="qp${di}"><div class="q-head" onclick="event.stopPropagation();document.getElementById('qp${di}').classList.toggle('open')"><div><div class="q-title">🎯 Workout Quality</div><div class="q-grade">${q.tips.length} note${q.tips.length!==1?"s":""} · tap for detail</div></div><div style="display:flex;align-items:center;gap:8px"><span class="q-score" style="color:${q.col}">${q.score}%</span><span class="q-grade" style="color:${q.col};font-weight:700">${q.grade.l}</span><span class="chv">▸</span></div></div><div class="q-body">${q.crit.map(function(c){return`<div class="q-crit"><div class="q-crit-top"><span class="q-crit-lbl">${c.lbl}</span><span class="q-crit-val">${c.val}</span></div><div class="q-bar"><i style="width:${Math.round(c.pct*100)}%;background:${bc(c.pct)}"></i></div></div>`}).join("")}${qPendingFix&&qPendingFix.di===di?`<div class="q-fix-card"><div class="q-fix-proj">${qPendingFix.from}% <span class="q-arrow">→</span> <b>${qPendingFix.projected}%</b></div><div class="q-fix-desc">${qPendingFix.optimize?`⚡ <b>Optimise</b> — apply ${qPendingFix.steps.length} change${qPendingFix.steps.length>1?"s":""}:<br>`+qPendingFix.desc.split("\n").map(function(s){return"• "+s}).join("<br>"):"🔧 "+qPendingFix.desc}</div><div class="q-fix-actions"><button class="q-fix-apply" onclick="event.stopPropagation();qApplyFix()">✓ Apply${qPendingFix.optimize?" all":""}</button><button class="q-fix-cancel" onclick="event.stopPropagation();qCancelFix()">✕ Cancel</button></div></div>`:""}${q.tips.map(function(t){return`<div class="q-tip ${t.c}">${t.t}${t.fk?`<button class="q-fix-btn" onclick="event.stopPropagation();qProposeFix(${di},'${t.fk}','${t.fp||""}')">🔧 Fix it</button>`:""}</div>`}).join("")}${q.score<100&&!(qPendingFix&&qPendingFix.di===di)?`<button class="q-opt-btn" onclick="event.stopPropagation();qOptimize(${di})">⚡ Auto-optimise to best</button>`:""}</div></div>`}
 function renderDayBody(d, i){
   const dn=S.logs["w"+S.week+"-d"+i];
   const inProg=!dn&&hasActiveProgress(i);
