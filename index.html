@@ -3234,6 +3234,13 @@ function rMealPicker(mode,dayIdx,mealIdx){
   const currentType=(mode==="swap"&&cachedMealPlan&&cachedMealPlan[dayIdx]&&cachedMealPlan[dayIdx].meals[mealIdx])?cachedMealPlan[dayIdx].meals[mealIdx].type:null;
   const handler=mode==="swap"?`doSwapMeal(${dayIdx},${mealIdx},`:`doAddMeal(${dayIdx},`;
   let h=`<div class="mp-picker"><div style="font-size:12px;font-weight:700;color:var(--amb);margin-bottom:8px">${title}</div>`;
+  // Build a brand-new meal from ingredients right here (no need to leave for the Overview tab).
+  if(mode==="add"&&cmForm.show&&cmForm.planTarget===dayIdx){
+    h+=rCustomMealForm();
+    h+=`<button class="s-btn out" style="margin-top:4px" onclick="event.stopPropagation();cmForm={show:false,name:'',ingr:'',mealType:'Snack',mealTypes:[],diet:'',preview:null};rFood()">← Back to meal list</button></div>`;
+    return h;
+  }
+  if(mode==="add"){h+=`<button class="s-btn grn" style="margin-bottom:8px" onclick="event.stopPropagation();openBuildMealForPlan(${dayIdx})">🥗 Build a NEW meal from ingredients</button><div class="cm-inline-hint" style="margin:-4px 0 8px">Not in the list below? Create it from ingredients — macros are computed and added to this day automatically.</div>`}
   cats.forEach(function(cat){
     const pool=MEALS.find(m=>m.nm===cat);if(!pool)return;
     const isCurrent=currentType===cat;
@@ -4051,7 +4058,9 @@ function rCustomMealForm(){
       if(p.needsProtein)h+=`<div class="cm-warn" style="color:var(--amb);background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)">⚠️ No protein source detected. Consider adding chicken, eggs, fish, tofu, or protein powder.</div>`;
       h+=`<div class="cm-pv-macros"><div><div class="mv" style="color:var(--amb)">${p.totals.cal}</div><div class="ml">kcal</div></div><div><div class="mv" style="color:#EF4444">${p.totals.p}g</div><div class="ml">protein</div></div><div><div class="mv" style="color:#3B82F6">${p.totals.c}g</div><div class="ml">carbs</div></div><div><div class="mv" style="color:#A855F7">${p.totals.f}g</div><div class="ml">fat</div></div></div>`;
       h+=`<div class="cm-target" style="color:${diffCol}">Target for ${p.mealType}: ~${p.targetCal} kcal · Generated: ${p.totals.cal} kcal (${diffPct>0?"+":""}${diffPct}%)</div>`;
-      h+=`<div class="cm-actions"><button class="s-btn pri" onclick="logCustomMeal()">+ Log Now</button><button class="s-btn grn" onclick="saveCustomMeal()">💾 Save & Log</button><button class="s-btn out" onclick="generateCustomMeal()">🔄 Regenerate</button></div>`;
+      h+=cmForm.planTarget!=null
+        ?`<div class="cm-actions"><button class="s-btn pri" onclick="addBuiltMealToPlan()">➕ Add to this day</button><button class="s-btn out" onclick="generateCustomMeal()">🔄 Regenerate</button></div>`
+        :`<div class="cm-actions"><button class="s-btn pri" onclick="logCustomMeal()">+ Log Now</button><button class="s-btn grn" onclick="saveCustomMeal()">💾 Save & Log</button><button class="s-btn out" onclick="generateCustomMeal()">🔄 Regenerate</button></div>`;
     }
   }
   h+=`<div class="cm-actions"><button class="s-btn out" onclick="cmForm={show:false,name:'',ingr:'',mealType:'Snack',diet:'',preview:null};rFood()">Cancel</button></div>`;
@@ -4083,6 +4092,20 @@ function saveCustomMeal(){
   S.customMeals.push({name:p.mealName,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f,mealType:types[0],mealTypes:types,description:p.description,ingredients:p.lines});
   savCMeals();
   logCustomMeal();
+}
+// Open the ingredient builder inside the meal-plan picker for a specific day, so a meal
+// that isn't in the directory can be created right here instead of leaving the section.
+function openBuildMealForPlan(dayIdx){mpAdd={dayIdx:dayIdx};mpSwap=null;cmForm={show:true,name:"",ingr:"",mealType:"Snack",mealTypes:["Snack"],diet:"",preview:null,planTarget:dayIdx};rFood();setTimeout(function(){var f=document.querySelector(".cm-form");if(f)f.scrollIntoView({block:"center"})},40)}
+function addBuiltMealToPlan(){
+  const p=cmForm.preview;if(!p||!p.ok){alert("Generate the meal first");return}
+  const di=cmForm.planTarget;
+  const types=Array.isArray(cmForm.mealTypes)&&cmForm.mealTypes.length?cmForm.mealTypes.slice():[p.mealType||"Snack"];
+  // Save it to the reusable custom-meal library...
+  S.customMeals.push({name:p.mealName,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f,mealType:types[0],mealTypes:types,description:p.description,ingredients:p.lines});savCMeals();
+  // ...and drop it straight into this plan day so the day's calorie/protein checker reflects it.
+  if(cachedMealPlan&&cachedMealPlan[di]){cachedMealPlan[di].meals.push({type:types[0],ml:p.description,cal:p.totals.cal,p:p.totals.p,c:p.totals.c,f:p.totals.f});savMealPlan()}
+  cmForm={show:false,name:"",ingr:"",mealType:"Snack",mealTypes:[],diet:"",preview:null};mpAdd=null;
+  rFood();if(typeof ftoast==="function")ftoast("Built & added to your plan ✓")
 }
 function logSavedMeal(i){const m=S.customMeals[i];if(!m)return;const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];S.flog[tk].push({meal:m.mealType,ml:m.name,cal:m.cal,p:m.p,c:m.c,f:m.f,isCustom:true,customIdx:i});savFlog();updHdr();rFood()}
 function delSavedMeal(i){if(!confirm("Delete this saved meal?"))return;S.customMeals.splice(i,1);savCMeals();rFood()}
