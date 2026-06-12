@@ -849,6 +849,13 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .q-bar>i{display:block;height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
 .q-tip{font-size:10px;line-height:1.5;color:var(--sub);padding:6px 8px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,.03);border-left:2px solid var(--amb)}
 .q-tip b{color:var(--tx)}.q-tip.good{border-left-color:var(--grn)}.q-tip.bad{border-left-color:var(--red)}
+.q-fix-btn{display:inline-block;margin-top:6px;font-size:10px;font-weight:800;color:#000;background:var(--amb);border:none;border-radius:20px;padding:3px 11px;cursor:pointer}
+.q-fix-card{margin:8px 0;padding:10px;border-radius:10px;background:rgba(191,255,0,.07);border:1px solid var(--amb)}
+.q-fix-desc{font-size:11px;color:var(--tx);line-height:1.5;margin-bottom:8px}
+.q-fix-desc b{color:var(--amb)}
+.q-fix-actions{display:flex;gap:8px}
+.q-fix-apply{flex:1;font-size:11px;font-weight:800;color:#000;background:var(--amb);border:none;border-radius:8px;padding:8px;cursor:pointer}
+.q-fix-cancel{flex:1;font-size:11px;font-weight:700;color:var(--sub);background:transparent;border:1px solid var(--bdr);border-radius:8px;padding:8px;cursor:pointer}
 /* ── Collapsible home sections ── */
 .hc{margin-bottom:6px}
 .hc-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
@@ -1761,15 +1768,15 @@ function scoreDay(d){
   if(!n)return{na:true,msg:"Conditioning / recovery day — not scored for hypertrophy."};
   const tg=dayTargetGroups(d);const crit=[],tips=[];
   let vs=_rangeScore(sets,cfg.sLo,cfg.sA,cfg.sB,cfg.sHi);crit.push({lbl:"Set volume",val:sets+" sets",pct:vs,w:28});
-  if(sets<cfg.sA)tips.push({c:"bad",t:`<b>Volume is low (${sets} sets).</b> Aim for ~${cfg.sA}–${cfg.sB} working sets — under this gives limited growth stimulus. Add 1–2 sets or one more exercise.`});
-  else if(sets>cfg.sHi)tips.push({c:"bad",t:`<b>Volume is high (${sets} sets).</b> Past ~${cfg.sHi} sets you risk junk volume and slow recovery for little extra growth. Trim 2–4 sets from your isolation work.`});
+  if(sets<cfg.sA)tips.push({c:"bad",t:`<b>Volume is low (${sets} sets).</b> Aim for ~${cfg.sA}–${cfg.sB} working sets — under this gives limited growth stimulus. Add 1–2 sets or one more exercise.`,fk:"addvol"});
+  else if(sets>cfg.sHi)tips.push({c:"bad",t:`<b>Volume is high (${sets} sets).</b> Past ~${cfg.sHi} sets you risk junk volume and slow recovery for little extra growth. Trim 2–4 sets from your isolation work.`,fk:"cutvol"});
   if(tg.length){const cov=tg.filter(function(g){return hit[g]});crit.push({lbl:"Target coverage",val:cov.length+"/"+tg.length+" muscles",pct:Math.max(0.2,cov.length/tg.length),w:26});
-    const miss=tg.filter(function(g){return !hit[g]});if(miss.length)tips.push({c:"bad",t:`<b>${miss.map(function(g){return CAT_META[g].l}).join(" & ")} not trained.</b> This day targets ${tg.map(function(g){return CAT_META[g].l}).join(", ")} but has no ${miss.map(function(g){return CAT_META[g].l.toLowerCase()}).join("/")} exercise — add at least one.`})}
+    const miss=tg.filter(function(g){return !hit[g]});if(miss.length)tips.push({c:"bad",t:`<b>${miss.map(function(g){return CAT_META[g].l}).join(" & ")} not trained.</b> This day targets ${tg.map(function(g){return CAT_META[g].l}).join(", ")} but has no ${miss.map(function(g){return CAT_META[g].l.toLowerCase()}).join("/")} exercise — add at least one.`,fk:"addmuscle",fp:miss[0]})}
   const ratio=comp/n;let ps=comp===0?0.2:Math.min(1,0.6+0.4*Math.min(1,ratio/0.5));crit.push({lbl:"Compound lifts",val:comp+" of "+n,pct:ps,w:22});
-  if(comp===0)tips.push({c:"bad",t:`<b>No compound lifts.</b> Add a big multi-joint movement (squat, press, row, pulldown, hip thrust) — compounds drive the most growth per session. Lead with one.`});
-  else if(ratio<0.35)tips.push({c:"",t:`<b>Mostly isolation work.</b> Anchor the session with one more compound before the smaller movements.`});
+  if(comp===0)tips.push({c:"bad",t:`<b>No compound lifts.</b> Add a big multi-joint movement (squat, press, row, pulldown, hip thrust) — compounds drive the most growth per session. Lead with one.`,fk:"compound"});
+  else if(ratio<0.35)tips.push({c:"",t:`<b>Mostly isolation work.</b> Anchor the session with one more compound before the smaller movements.`,fk:"compound"});
   let xs=_rangeScore(n,2,cfg.xA,cfg.xB,cfg.xHi);crit.push({lbl:"Exercise count",val:n+" lifts",pct:xs,w:14});
-  if(n<cfg.xA)tips.push({c:"",t:`<b>Only ${n} exercise${n>1?"s":""}.</b> ${cfg.xA}–${cfg.xB} usually covers a session properly — consider adding one.`});
+  if(n<cfg.xA)tips.push({c:"",t:`<b>Only ${n} exercise${n>1?"s":""}.</b> ${cfg.xA}–${cfg.xB} usually covers a session properly — consider adding one.`,fk:"addex"});
   else if(n>cfg.xHi)tips.push({c:"",t:`<b>${n} exercises is a lot.</b> Dropping to ${cfg.xB}–${cfg.xHi} keeps every set hard and the session focused.`});
   let ds=1-Math.min(1,hard/n*1.5);crit.push({lbl:"Level fit",val:hard?hard+" too hard":"matched",pct:ds,w:10});
   if(hard)tips.push({c:"",t:`<b>${hard} exercise${hard>1?"s are":" is"} above your ${lv} level.</b> Build up gradually or swap in an easier variation to keep form clean.`});
@@ -1778,11 +1785,48 @@ function scoreDay(d){
   if(score>=85&&!tips.length)tips.push({c:"good",t:`<b>Great session.</b> Balanced volume, solid compounds and full coverage — progressively overload it.`});
   return{score:score,grade:grade,crit:crit,tips:tips.slice(0,5),col:grade.col};
 }
+// ── One-click fixes for quality tips: propose a concrete change, preview it, apply on approval. ──
+let qPendingFix=null;
+function _pickAddEx(d,groups,preferCompound){
+  const lv=(S.user&&S.user.profile&&S.user.profile.level)||"intermediate";
+  const have={};(d.exs||[]).forEach(function(e){have[e.n]=1});
+  function lvOk(e){return lv==="beginner"?e.diff==="beg":lv==="intermediate"?(e.diff==="beg"||e.diff==="inter"):true}
+  const passes=preferCompound?["compound","any"]:["any"];
+  for(const pass of passes){for(const g of (groups||[])){const arr=EX_DB[g]||[];for(let idx=0;idx<arr.length;idx++){const e=arr[idx];
+    if(have[e.n])continue;
+    if(e.t!=="compound"&&e.t!=="isolation")continue;
+    if(pass==="compound"&&e.t!=="compound")continue;
+    if(!lvOk(e))continue;
+    return{cat:g,idx:idx,name:e.n}}}}
+  return null;
+}
+function computeFix(d,di,fk,fp){
+  if(fk==="compound"||fk==="addex"){const tg=dayTargetGroups(d);let groups=tg.length?tg:[];if(!groups.length){const db=d.exs[0]&&findExInDB(d.exs[0].n);if(db)groups=[db.cat]}const pk=_pickAddEx(d,groups,true);if(!pk)return null;return{fk:fk,di:di,pk:pk,desc:`Add <b>${pk.name}</b> — a ${(CAT_META[pk.cat]||{l:pk.cat}).l} ${fk==="compound"?"compound, to anchor the session":"exercise"}.`}}
+  if(fk==="addmuscle"){const pk=_pickAddEx(d,[fp],true);if(!pk)return null;return{fk:fk,di:di,pk:pk,desc:`Add <b>${pk.name}</b> to cover <b>${(CAT_META[fp]||{l:fp}).l}</b>.`}}
+  if(fk==="addvol"){const n=(d.exs||[]).filter(function(e){const db=findExInDB(e.n);return db&&(db.t==="compound"||db.t==="isolation")}).length;return{fk:fk,di:di,desc:`Add <b>1 set</b> to each of your ${n} working exercises to raise total volume.`}}
+  if(fk==="cutvol"){const iso=(d.exs||[]).filter(function(e){const db=findExInDB(e.n);return db&&db.t==="isolation"&&(+e.s||0)>2});if(!iso.length)return null;return{fk:fk,di:di,desc:`Remove <b>1 set</b> from ${iso.length} isolation exercise${iso.length!==1?"s":""} to trim junk volume.`}}
+  return null;
+}
+function qProposeFix(di,fk,fp){
+  const f=computeFix(S.plan[di],di,fk,fp);
+  if(!f){if(typeof ftoast==="function")ftoast("No auto-fix available — use + Add Exercise or Swap");else alert("No auto-fix available.");return}
+  qPendingFix=f;rPlan();setTimeout(function(){var el=document.getElementById("dc"+di);if(el)el.classList.add("open");var qp=document.getElementById("qp"+di);if(qp)qp.classList.add("open")},10);
+}
+function qCancelFix(){qPendingFix=null;rPlan();}
+function qApplyFix(){
+  const f=qPendingFix;if(!f)return;qPendingFix=null;
+  const d=S.plan[f.di];if(!d){rPlan();return}
+  if(f.pk&&(f.fk==="compound"||f.fk==="addmuscle"||f.fk==="addex")){addExToDay(f.di,f.pk.cat,f.pk.idx);if(typeof ftoast==="function")ftoast("Added "+f.pk.name+" ✓");return}
+  if(f.fk==="addvol"){d.exs.forEach(function(e){const db=findExInDB(e.n);if(db&&(db.t==="compound"||db.t==="isolation"))e.s=(+e.s||0)+1})}
+  else if(f.fk==="cutvol"){d.exs.forEach(function(e){const db=findExInDB(e.n);if(db&&db.t==="isolation"&&(+e.s||0)>2)e.s=(+e.s)-1})}
+  savPlan();rPlan();setTimeout(function(){var el=document.getElementById("dc"+f.di);if(el)el.classList.add("open")},10);
+  if(typeof ftoast==="function")ftoast("Fix applied ✓");
+}
 function qChip(d){const q=scoreDay(d);if(q.na)return"";return`<span class="q-chip" style="color:${q.col}" title="Workout quality ${q.score}%">${q.score}%</span>`}
 function qPanel(d,di){const q=scoreDay(d);
   if(q.na)return`<div class="q-panel"><div class="q-title" style="color:var(--sub);font-size:11px">🧘 ${q.msg}</div></div>`;
   const bc=function(p){return p>=0.85?"var(--grn)":p>=0.6?"var(--amb)":"var(--red)"};
-  return`<div class="q-panel" id="qp${di}"><div class="q-head" onclick="event.stopPropagation();document.getElementById('qp${di}').classList.toggle('open')"><div><div class="q-title">🎯 Workout Quality</div><div class="q-grade">${q.tips.length} note${q.tips.length!==1?"s":""} · tap for detail</div></div><div style="display:flex;align-items:center;gap:8px"><span class="q-score" style="color:${q.col}">${q.score}%</span><span class="q-grade" style="color:${q.col};font-weight:700">${q.grade.l}</span><span class="chv">▸</span></div></div><div class="q-body">${q.crit.map(function(c){return`<div class="q-crit"><div class="q-crit-top"><span class="q-crit-lbl">${c.lbl}</span><span class="q-crit-val">${c.val}</span></div><div class="q-bar"><i style="width:${Math.round(c.pct*100)}%;background:${bc(c.pct)}"></i></div></div>`}).join("")}${q.tips.map(function(t){return`<div class="q-tip ${t.c}">${t.t}</div>`}).join("")}</div></div>`}
+  return`<div class="q-panel" id="qp${di}"><div class="q-head" onclick="event.stopPropagation();document.getElementById('qp${di}').classList.toggle('open')"><div><div class="q-title">🎯 Workout Quality</div><div class="q-grade">${q.tips.length} note${q.tips.length!==1?"s":""} · tap for detail</div></div><div style="display:flex;align-items:center;gap:8px"><span class="q-score" style="color:${q.col}">${q.score}%</span><span class="q-grade" style="color:${q.col};font-weight:700">${q.grade.l}</span><span class="chv">▸</span></div></div><div class="q-body">${q.crit.map(function(c){return`<div class="q-crit"><div class="q-crit-top"><span class="q-crit-lbl">${c.lbl}</span><span class="q-crit-val">${c.val}</span></div><div class="q-bar"><i style="width:${Math.round(c.pct*100)}%;background:${bc(c.pct)}"></i></div></div>`}).join("")}${qPendingFix&&qPendingFix.di===di?`<div class="q-fix-card"><div class="q-fix-desc">🔧 Proposed fix: ${qPendingFix.desc}</div><div class="q-fix-actions"><button class="q-fix-apply" onclick="event.stopPropagation();qApplyFix()">✓ Apply fix</button><button class="q-fix-cancel" onclick="event.stopPropagation();qCancelFix()">✕ Cancel</button></div></div>`:""}${q.tips.map(function(t){return`<div class="q-tip ${t.c}">${t.t}${t.fk?`<button class="q-fix-btn" onclick="event.stopPropagation();qProposeFix(${di},'${t.fk}','${t.fp||""}')">🔧 Fix it</button>`:""}</div>`}).join("")}</div></div>`}
 function renderDayBody(d, i){
   const dn=S.logs["w"+S.week+"-d"+i];
   const inProg=!dn&&hasActiveProgress(i);
