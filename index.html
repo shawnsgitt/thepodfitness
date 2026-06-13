@@ -905,6 +905,12 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .today-hero{border-radius:22px}
 .th-start,.ob-create{border-radius:14px;letter-spacing:.01em}
 
+
+.wo-quit{font-size:11px;font-weight:700;color:var(--sub);background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:100px;padding:4px 12px;cursor:pointer}
+.wo-quit:active{transform:scale(.96)}
+.quit-btn{display:block;width:100%;margin-top:8px;font-size:12px;font-weight:600;color:var(--sub);background:transparent;border:1px solid var(--bdr);border-radius:12px;padding:11px;cursor:pointer}
+.quit-btn:active{transform:scale(.98)}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -4862,7 +4868,7 @@ function startWO(i){
 }
 function rTrack(){const el=document.getElementById("tab-track");if(S.aw===null){el.innerHTML=`<div class="empty"><div class="empty-i">📋</div><p class="empty-t">No active session</p><p class="empty-s">Go to Plan → Start Session.</p></div>`;return}
 const w=S.plan[S.aw];if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
-el.innerHTML=`<div style="margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:5px">${w.day}</div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
+el.innerHTML=`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:14px;font-weight:700">${w.day}</div><button class="wo-quit" onclick="quitWO()" title="Quit without saving">✕ Quit</button></div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span><span style="color:var(--sub);font-size:10px;margin-left:6px">· nothing saves until you finish</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
 w.exs.map((e,ei)=>{
 // Find previous session data for this exercise
 const prevData=(()=>{const entries=[];Object.entries(S.logs).forEach(([k,log])=>{const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;const di=+wm[2];const day=S.plan[di];if(!day)return;Object.entries(log.sets).forEach(([sei,sets])=>{const ex=day.exs[+sei];if(ex&&ex.n===e.n){const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);if(weights.length)entries.push({date:log.date,avgW:+(weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1),maxW:Math.max(...weights),avgR:reps.length?+(reps.reduce((a,b)=>a+b,0)/reps.length).toFixed(0):0})}})});entries.sort((a,b)=>new Date(b.date)-new Date(a.date));return entries[0]||null})();
@@ -4933,7 +4939,18 @@ return`<div class="card"><div style="font-weight:700;font-size:12px;margin-botto
     <textarea class="fp-comment" id="woComment" placeholder="How was the session? Any notes for next time..." rows="3" oninput="S._woComment=this.value">${S._woComment||''}</textarea>
   </div>
   <button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>Save & Finish Session</button>
+  <button class="quit-btn" onclick="quitWO()">✕ Quit — don't save this session</button>
 </div>`}
+function quitWO(){
+  // Discard an in-progress (or accidentally-started) session without recording anything.
+  if(!confirm("Quit this session? Nothing from it will be saved."))return;
+  if(typeof clearRestTimer==="function")clearRestTimer();
+  stopWOTimer();
+  S.aw=null;S.cs={};S.rat=null;S._woDiff=5;S._woComment="";
+  try{localStorage.removeItem('sp-cs-'+S.user.id)}catch(e){}
+  if(typeof ftoast==="function")ftoast("Session discarded — nothing saved");
+  swTab("plan");
+}
 function updS(ei,si,f,v){S.cs[ei][si][f]=v;SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw});if(f==="w"||f==="r")rTrack()/* refresh the live vs-last-session delta */}
 // +/- steppers for weight / reps. Small deltas (1 or 2.5) match the
 // typical small jumps users make mid-session.
