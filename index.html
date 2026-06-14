@@ -911,6 +911,36 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .quit-btn{display:block;width:100%;margin-top:8px;font-size:12px;font-weight:600;color:var(--sub);background:transparent;border:1px solid var(--bdr);border-radius:12px;padding:11px;cursor:pointer}
 .quit-btn:active{transform:scale(.98)}
 
+
+/* ── Workout: coach digest + big-number set cards (layout C) ── */
+.coach-digest{background:rgba(159,232,112,.05);border:1px solid rgba(159,232,112,.18);border-radius:16px;padding:13px 14px;margin-bottom:14px}
+.cd-title{font-size:12px;font-weight:800;color:var(--amb);margin-bottom:9px}
+.cd-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+.cd-row:last-of-type{border-bottom:none}
+.cd-ex{color:var(--tx);font-weight:600}
+.cd-act{font-weight:700;font-family:'Space Grotesk';white-space:nowrap;font-size:12px}
+.cd-div{height:1px;background:rgba(255,255,255,.08);margin:9px 0 7px}
+.cd-tip{font-size:11px;color:var(--sub);line-height:1.5;margin-bottom:5px}
+.set-card{background:rgba(255,255,255,.04);border:1px solid var(--card-border);border-radius:16px;padding:12px 12px 11px;margin-bottom:10px;transition:border-color .2s,background .2s}
+.set-card.dn{background:rgba(159,232,112,.08);border-color:rgba(159,232,112,.4)}
+.sc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sc-n{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--sub)}
+.set-card.dn .sc-n{color:var(--amb)}
+.sc-chk{width:30px;height:30px;border-radius:50%;border:2px solid var(--bdr);background:transparent;color:var(--amb);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.sc-chk:active{transform:scale(.9)}
+.sc-chk.dn{background:var(--amb);border-color:var(--amb);color:#06210a}
+.sc-nums{display:flex;align-items:center;justify-content:center;gap:6px}
+.sc-field{display:flex;align-items:center;gap:5px}
+.sc-step{width:32px;height:40px;border-radius:10px;border:1px solid var(--bdr);background:rgba(255,255,255,.04);color:var(--tx);font-size:18px;font-weight:700;cursor:pointer}
+.sc-step:active{transform:scale(.93)}
+.sc-val{width:58px;height:44px;text-align:center;background:transparent;border:none;color:var(--tx);font-family:'Space Grotesk';font-size:25px;font-weight:700;outline:none;padding:0}
+.sc-unit{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;min-width:22px}
+.sc-x{font-size:16px;color:var(--sub);font-weight:300;margin:0 2px}
+.sc-rpe{display:flex;align-items:center;gap:4px;margin-top:9px;justify-content:center}
+.sc-rpe>span{font-size:9px;color:var(--sub);margin-right:2px;letter-spacing:.05em}
+.sc-rpe-p{width:26px;height:24px;border-radius:7px;border:1px solid var(--bdr);background:transparent;color:var(--sub);font-size:11px;font-weight:600;cursor:pointer}
+.sc-rpe-p.on{background:var(--amb);border-color:var(--amb);color:#06210a;font-weight:800}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -1652,8 +1682,8 @@ function styleAdjust(mode){
 }
 
 let coachOpen=false,wantOpen=false;
-function togCoach(){coachOpen=!coachOpen;rPlan()}
-function togWant(){wantOpen=!wantOpen;rPlan()}
+function togCoach(){coachOpen=!coachOpen;(S.tab==="settings"?rSet:rPlan)()}
+function togWant(){wantOpen=!wantOpen;(S.tab==="settings"?rSet:rPlan)()}
 function rCoachCard(){
   const tips=coachTips();
   const sum=planSummary();
@@ -1992,13 +2022,6 @@ return homeSection("nutri","Today's Nutrition",`<div class="nutri-preview" oncli
   <div class="np-macros"><div class="np-macro"><div class="np-mv">${tCarb}g</div><div class="np-ml">Carbs</div></div><div class="np-macro"><div class="np-mv">${tFat}g</div><div class="np-ml">Fat</div></div><div class="np-macro"><div class="np-mv">${todayFood.length}</div><div class="np-ml">Meals</div></div></div>
   <div class="np-tap">Tap to log meals →</div>
 </div>`,true)})()+
-homeSection("journey","Your Journey",`<div class="journey-card">
-  <div class="journey-milestone${totalSessions>=1?' unlocked':''}"><div class="jm-icon">${totalSessions>=1?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">First Session</div><div class="jm-desc">Complete your first workout</div></div></div>
-  <div class="journey-milestone${totalSessions>=10?' unlocked':''}"><div class="jm-icon">${totalSessions>=10?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Committed (10 Sessions)</div><div class="jm-desc">${totalSessions>=10?'Achieved!':totalSessions+'/10 sessions'}</div></div></div>
-  <div class="journey-milestone${streak>=4?' unlocked':''}"><div class="jm-icon">${streak>=4?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Month Warrior</div><div class="jm-desc">${streak>=4?'4 weeks strong!':streak+'/4 week streak'}</div></div></div>
-  <div class="journey-milestone${totalSessions>=50?' unlocked':''}"><div class="jm-icon">${totalSessions>=50?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Fifty Strong</div><div class="jm-desc">${totalSessions>=50?'Legend status!':totalSessions+'/50 sessions'}</div></div></div>
-</div>`,false)+
-rCoachCard()+
 `<div class="sec-title">Week ${S.week} Schedule</div>`+
 `<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — do any workout on any day. Completed days show the actual date you trained, not the planned day. Streak and progress track real behaviour.</div>`+
 `<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
@@ -4869,6 +4892,14 @@ function startWO(i){
 function rTrack(){const el=document.getElementById("tab-track");if(S.aw===null){el.innerHTML=`<div class="empty"><div class="empty-i">📋</div><p class="empty-t">No active session</p><p class="empty-s">Go to Plan → Start Session.</p></div>`;return}
 const w=S.plan[S.aw];if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
 el.innerHTML=`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:14px;font-weight:700">${w.day}</div><button class="wo-quit" onclick="quitWO()" title="Quit without saving">✕ Quit</button></div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span><span style="color:var(--sub);font-size:10px;margin-left:6px">· nothing saves until you finish</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
+(function(){
+  // Coach digest at the top: per-exercise increase guidance + a couple of coaching tips.
+  const recs=(typeof analyzeProgression==="function")?analyzeProgression():[];
+  const rows=w.exs.map(function(e){const db=findExInDB(e.n);if(db&&(db.t==="cardio"||db.t==="hiit"||db.t==="stretch"||db.t==="plyo"))return"";const r=recs.find(function(x){return x.name===e.n});const act=(r&&r.status!=="tracking")?`<span class="cd-act" style="color:${r.color}">${r.icon} ${r.change}</span>`:`<span class="cd-act" style="color:var(--sub)">log to set a target</span>`;return `<div class="cd-row"><span class="cd-ex">${e.n}</span>${act}</div>`}).join("");
+  const tips=(typeof coachTips==="function"?coachTips():[]).slice(0,2);
+  const tipsHtml=tips.map(function(t){return `<div class="cd-tip"><span>${t.i}</span> ${t.t}</div>`}).join("");
+  return `<div class="coach-digest"><div class="cd-title">🧠 Today's coaching — how to progress</div>${rows}${tipsHtml?'<div class="cd-div"></div>'+tipsHtml:''}</div>`;
+})()+
 w.exs.map((e,ei)=>{
 // Find previous session data for this exercise
 const prevData=(()=>{const entries=[];Object.entries(S.logs).forEach(([k,log])=>{const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;const di=+wm[2];const day=S.plan[di];if(!day)return;Object.entries(log.sets).forEach(([sei,sets])=>{const ex=day.exs[+sei];if(ex&&ex.n===e.n){const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);if(weights.length)entries.push({date:log.date,avgW:+(weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1),maxW:Math.max(...weights),avgR:reps.length?+(reps.reduce((a,b)=>a+b,0)/reps.length).toFixed(0):0})}})});entries.sort((a,b)=>new Date(b.date)-new Date(a.date));return entries[0]||null})();
@@ -4919,7 +4950,7 @@ return`<div class="card"><div style="font-weight:700;font-size:12px;margin-botto
   const headline=dV>0.1?"📈 Beating last session":dV<-0.1?"🔽 Below last session":"≈ Matching last session";
   const headlineCol=dV>0.1?"var(--grn)":dV<-0.1?"var(--amb)":"var(--sub)";
   return`<div class="prog-delta" style="border-color:${headlineCol}"><div class="prog-delta-h" style="color:${headlineCol}">${headline} · ${filled.length}/${S.cs[ei].length} sets in</div><div class="prog-delta-row">${items.join(" · ")}</div></div>`;
-})()}${spark}<div class="s-hdr"><span>Set</span><span>${unitLbl}</span><span>Reps</span><span>RPE</span><span>✓</span></div>${S.cs[ei].map((s,si)=>`<div class="s-row ${s.d?'dn':''}"><span class="s-sn">${si+1}</span><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'w',-${wBump})">−</button><input class="s-inp s-inp-sm" type="number" inputmode="decimal" placeholder="${prevData?kgToDisplay(prevData.avgW):'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'w',${wBump})">+</button></div><div class="s-stepper"><button class="s-step" onclick="bumpS(${ei},${si},'r',-1)">−</button><input class="s-inp s-inp-sm" type="number" inputmode="numeric" placeholder="${prevData?prevData.avgR:'0'}" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="s-step" onclick="bumpS(${ei},${si},'r',1)">+</button></div><div class="rpe-row">${[6,7,8,9,10].map(v=>`<button class="rpe-p ${s.rpe==v?'on':''}" onclick="updS(${ei},${si},'rpe','${v}');rTrack()">${v}</button>`).join("")}</div><button class="chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':'○'}</button></div>`).join("")}</div>`}).join("")+
+})()}${spark}${S.cs[ei].map((s,si)=>`<div class="set-card ${s.d?'dn':''}"><div class="sc-head"><span class="sc-n">SET ${si+1}</span><button class="sc-chk ${s.d?'dn':''}" onclick="togS(${ei},${si})">${s.d?'✓':''}</button></div><div class="sc-nums"><div class="sc-field"><button class="sc-step" onclick="bumpS(${ei},${si},'w',-${wBump})">−</button><input class="sc-val" type="number" inputmode="decimal" placeholder="${prevData?kgToDisplay(prevData.avgW):'0'}" value="${s.w}" onchange="updS(${ei},${si},'w',this.value)"><button class="sc-step" onclick="bumpS(${ei},${si},'w',${wBump})">+</button><span class="sc-unit">${unitLbl}</span></div><div class="sc-x">×</div><div class="sc-field"><button class="sc-step" onclick="bumpS(${ei},${si},'r',-1)">−</button><input class="sc-val" type="number" inputmode="numeric" placeholder="${prevData?prevData.avgR:'0'}" value="${s.r}" onchange="updS(${ei},${si},'r',this.value)"><button class="sc-step" onclick="bumpS(${ei},${si},'r',1)">+</button><span class="sc-unit">reps</span></div></div><div class="sc-rpe"><span>RPE</span>${[6,7,8,9,10].map(v=>`<button class="sc-rpe-p ${s.rpe==v?'on':''}" onclick="updS(${ei},${si},'rpe','${v}');rTrack()">${v}</button>`).join("")}</div></div>`).join("")}</div>`}).join("")+
 `<div class="finish-panel">
   <div class="fp-title">Session Feedback</div>
   ${(()=>{const alerts=getOverloadAlerts();const dayExNames=w.exs.map(e=>e.n);const relevant=alerts.filter(a=>dayExNames.includes(a.name));if(!relevant.length)return'';return'<div class="fp-alerts">'+relevant.map(a=>'<div class="overload-alert">💪 <strong>'+a.name+'</strong>: Ready to increase! Try <strong>'+a.suggestedW+'kg</strong></div>').join('')+'</div>'})()}
@@ -4971,10 +5002,17 @@ if(relevantRecs.length){const msgs=relevantRecs.map(r=>`${r.icon} ${r.name}: ${r
 S.aw=null;S.cs={};S.rat=null;S._woDiff=5;S._woComment="";try{localStorage.removeItem('sp-cs-'+S.user.id)}catch{};updHdr();syncLeaderboard();swTab("plan")}
 
 // ═══════ SETTINGS TAB ═══════
+function rJourney(){
+  const totalSessions=Object.keys(S.logs).length;
+  const logDates=new Set(Object.values(S.logs).map(function(l){return l.date}).filter(Boolean).map(function(d){return new Date(d).toISOString().slice(0,10)}));
+  let streak=0;const today=new Date();today.setHours(0,0,0,0);let check=new Date(today);
+  for(let w=0;w<52;w++){const ws=new Date(check);ws.setDate(ws.getDate()-ws.getDay());let has=false;for(let d=0;d<7;d++){const day=new Date(ws);day.setDate(day.getDate()+d);if(logDates.has(day.toISOString().slice(0,10))){has=true;break}}if(has)streak++;else if(w>0)break;check.setDate(check.getDate()-7)}
+  return `<div class="sec-title">🏆 Your Journey</div><div class="journey-card" style="margin-bottom:14px"><div class="journey-milestone${totalSessions>=1?' unlocked':''}"><div class="jm-icon">${totalSessions>=1?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">First Session</div><div class="jm-desc">Complete your first workout</div></div></div><div class="journey-milestone${totalSessions>=10?' unlocked':''}"><div class="jm-icon">${totalSessions>=10?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Committed (10 Sessions)</div><div class="jm-desc">${totalSessions>=10?'Achieved!':totalSessions+'/10 sessions'}</div></div></div><div class="journey-milestone${streak>=4?' unlocked':''}"><div class="jm-icon">${streak>=4?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Month Warrior</div><div class="jm-desc">${streak>=4?'4 weeks strong!':streak+'/4 week streak'}</div></div></div><div class="journey-milestone${totalSessions>=50?' unlocked':''}"><div class="jm-icon">${totalSessions>=50?'✅':'🔒'}</div><div class="jm-text"><div class="jm-title">Fifty Strong</div><div class="jm-desc">${totalSessions>=50?'Legend status!':totalSessions+'/50 sessions'}</div></div></div></div>`;
+}
 function rSet(){const el=document.getElementById("tab-settings");const p=S.user.profile||{};
 const ent=Object.entries(S.logs).sort((a,b)=>new Date(b[1].date)-new Date(a[1].date));const we=ent.filter(([k])=>k.startsWith("w"+S.week+"-"));const rats=ent.map(([,v])=>v.rating).filter(Boolean);const avg=rats.length?(rats.reduce((a,b)=>a+b,0)/rats.length).toFixed(1):"—";
 el.innerHTML=`<div class="more-nav-grid"><div class="more-nav-item" onclick="swTab('body')"><span>📐</span><div>Body</div></div><div class="more-nav-item" onclick="swTab('notes')"><span>📝</span><div>Notes</div></div><div class="more-nav-item" onclick="swTab('equip')"><span>🔧</span><div>Equipment</div></div><div class="more-nav-item" onclick="swTab('leaders')"><span>🏆</span><div>Leaderboard</div></div></div>`+
-`<div class="p-cards"><div class="p-c"><div class="p-cn">${ent.length}</div><div class="p-cl">Sessions</div></div><div class="p-c"><div class="p-cn">${we.length}/${S.plan.length}</div><div class="p-cl">This Wk</div></div><div class="p-c"><div class="p-cn">${avg}</div><div class="p-cl">Rating</div></div><div class="p-c"><div class="p-cn">${Object.keys(S.flog).length}</div><div class="p-cl">Days Fed</div></div></div>`+
+`<div class="sec-title" style="margin-top:2px">📈 Progress & Coaching</div>`+rCoachCard()+rJourney()+`<div class="p-cards"><div class="p-c"><div class="p-cn">${ent.length}</div><div class="p-cl">Sessions</div></div><div class="p-c"><div class="p-cn">${we.length}/${S.plan.length}</div><div class="p-cl">This Wk</div></div><div class="p-c"><div class="p-cn">${avg}</div><div class="p-cl">Rating</div></div><div class="p-c"><div class="p-cn">${Object.keys(S.flog).length}</div><div class="p-cl">Days Fed</div></div></div>`+
 // Session log
 `<div class="log-t">Session Log</div>`+(ent.length===0?`<div class="empty"><p class="empty-t">No sessions yet</p></div>`:ent.slice(0,10).map(([key,log])=>{const d=S.plan[log.dayIndex];const cs=Object.values(log.sets).reduce((a,s)=>a+s.filter(x=>x.done).length,0);const ts=Object.values(log.sets).reduce((a,s)=>a+s.length,0);return`<div class="log-c"><div><div style="font-size:11px;font-weight:600">${d?d.day:key}</div><div style="font-size:9px;color:var(--sub)">${new Date(log.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</div></div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">${EMO[log.rating]||""}</span><span style="font-size:10px;color:var(--sub)">${cs}/${ts}</span></div></div>`}).join(""))+
 // Profile settings
@@ -5710,7 +5748,7 @@ const PG_DAYS=[
   {key:"pg_bw_adv",emoji:"🔥",label:"10-Min Bodyweight (Advanced)",desc:"AMRAP · Plyometric · 15s rest",src:"Pure Gym"}
 ];
 let pgPickerOpen=false;
-function togPgPicker(){pgPickerOpen=!pgPickerOpen;rPlan()}
+function togPgPicker(){pgPickerOpen=!pgPickerOpen;(S.tab==="settings"?rSet:rPlan)()}
 function addPureGymDay(key){
   const proto=PRESETS[key];if(!proto||!proto[0])return;
   const d=proto[0];
@@ -5743,7 +5781,7 @@ function rPgPicker(){
 // (hypertrophy 10–20 sets/muscle/week · 150 min moderate cardio or 75 min
 // vigorous per week · compound-first session structure).
 let benchOpen=false;
-function togBench(){benchOpen=!benchOpen;rPlan()}
+function togBench(){benchOpen=!benchOpen;(S.tab==="settings"?rSet:rPlan)()}
 function benchmarkReport(){
   if(!S.plan||!S.plan.length||!S.user)return null;
   const vol=weeklyVolume();
