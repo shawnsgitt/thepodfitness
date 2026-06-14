@@ -941,6 +941,17 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .sc-rpe-p{width:26px;height:24px;border-radius:7px;border:1px solid var(--bdr);background:transparent;color:var(--sub);font-size:11px;font-weight:600;cursor:pointer}
 .sc-rpe-p.on{background:var(--amb);border-color:var(--amb);color:#06210a;font-weight:800}
 
+
+/* ── Quick add (manual food log) + section quick-log bars ── */
+.qa-inp{width:100%;padding:11px 12px;background:var(--input);border:1px solid var(--bdr);border-radius:10px;color:var(--tx);font-size:14px;outline:none}
+.qa-inp:focus{border-color:var(--amb)}
+.qa-row{display:flex;gap:8px;margin-top:8px}
+.qa-grp{flex:1}
+.qa-grp label{display:block;font-size:10px;color:var(--sub);margin:0 0 4px 2px}
+.qa-bar{display:flex;gap:8px;margin-bottom:12px}
+.qa-bar-b{flex:1;padding:11px;border-radius:12px;border:1px solid var(--bdr);background:rgba(255,255,255,.04);color:var(--tx);font-size:12px;font-weight:700;cursor:pointer}
+.qa-bar-b:active{transform:scale(.98)}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -3423,7 +3434,7 @@ const tk=tdk();const dl=S.flog[tk]||[];
 return meals.opts.map((o,oi)=>{const lg=dl.some(l=>l.mi===mealIdx&&l.oi===oi);const emoji=getMealEmoji(o.ml);const grad=getMealGrad(meals.nm);
 return`<div class="meal-card${lg?' logged':''}" onclick="showRecipeDetail('${esc(meals.nm)}','${o.ml.replace(/'/g,"\\'")}',${o.cal},${o.p},${o.c},${o.f},${mealIdx},${oi})"><div class="mc-hero" style="background:${grad}"><div class="mc-emoji">${emoji}</div>${lg?'<div class="mc-badge">✓ Logged</div>':''}</div><div class="mc-body"><div class="mc-title">${renderMealIngredientLines(o.ml)}</div><div class="mc-macros"><span class="mc-macro cal">${o.cal} kcal</span><span class="mc-macro pro">${o.p}g P</span><span class="mc-macro carb">${o.c}g C</span><span class="mc-macro fat">${o.f}g F</span></div><button class="mc-log-btn" onclick="event.stopPropagation();${lg?`ulMeal(${mealIdx},${oi})`:`lMeal(${mealIdx},${oi})`}">${lg?'✕ Remove':'+ Log This Meal'}</button></div></div>`}).join('')}
 function rQuickLogRow(){
-  return`<div class="quick-log-row"><button class="quick-log-b" onclick="openBarcodeScanner()"><div class="ql-emoji">📷</div><div class="ql-label">Scan Barcode</div><div class="ql-sub">UK-branded foods</div></button><button class="quick-log-b" onclick="openFoodSearch()"><div class="ql-emoji">🔍</div><div class="ql-label">Search Foods</div><div class="ql-sub">Find + log in 2 taps</div></button><button class="quick-log-b" onclick="openMealBuilder()"><div class="ql-emoji">🍽</div><div class="ql-label">Build a Meal</div><div class="ql-sub">Pick items → exact grams</div></button><button class="quick-log-b" onclick="openPantryPlanner()"><div class="ql-emoji">📦</div><div class="ql-label">Pantry Plan</div><div class="ql-sub">Whole-week plan</div></button></div>`;
+  return`<div class="quick-log-row"><button class="quick-log-b" onclick="openBarcodeScanner()"><div class="ql-emoji">📷</div><div class="ql-label">Scan Barcode</div><div class="ql-sub">UK-branded foods</div></button><button class="quick-log-b" onclick="openFoodSearch()"><div class="ql-emoji">🔍</div><div class="ql-label">Search Foods</div><div class="ql-sub">Find + log in 2 taps</div></button><button class="quick-log-b" onclick="openQuickAdd()"><div class="ql-emoji">✏️</div><div class="ql-label">Quick Add</div><div class="ql-sub">Type name + macros</div></button><button class="quick-log-b" onclick="openMealBuilder()"><div class="ql-emoji">🍽</div><div class="ql-label">Build a Meal</div><div class="ql-sub">Pick items → exact grams</div></button><button class="quick-log-b" onclick="openPantryPlanner()"><div class="ql-emoji">📦</div><div class="ql-label">Pantry Plan</div><div class="ql-sub">Whole-week plan</div></button></div>`;
 }
 
 // ═════════════ PANTRY-TO-PLAN BUILDER ═════════════
@@ -3755,10 +3766,10 @@ const tabBar=`<div class="ntab-bar">${FOOD_TABS.map(ft=>`<button class="ntab-btn
 let content='';
 if(foodSubTab==='overview'){content=rFoodOverview(dl,tl,t)}
 else if(foodSubTab==='mealplan'){content=rMealPlan()}
-else if(foodSubTab==='breakfast'){const mi=MEALS.findIndex(m=>m.nm==='Breakfast');content=mi>=0?`<div class="sec-title">🍳 Breakfast · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):''}
-else if(foodSubTab==='lunch'){const mi=MEALS.findIndex(m=>m.nm==='Lunch');content=mi>=0?`<div class="sec-title">🍗 Lunch · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):'';const pw=MEALS.findIndex(m=>m.nm==='Pre-Workout');if(pw>=0)content+=`<div class="sec-title" style="margin-top:16px">⚡ Pre-Workout · ${MEALS[pw].tm}</div>`+rMealCards(MEALS[pw],pw)}
-else if(foodSubTab==='dinner'){const mi=MEALS.findIndex(m=>m.nm==='Dinner');content=mi>=0?`<div class="sec-title">🍽️ Dinner · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):''}
-else if(foodSubTab==='snacks'){const es=MEALS.findIndex(m=>m.nm==='Evening Snack');const mg=MEALS.findIndex(m=>m.nm==='Mass Gainer Shake');content='';if(es>=0)content+=`<div class="sec-title">🌙 Evening Snack · ${MEALS[es].tm}</div>`+rMealCards(MEALS[es],es);if(mg>=0)content+=`<div class="sec-title" style="margin-top:16px">🥤 Mass Gainer · ${MEALS[mg].tm}</div>`+rMealCards(MEALS[mg],mg)}
+else if(foodSubTab==='breakfast'){const mi=MEALS.findIndex(m=>m.nm==='Breakfast');content=mi>=0?qaBar('Breakfast')+`<div class="sec-title">🍳 Breakfast · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):''}
+else if(foodSubTab==='lunch'){const mi=MEALS.findIndex(m=>m.nm==='Lunch');content=mi>=0?qaBar('Lunch')+`<div class="sec-title">🍗 Lunch · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):'';const pw=MEALS.findIndex(m=>m.nm==='Pre-Workout');if(pw>=0)content+=`<div class="sec-title" style="margin-top:16px">⚡ Pre-Workout · ${MEALS[pw].tm}</div>`+rMealCards(MEALS[pw],pw)}
+else if(foodSubTab==='dinner'){const mi=MEALS.findIndex(m=>m.nm==='Dinner');content=mi>=0?qaBar('Dinner')+`<div class="sec-title">🍽️ Dinner · ${MEALS[mi].tm}</div>`+rMealCards(MEALS[mi],mi):''}
+else if(foodSubTab==='snacks'){const es=MEALS.findIndex(m=>m.nm==='Evening Snack');const mg=MEALS.findIndex(m=>m.nm==='Mass Gainer Shake');content=qaBar('Snack');if(es>=0)content+=`<div class="sec-title">🌙 Evening Snack · ${MEALS[es].tm}</div>`+rMealCards(MEALS[es],es);if(mg>=0)content+=`<div class="sec-title" style="margin-top:16px">🥤 Mass Gainer · ${MEALS[mg].tm}</div>`+rMealCards(MEALS[mg],mg)}
 el.innerHTML=tabBar+content}
 function rMealPlan(){
 if(!cachedMealPlan){loadMealPlan();if(!cachedMealPlan){cachedMealPlan=(mpMode==="custom"?generateBlankWeekPlan():generateWeekMealPlan());savMealPlan()}}
@@ -4262,7 +4273,7 @@ function logBarcodeFood(name,kcal100,p100,c100,f100){
   const qtyEl=document.getElementById('bcQty');const qty=(qtyEl?parseInt(qtyEl.value,10):100)||100;
   const f=qty/100;
   const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];
-  S.flog[tk].push({meal:'Snack',ml:name+' ('+qty+'g)',cal:Math.round(kcal100*f),p:Math.round(p100*f*10)/10,c:Math.round(c100*f*10)/10,f:Math.round(f100*f*10)/10,isCustom:true});
+  S.flog[tk].push({meal:_logMealType,ml:name+' ('+qty+'g)',cal:Math.round(kcal100*f),p:Math.round(p100*f*10)/10,c:Math.round(c100*f*10)/10,f:Math.round(f100*f*10)/10,isCustom:true});
   savFlog();updHdr();closeBarcodeScanner();rFood();
   if(typeof ftoast==="function")ftoast("✓ Logged "+name);
 }
@@ -4277,7 +4288,8 @@ function saveBarcodeFood(name,kcal100,p100,c100,f100){
 
 // ═══════ QUICK FOOD SEARCH (local DB + Open Food Facts) ═══════
 let _fsTimer=null;
-function openFoodSearch(){
+let _logMealType="Snack";let _qaType="Snack";
+function openFoodSearch(mealType){_logMealType=mealType||_logMealType||"Snack";
   const existing=document.getElementById('fsOverlay');if(existing)existing.remove();
   const overlay=document.createElement('div');overlay.className='gl-overlay';overlay.id='fsOverlay';
   overlay.innerHTML=`<div class="gl-header"><h2>🔍 Search Food</h2><button class="gl-close" onclick="closeFoodSearch()">✕</button></div><div class="gl-body"><input id="fsIn" type="text" placeholder="e.g. Tesco chicken breast, Alpro oat milk, banana" oninput="doFoodSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="width:100%;padding:10px 12px;background:var(--input);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-size:14px"><div id="fsOut" style="margin-top:10px"></div><div style="font-size:10px;color:var(--sub);margin-top:12px;padding-top:8px;border-top:1px solid var(--bdr);line-height:1.4">Searches the app's bundled UK food library first (works offline · ${UK_FOOD_DB.length} products incl. Tesco, Warburtons, Hovis, Alpro, Weetabix, Grenade, Huel…), then extends to <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener" style="color:var(--amb)">Open Food Facts</a> online for long-tail items.</div></div>`;
@@ -4285,6 +4297,34 @@ function openFoodSearch(){
   setTimeout(function(){const i=document.getElementById('fsIn');if(i)i.focus()},100);
 }
 function closeFoodSearch(){const o=document.getElementById('fsOverlay');if(o)o.remove()}
+function qaSetType(t){_qaType=t;Array.prototype.forEach.call(document.querySelectorAll('#qaPills .pill'),function(b){b.classList.toggle('on',b.textContent===t)})}
+function qaBar(t){return `<div class="qa-bar"><button class="qa-bar-b" onclick="openFoodSearch('${t}')">🔍 Search &amp; log a food</button><button class="qa-bar-b" onclick="openQuickAdd('${t}')">✏️ Quick add</button></div>`}
+function quickAddFromSearch(){var i=document.getElementById('fsIn');var q=i?i.value.trim():'';closeFoodSearch();openQuickAdd(_logMealType,q)}
+function openQuickAdd(mealType,prefill){
+  _qaType=mealType||"Snack";
+  const types=["Breakfast","Lunch","Pre-Workout","Dinner","Evening Snack","Mass Gainer Shake","Snack"];
+  var ex=document.getElementById('qaOverlay');if(ex)ex.remove();
+  const o=document.createElement('div');o.className='gl-overlay';o.id='qaOverlay';
+  o.innerHTML=`<div class="gl-header"><h2>✏️ Quick add a food</h2><button class="gl-close" onclick="document.getElementById('qaOverlay').remove()">✕</button></div><div class="gl-body"><div class="cm-inline-hint" style="margin-bottom:10px">For anything not in the database — a protein shake, Complan, a takeaway, a homemade meal. Type what you ate and its macros, and log it straight away.</div><input id="qaName" class="qa-inp" type="text" placeholder="Food name (e.g. Complan Vanilla)" value="${esc(prefill||'')}" maxlength="60"><div style="font-size:11px;color:var(--sub);margin:10px 0 5px">Meal</div><div class="pills" style="margin:0;padding:0" id="qaPills">${types.map(function(t){return '<button class="pill '+(t===_qaType?'on':'')+'" onclick="qaSetType(\''+t+'\')">'+t+'</button>'}).join("")}</div><div class="qa-row"><div class="qa-grp"><label>Calories</label><input id="qaCal" class="qa-inp" type="number" inputmode="numeric" placeholder="kcal"></div><div class="qa-grp"><label>Protein (g)</label><input id="qaP" class="qa-inp" type="number" inputmode="decimal" placeholder="g"></div></div><div class="qa-row"><div class="qa-grp"><label>Carbs (g) <span style="color:var(--sub);font-weight:400">opt</span></label><input id="qaC" class="qa-inp" type="number" inputmode="decimal" placeholder="g"></div><div class="qa-grp"><label>Fat (g) <span style="color:var(--sub);font-weight:400">opt</span></label><input id="qaF" class="qa-inp" type="number" inputmode="decimal" placeholder="g"></div></div><button class="s-btn pri" style="margin-top:14px" onclick="quickAddLog()">+ Log it</button></div>`;
+  document.body.appendChild(o);
+  setTimeout(function(){var n=document.getElementById('qaName');if(n&&!prefill){n.focus()}},80);
+}
+function quickAddLog(){
+  const name=(document.getElementById('qaName').value||'').trim();
+  if(!name){alert('Give it a name first');return}
+  const cal=Math.round(+document.getElementById('qaCal').value||0);
+  if(!cal){alert('Enter at least the calories');return}
+  const p=Math.round((+document.getElementById('qaP').value||0)*10)/10;
+  const c2=Math.round((+document.getElementById('qaC').value||0)*10)/10;
+  const f2=Math.round((+document.getElementById('qaF').value||0)*10)/10;
+  const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];
+  S.flog[tk].push({meal:_qaType,ml:name,cal:cal,p:p,c:c2,f:f2,isCustom:true});
+  savFlog();updHdr();
+  var o=document.getElementById('qaOverlay');if(o)o.remove();
+  rFood();
+  if(typeof ftoast==="function")ftoast("✓ Logged "+name);
+}
+
 function doFoodSearch(q){if(_fsTimer)clearTimeout(_fsTimer);_fsTimer=setTimeout(function(){runFoodSearch(q)},350)}
 function _recentLoggedFoods(){
   // Pull unique foods logged in the last 30 days so 'same thing again'
@@ -4361,13 +4401,13 @@ async function runFoodSearch(q){
       }).join('');
     }
   }catch(e){}
-  out.innerHTML=html||'<div style="color:var(--sub);text-align:center;padding:14px;font-size:12px">No foods matched "'+esc(q)+'"</div>';
+  out.innerHTML=html||('<div style="color:var(--sub);text-align:center;padding:14px;font-size:12px">No match for "'+esc(q)+'" in the database.</div><button class="s-btn pri" style="margin-top:4px" onclick="quickAddFromSearch()">✏️ Add it manually instead</button>');
 }
 function relogFood(name,cal,p,c,f){
   // Re-log an already-portioned food (from Recents) at exactly the same
   // amount the user logged before — no gram prompt needed.
   const tk=tdk();if(!S.flog[tk])S.flog[tk]=[];
-  S.flog[tk].push({meal:'Snack',ml:name,cal:cal,p:p,c:c,f:f,isCustom:true});
+  S.flog[tk].push({meal:_logMealType,ml:name,cal:cal,p:p,c:c,f:f,isCustom:true});
   savFlog();updHdr();closeFoodSearch();rFood();
   if(typeof ftoast==="function")ftoast("✓ Logged "+name);
 }
