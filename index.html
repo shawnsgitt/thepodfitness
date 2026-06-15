@@ -2063,7 +2063,7 @@ return homeSection("nutri","Today's Nutrition",`<div class="nutri-preview" oncli
 `<div class="sec-title">This Week</div>`+
 `<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — do any workout on any day. Completed days show the actual date you trained, not the planned day. Streak and progress track real behaviour.</div>`+
 `<button class="s-btn pri" style="margin:2px 0 8px;font-size:12px;font-weight:700" onclick="startFreeWO()">➕ Log a workout (off-plan / something different)</button>`+`<div class="card" style="margin:0 0 10px;padding:12px;border:1px solid var(--bdr)"><div style="font-size:12px;font-weight:800;margin-bottom:2px">🩹 Physio &amp; Mobility</div><div style="font-size:10px;color:var(--sub);line-height:1.45;margin-bottom:9px">Gentle guided routines for mobility &amp; recovery. <b style="color:var(--amb)">This supports — it does not replace — your physiotherapist.</b> Stay within a pain-free range and follow their advice. You can also log the specific exercises they gave you with the off-plan logger above.</div><div style="display:flex;flex-direction:column;gap:6px">`+Object.keys(PHYSIO_ROUTINES).map(function(k){var r=PHYSIO_ROUTINES[k];return '<button class="s-btn out" style="text-align:left;font-size:12px" onclick="startPhysio(\''+k+'\')">'+r.emoji+' '+r.label+' <span style="color:var(--sub);font-weight:400">· '+r.exs.length+' moves</span></button>'}).join('')+`</div></div>`+``+
-`<button class="s-btn amb" style="margin:6px 0 10px;font-size:12px;font-weight:700" onclick="shuffleWholePlan()">🔀 Shuffle entire plan (every day)</button><div style="font-size:10px;color:var(--sub);text-align:center;margin:-4px 0 10px">Use 🔀 to reshuffle the whole week · or tap 🔄 on any single day to reshuffle just that session.</div>`+
+`<button class="s-btn out" style="margin:0 0 10px;font-size:12px;font-weight:800;border-color:var(--amb);color:var(--amb)" onclick="openMobilityStudio()">♿ Mobility Studio — accessible & recovery routines</button><button class="s-btn amb" style="margin:6px 0 10px;font-size:12px;font-weight:700" onclick="shuffleWholePlan()">🔀 Shuffle entire plan (every day)</button><div style="font-size:10px;color:var(--sub);text-align:center;margin:-4px 0 10px">Use 🔀 to reshuffle the whole week · or tap 🔄 on any single day to reshuffle just that session.</div>`+
 rWeekQuality()+
 S.plan.map((d,i)=>{
   const dn=_dayLogThisWeek(i);
@@ -5390,6 +5390,144 @@ const PHYSIO_ROUTINES={
     {n:"Chest Doorway Stretch",s:2,r:"30s hold",note:"Forearms on a doorframe, step gently through until you feel an easy chest stretch."}
   ]}
 };
+const MOBILITY_ROUTINES={
+  // ── Recovery — by body area (gentle, alongside a clinician) ──
+  shoulder:{label:"Shoulder Recovery",emoji:"💪",pos:"Seated/standing",level:"Gentle",track:"recovery",exs:[
+    {n:"Pendulum Swings",s:1,r:"30s each",note:"Lean on a table, let the arm hang and swing it gently in small circles."},
+    {n:"Shoulder Rolls",s:1,r:"10 each way",note:"Big, slow circles forward and back."},
+    {n:"Scapular Squeezes",s:2,r:"10 reps",note:"Sit or stand tall, draw the shoulder blades back and down, hold 2s."},
+    {n:"Wall Slides",s:2,r:"10 reps",note:"Back to wall, arms in a goalpost, slide up and down keeping contact."},
+    {n:"Assisted Shoulder Flexion (Stick)",s:2,r:"8 reps",note:"Hold a stick/broom with both hands; let the good arm guide the sore arm up overhead."},
+    {n:"External Rotation (Light Band)",s:2,r:"12 reps",note:"Elbow tucked at side, rotate the forearm outward against light resistance."},
+    {n:"Cross-Body Stretch",s:2,r:"20s each",note:"Draw one arm across the chest with the other hand."},
+    {n:"Doorway Pec Stretch",s:2,r:"20s hold",note:"Forearms on the doorframe, step gently through."}
+  ]},
+  knee:{label:"Knee Recovery",emoji:"🦵",pos:"Floor/seated",level:"Gentle",track:"recovery",exs:[
+    {n:"Quad Sets",s:2,r:"10 reps",note:"Leg straight, tighten the thigh to press the back of the knee down, hold 5s."},
+    {n:"Heel Slides",s:2,r:"10 reps",note:"Slide the heel toward you to bend the knee, then straighten slowly."},
+    {n:"Straight Leg Raise",s:2,r:"10 each",note:"One knee bent, lift the straight leg to its height, lower slowly."},
+    {n:"Seated Knee Extension",s:2,r:"12 each",note:"Straighten the knee, hold 2s, lower with control."},
+    {n:"Seated Hamstring Curl",s:2,r:"12 each",note:"Draw the heel back under the chair against light or no resistance."},
+    {n:"Calf Stretch",s:2,r:"30s each",note:"Hands on a wall, back leg straight, heel down."},
+    {n:"Mini Squats (Supported)",s:2,r:"10 reps",note:"Hold a support, bend the knees a quarter range, heels down."},
+    {n:"Step-Ups (Low Step)",s:2,r:"8 each",note:"Use a low, stable step. Hold support. Drive through the heel."}
+  ]},
+  back:{label:"Lower Back Care",emoji:"🧎",pos:"Floor",level:"Gentle",track:"recovery",exs:[
+    {n:"Pelvic Tilts",s:2,r:"10 reps",note:"On back, knees bent. Gently flatten the low back, then arch slightly."},
+    {n:"Knee-to-Chest",s:2,r:"20s each",note:"Draw one knee gently toward the chest."},
+    {n:"Cat-Cow",s:2,r:"8 reps",note:"On all fours, arch then round the spine slowly with the breath."},
+    {n:"Child's Pose",s:2,r:"30s hold",note:"Sit the hips back toward the heels, arms forward, breathe."},
+    {n:"Bird Dog",s:2,r:"8 each",note:"On all fours, extend opposite arm and leg slowly; keep the trunk still."},
+    {n:"Glute Bridge",s:2,r:"10 reps",note:"Lift the hips, squeeze the glutes 2s, lower with control."},
+    {n:"Standing Back Extension",s:1,r:"8 reps",note:"Hands on hips, gently arch backward through a small range."}
+  ]},
+  ankle:{label:"Ankle & Foot Recovery",emoji:"🦶",pos:"Seated",level:"Gentle",track:"recovery",exs:[
+    {n:"Ankle Pumps",s:2,r:"15 reps",note:"Point and flex the foot."},
+    {n:"Ankle Circles",s:2,r:"10 each way",note:"Slow circles through a pain-free range."},
+    {n:"Alphabet Draw",s:1,r:"1-2 sets",note:"Draw the alphabet in the air with the big toe."},
+    {n:"Towel Scrunches",s:2,r:"12 reps",note:"Scrunch a towel toward you using the toes."},
+    {n:"Calf Stretch",s:2,r:"30s each",note:"Wall stretch, back leg straight, heel down."},
+    {n:"Heel Raises (Supported)",s:2,r:"15 reps",note:"Hold support, rise onto the toes, lower slowly."},
+    {n:"Single-Leg Balance (Supported)",s:2,r:"20s each",note:"Hold a support, stand on one foot."},
+    {n:"Resisted Dorsiflexion (Band)",s:2,r:"12 reps",note:"Band around the foot, pull the toes up toward you."}
+  ]},
+  hip:{label:"Hip Recovery & Openers",emoji:"🕺",pos:"Floor",level:"Gentle",track:"recovery",exs:[
+    {n:"Supine Marching",s:2,r:"10 each",note:"On back, knees bent, lift one knee then the other slowly."},
+    {n:"Clamshells",s:2,r:"12 each",note:"Side lying, knees bent, open the top knee keeping hips stacked."},
+    {n:"Glute Bridge",s:2,r:"10 reps",note:"Lift the hips, squeeze 2s, lower slowly."},
+    {n:"Figure-4 Stretch",s:2,r:"20s each",note:"Cross one ankle over the opposite knee, ease gently."},
+    {n:"Hip Flexor Stretch",s:2,r:"30s each",note:"Half-kneel, tuck the pelvis, ease the hips forward."},
+    {n:"Standing Hip Abduction (Supported)",s:2,r:"12 each",note:"Hold support, lift one leg out to the side, lower slowly."},
+    {n:"Hip Circles (Standing)",s:1,r:"8 each way",note:"Hands on hips, circle the hips slowly."}
+  ]},
+  neck:{label:"Neck & Upper Back",emoji:"🙆",pos:"Seated",level:"Gentle",track:"recovery",exs:[
+    {n:"Chin Tucks",s:2,r:"10 reps",note:"Draw the chin straight back to make a double chin, hold 3s."},
+    {n:"Neck Rotations",s:1,r:"5 each",note:"Turn the head slowly side to side, pain-free."},
+    {n:"Neck Side Flexion",s:1,r:"5 each",note:"Tilt the ear gently toward the shoulder."},
+    {n:"Upper Trap Stretch",s:2,r:"20s each",note:"Ease the head toward one side with a light hand assist."},
+    {n:"Shoulder Rolls",s:1,r:"10 each way",note:"Slow, big circles."},
+    {n:"Thoracic Extension (over chair)",s:2,r:"8 reps",note:"Sit, hands behind the head, gently arch over the chair back."},
+    {n:"Scapular Retraction",s:2,r:"10 reps",note:"Draw the shoulder blades together, hold 2s."}
+  ]},
+  // ── Everyday mobility — desk & beginners ──
+  deskreset:{label:"Desk Reset (5 min)",emoji:"💻",pos:"Seated",level:"Beginner",track:"everyday",exs:[
+    {n:"Chin Tucks",s:2,r:"10 reps",note:"Chin straight back, hold 3s. Undoes screen posture."},
+    {n:"Neck Rotations",s:1,r:"5 each",note:"Slow turns side to side."},
+    {n:"Shoulder Rolls",s:1,r:"10 each way",note:"Big, slow circles."},
+    {n:"Seated Thoracic Twist",s:2,r:"20s each",note:"Sit tall, rotate gently and hold."},
+    {n:"Wrist Circles",s:2,r:"10 each way",note:"Loosen the wrists after typing."},
+    {n:"Wrist Flexor Stretch",s:1,r:"20s each",note:"Arm straight, palm up, gently pull the fingers back."},
+    {n:"Seated Figure-4 Stretch",s:2,r:"20s each",note:"Ankle on opposite knee, lean forward gently."},
+    {n:"Seated Cat-Cow",s:2,r:"8 reps",note:"Round and arch the spine slowly while seated."}
+  ]},
+  morning:{label:"Morning Mobility",emoji:"🌅",pos:"Standing",level:"Beginner",track:"everyday",exs:[
+    {n:"Neck Rolls",s:1,r:"5 each way",note:"Gentle and slow."},
+    {n:"Shoulder Rolls",s:1,r:"10 each way",note:"Loosen the shoulders."},
+    {n:"Standing Side Bend",s:2,r:"20s each",note:"Reach overhead, lean gently to the side."},
+    {n:"Standing Back Extension",s:1,r:"8 reps",note:"Hands on hips, small gentle arch back."},
+    {n:"Hip Circles (Standing)",s:1,r:"8 each way",note:"Slow circles through the hips."},
+    {n:"Ankle Circles",s:1,r:"10 each",note:"Wake up the ankles."},
+    {n:"Gentle Bodyweight Squats",s:2,r:"10 reps",note:"Comfortable range, heels down."},
+    {n:"Reach-Up & Fold",s:2,r:"5 reps",note:"Reach overhead, then gently fold forward with soft knees."}
+  ]},
+  posture:{label:"Posture Reset",emoji:"🧍",pos:"Standing",level:"Beginner",track:"everyday",exs:[
+    {n:"Chin Tucks",s:2,r:"10 reps",note:"Chin straight back, hold 3s."},
+    {n:"Scapular Squeezes",s:2,r:"10 reps",note:"Shoulder blades back and down, hold 2s."},
+    {n:"Wall Angels",s:2,r:"10 reps",note:"Back to wall, arms in goalpost, slide up/down keeping contact."},
+    {n:"Doorway Pec Stretch",s:2,r:"20s hold",note:"Open the chest in a doorway."},
+    {n:"Thoracic Extension (over chair)",s:2,r:"8 reps",note:"Gently arch the upper back over a chair."},
+    {n:"Standing Tall Hold",s:2,r:"20s hold",note:"Heels, hips, upper back and head touching a wall."}
+  ]},
+  hips:{label:"Hip Openers",emoji:"🦿",pos:"Floor",level:"Beginner",track:"everyday",exs:[
+    {n:"Figure-4 Stretch",s:2,r:"20s each",note:"Ankle over opposite knee, ease gently."},
+    {n:"Kneeling Hip Flexor Stretch",s:2,r:"30s each",note:"Half-kneel, tuck the pelvis, ease forward."},
+    {n:"Glute Bridge",s:2,r:"10 reps",note:"Lift hips, squeeze 2s."},
+    {n:"Clamshells",s:2,r:"12 each",note:"Open the top knee, hips stacked."},
+    {n:"Butterfly Stretch",s:2,r:"30s hold",note:"Soles together, ease the knees down gently."},
+    {n:"Standing Hip Circles",s:1,r:"8 each way",note:"Slow circles through the hips."}
+  ]},
+  fullflow:{label:"Gentle Full-Body Flow",emoji:"🧘",pos:"Standing/floor",level:"Beginner",track:"everyday",exs:[
+    {n:"Cat-Cow",s:2,r:"8 reps",note:"Arch and round the spine with the breath."},
+    {n:"Child's Pose",s:2,r:"30s hold",note:"Hips back to heels, arms forward."},
+    {n:"Standing Side Bend",s:2,r:"20s each",note:"Reach over and lean gently."},
+    {n:"Shoulder Rolls",s:1,r:"10 each way",note:"Loosen the shoulders."},
+    {n:"Hip Circles (Standing)",s:1,r:"8 each way",note:"Slow hip circles."},
+    {n:"Gentle Bodyweight Squats",s:2,r:"10 reps",note:"Comfortable range."},
+    {n:"Standing Heel Raises",s:2,r:"15 reps",note:"Rise onto the toes, lower slowly."},
+    {n:"Deep Breathing",s:1,r:"5 breaths",note:"Slow breath in through the nose, longer breath out."}
+  ]},
+  seatedoffice:{label:"Seated Office Stretch",emoji:"🪑",pos:"Seated",level:"Beginner",track:"everyday",exs:[
+    {n:"Seated March",s:2,r:"10 each",note:"Sit tall, lift the knees alternately."},
+    {n:"Seated Knee Extension",s:2,r:"12 each",note:"Straighten the knee, hold 2s, lower slowly."},
+    {n:"Seated Cat-Cow",s:2,r:"8 reps",note:"Round and arch the spine seated."},
+    {n:"Seated Twist",s:2,r:"20s each",note:"Rotate gently to each side and hold."},
+    {n:"Overhead Reach",s:2,r:"15s each",note:"Reach one arm up and slightly over."},
+    {n:"Ankle Pumps",s:2,r:"15 reps",note:"Point and flex the feet."},
+    {n:"Wrist Flexor Stretch",s:1,r:"20s each",note:"Palm up, gently pull the fingers back."},
+    {n:"Upper Trap Stretch",s:2,r:"20s each",note:"Ease the head toward the shoulder gently."}
+  ]}
+};
+function startMobility(key){
+  var r=MOBILITY_ROUTINES[key];if(!r)return;
+  var ov=document.getElementById('mobStudioOverlay');if(ov)ov.remove();
+  var dstr=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  S.freeDay={day:"Mobility — "+r.label,sub:(r.pos||"Mobility")+" · "+dstr,sched:"Any day",dur:"~"+(r.exs.length*2+5)+" min",warm:"Ease in gently · stay pain-free",exs:r.exs.map(function(e){return{n:e.n,s:e.s,r:e.r,rest:"—",note:e.note}}),cool:"Relax and breathe",prog:"Move only within a comfortable, pain-free range. If you're recovering from injury or surgery, follow your clinician's advice.",custom:true,freestyle:true,physio:true};
+  S.aw='free';S.rat=null;S._woDiff=5;S._woComment="";S.cs={};
+  var isLbs=getUnit()==="lbs";
+  S.freeDay.exs.forEach(function(e,ei){var prev=_lastSessionFor(e.n);var wD=prev?String(isLbs?kgToDisplay(prev.avgW):prev.avgW):"";var rD=prev?String(prev.avgR):"";S.cs[ei]=Array.from({length:e.s},function(){return{w:wD,r:rD,d:false,rpe:""}})});
+  swTab("track");startWOTimer();
+}
+function openMobilityStudio(){
+  var ex=document.getElementById('mobStudioOverlay');if(ex)ex.remove();
+  var o=document.createElement('div');o.className='gl-overlay';o.id='mobStudioOverlay';
+  function grp(track,title){
+    var keys=Object.keys(MOBILITY_ROUTINES).filter(function(k){return MOBILITY_ROUTINES[k].track===track});
+    if(!keys.length)return'';
+    return '<div style="font-size:11px;font-weight:800;color:var(--sub);margin:14px 0 6px;letter-spacing:.04em">'+title+'</div>'+keys.map(function(k){var r=MOBILITY_ROUTINES[k];return '<div class="fs-row" style="cursor:pointer" onclick="startMobility(\''+k+'\')"><div style="flex:1"><div class="fs-name">'+r.emoji+' '+r.label+'</div><div class="fs-macros">'+r.pos+' · '+r.level+' · '+r.exs.length+' moves</div></div><span style="color:var(--amb);font-weight:800;font-size:16px">▶</span></div>'}).join('');
+  }
+  o.innerHTML='<div class="gl-header"><h2>♿ Mobility Studio</h2><button class="gl-close" onclick="document.getElementById(\'mobStudioOverlay\').remove()">✕</button></div><div class="gl-body"><div class="cm-inline-hint" style="margin-bottom:6px">Gentle, accessible routines — choose by body area or everyday need. Seated, standing and floor options so you can pick what suits you. <b style="color:var(--amb)">This supports — it does not replace — professional care.</b> Stay within a pain-free range; if you are recovering from injury or surgery, follow your clinician.</div>'+grp('recovery','RECOVERY — BY BODY AREA')+grp('everyday','EVERYDAY MOBILITY — DESK & BEGINNERS')+'</div>';
+  document.body.appendChild(o);
+}
 function startPhysio(key){
   var r=PHYSIO_ROUTINES[key];if(!r)return;
   var dstr=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
@@ -5400,7 +5538,7 @@ function startPhysio(key){
   swTab("track");startWOTimer();
 }
 function startFreeWO(){openFreeWO();}
-function _allExNames(){var set=new Set();Object.values(typeof EX_DB!=='undefined'?EX_DB:{}).forEach(function(arr){(arr||[]).forEach(function(e){if(e&&e.n)set.add(e.n)})});(S.customExercises||[]).forEach(function(e){var n=(e&&e.n)?e.n:e;if(n)set.add(n)});try{Object.values(PHYSIO_ROUTINES).forEach(function(r){r.exs.forEach(function(e){set.add(e.n)})})}catch(e){}return Array.from(set).sort();}
+function _allExNames(){var set=new Set();Object.values(typeof EX_DB!=='undefined'?EX_DB:{}).forEach(function(arr){(arr||[]).forEach(function(e){if(e&&e.n)set.add(e.n)})});(S.customExercises||[]).forEach(function(e){var n=(e&&e.n)?e.n:e;if(n)set.add(n)});try{Object.values(PHYSIO_ROUTINES).forEach(function(r){r.exs.forEach(function(e){set.add(e.n)})})}catch(e){}try{Object.values(MOBILITY_ROUTINES).forEach(function(r){r.exs.forEach(function(e){set.add(e.n)})})}catch(e){}return Array.from(set).sort();}
 function openFreeWO(){
   _freeExs=[];
   var ex=document.getElementById('freeOverlay');if(ex)ex.remove();
