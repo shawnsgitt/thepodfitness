@@ -5504,6 +5504,16 @@ const MOBILITY_ROUTINES={
     {n:"Upper Trap Stretch",s:2,r:"20s each",note:"Ease the head toward the shoulder gently."}
   ]}
 };
+function startRoutineFromPreview(k){var o=document.getElementById('routinePreviewOverlay');if(o)o.remove();startMobility(k);}
+function previewRoutine(key){
+  var r=MOBILITY_ROUTINES[key];if(!r)return;
+  var st=document.getElementById('mobStudioOverlay');if(st)st.remove();
+  var ex=document.getElementById('routinePreviewOverlay');if(ex)ex.remove();
+  var o=document.createElement('div');o.className='gl-overlay';o.id='routinePreviewOverlay';
+  var rows=r.exs.map(function(e,i){return '<div style="padding:9px 0;border-bottom:1px solid var(--bdr)"><div style="display:flex;justify-content:space-between;gap:10px"><div style="font-size:13px;font-weight:700">'+(i+1)+'. '+esc(e.n)+'</div><div style="font-size:11px;color:var(--amb);font-weight:700;white-space:nowrap">'+esc(String(e.s))+' × '+esc(String(e.r))+'</div></div>'+(e.note?'<div style="font-size:11px;color:var(--sub);line-height:1.45;margin-top:3px">'+esc(e.note)+'</div>':'')+'</div>'}).join('');
+  o.innerHTML='<div class="gl-header"><h2>'+r.emoji+' '+esc(r.label)+'</h2><button class="gl-close" onclick="document.getElementById(\'routinePreviewOverlay\').remove();openMobilityStudio()">✕</button></div><div class="gl-body"><div style="font-size:11px;color:var(--sub);margin-bottom:6px">'+esc(r.pos)+' · '+esc(r.level)+' · '+r.exs.length+' moves</div><div class="cm-inline-hint" style="margin-bottom:10px">Have a look at the moves first. The session timer only starts when you tap <b>Start</b>. Move within a comfortable, pain-free range — this supports, it does not replace, professional care.</div>'+rows+'<button class="s-btn pri" style="margin-top:14px;font-size:14px;font-weight:800" onclick="startRoutineFromPreview(\''+key+'\')">▶ Start session</button><button class="s-btn out" style="margin-top:8px" onclick="document.getElementById(\'routinePreviewOverlay\').remove();openMobilityStudio()">Cancel</button></div>';
+  document.body.appendChild(o);
+}
 function startMobility(key){
   var r=MOBILITY_ROUTINES[key];if(!r)return;
   var ov=document.getElementById('mobStudioOverlay');if(ov)ov.remove();
@@ -5520,7 +5530,7 @@ function openMobilityStudio(){
   function grp(track,title){
     var keys=Object.keys(MOBILITY_ROUTINES).filter(function(k){return MOBILITY_ROUTINES[k].track===track});
     if(!keys.length)return'';
-    return '<div style="font-size:11px;font-weight:800;color:var(--sub);margin:14px 0 6px;letter-spacing:.04em">'+title+'</div>'+keys.map(function(k){var r=MOBILITY_ROUTINES[k];return '<div class="fs-row" style="cursor:pointer" onclick="startMobility(\''+k+'\')"><div style="flex:1"><div class="fs-name">'+r.emoji+' '+r.label+'</div><div class="fs-macros">'+r.pos+' · '+r.level+' · '+r.exs.length+' moves</div></div><span style="color:var(--amb);font-weight:800;font-size:16px">▶</span></div>'}).join('');
+    return '<div style="font-size:11px;font-weight:800;color:var(--sub);margin:14px 0 6px;letter-spacing:.04em">'+title+'</div>'+keys.map(function(k){var r=MOBILITY_ROUTINES[k];return '<div class="fs-row" style="cursor:pointer" onclick="previewRoutine(\''+k+'\')"><div style="flex:1"><div class="fs-name">'+r.emoji+' '+r.label+'</div><div class="fs-macros">'+r.pos+' · '+r.level+' · '+r.exs.length+' moves</div></div><span style="color:var(--amb);font-weight:800;font-size:16px">▶</span></div>'}).join('');
   }
   o.innerHTML='<div class="gl-header"><h2>♿ Mobility Studio</h2><button class="gl-close" onclick="document.getElementById(\'mobStudioOverlay\').remove()">✕</button></div><div class="gl-body"><div class="cm-inline-hint" style="margin-bottom:6px">Gentle, accessible routines — choose by body area or everyday need. Seated, standing and floor options so you can pick what suits you. <b style="color:var(--amb)">This supports — it does not replace — professional care.</b> Stay within a pain-free range; if you are recovering from injury or surgery, follow your clinician.</div>'+grp('recovery','RECOVERY — BY BODY AREA')+grp('everyday','EVERYDAY MOBILITY — DESK & BEGINNERS')+'</div>';
   document.body.appendChild(o);
@@ -5565,7 +5575,7 @@ function startWO(i){
 }
 function rTrack(){const el=document.getElementById("tab-track");if(S.aw===null){el.innerHTML=`<div class="empty"><div class="empty-i">📋</div><p class="empty-t">No active session</p><p class="empty-s">Go to Plan → Start Session.</p></div>`;return}
 const w=_activeDay();if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
-el.innerHTML=`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:14px;font-weight:700">${w.day}</div><button class="wo-quit" onclick="quitWO()" title="Quit without saving">✕ Quit</button></div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span><span style="color:var(--sub);font-size:10px;margin-left:6px">· nothing saves until you finish</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
+el.innerHTML=`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:14px;font-weight:700">${w.day}</div><button class="wo-quit" onclick="quitWO()" title="Cancel without saving">✕ Cancel</button></div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span><span style="color:var(--sub);font-size:10px;margin-left:6px">· nothing saves until you finish</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
 (function(){
   // Coach digest at the top: per-exercise increase guidance + a couple of coaching tips.
   const recs=(typeof analyzeProgression==="function")?analyzeProgression():[];
@@ -5643,12 +5653,12 @@ return`<div class="card"><div style="font-weight:700;font-size:12px;margin-botto
     <div class="fp-label">Session notes</div>
     <textarea class="fp-comment" id="woComment" placeholder="How was the session? Any notes for next time..." rows="3" oninput="S._woComment=this.value">${S._woComment||''}</textarea>
   </div>
-  <button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>Save & Finish Session</button>
-  <button class="quit-btn" onclick="quitWO()">✕ Quit — don't save this session</button>
+  <button class="fin-btn ${S.rat?'ok':'no'}" ${S.rat?'onclick="finWO()"':'disabled'}>✓ Done — Save Session</button>
+  <button class="quit-btn" onclick="quitWO()">✕ Cancel — don't save this session</button>
 </div>`}
 function quitWO(){
   // Discard an in-progress (or accidentally-started) session without recording anything.
-  if(!confirm("Quit this session? Nothing from it will be saved."))return;
+  if(!confirm("Cancel this session? Nothing from it will be saved."))return;
   if(typeof clearRestTimer==="function")clearRestTimer();
   stopWOTimer();
   S.aw=null;S.freeDay=null;S.cs={};S.rat=null;S._woDiff=5;S._woComment="";
