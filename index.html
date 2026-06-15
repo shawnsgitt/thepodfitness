@@ -959,7 +959,7 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 <div id="splash"><div class="ic">⚡</div><div class="nm">SHAWNSPOD<span> FITNESS</span></div></div>
 <div id="onboard" class="hide"></div>
 <div id="app" class="hide">
-<header class="header"><div class="hdr-top"><div><div class="brand">SHAWNSPOD<span> FITNESS</span></div><div class="usr-row" id="usrRow" onclick="doLogout()"></div></div><div class="wk-ctrl"><button onclick="chgWeek(-1)">◂</button><span class="wk-lbl" id="wkLbl">WK 1</span><button onclick="chgWeek(1)">▸</button></div></div><div class="stats-bar" id="statsBar"></div></header>
+<header class="header"><div class="hdr-top"><div><div class="brand">SHAWNSPOD<span> FITNESS</span></div><div class="usr-row" id="usrRow" onclick="doLogout()"></div></div></div><div class="stats-bar" id="statsBar"></div></header>
 <div class="tab-c" id="tab-plan"></div><div class="tab-c" id="tab-library"></div><div class="tab-c" id="tab-food"></div><div class="tab-c" id="tab-track"></div><div class="tab-c" id="tab-equip"></div><div class="tab-c" id="tab-leaders"></div><div class="tab-c" id="tab-notes"></div><div class="tab-c" id="tab-body"></div><div class="tab-c" id="tab-settings"></div>
 <nav class="nav" id="nav"></nav>
 </div>
@@ -1425,7 +1425,7 @@ function calcBodyComp(profile,nutri,flog){
 }
 
 // ═══════ STATE ═══════
-let S={user:null,week:1,tab:"plan",aw:null,cs:{},rat:null,restTimer:null,restPref:60,woStartTime:null,theme:"dark",bodyMeasurements:[],logs:{},users:[],plan:[],nutri:{cal:2500,protein:150,carbs:300,fat:70},flog:{},water:{},customPlans:[],customMeals:[],customExercises:[],libFilter:"all",libSearch:""};
+let S={user:null,week:1,freeDay:null,tab:"plan",aw:null,cs:{},rat:null,restTimer:null,restPref:60,woStartTime:null,theme:"dark",bodyMeasurements:[],logs:{},users:[],plan:[],nutri:{cal:2500,protein:150,carbs:300,fat:70},flog:{},water:{},customPlans:[],customMeals:[],customExercises:[],libFilter:"all",libSearch:""};
 const LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
 function loadSt(){S.user=LS("sp-me");if(S.user){S.logs=LS("sp-logs-"+S.user.id)||{};S.week=LS("sp-week-"+S.user.id)||1;S.plan=LS("sp-plan-"+S.user.id)||[];S.nutri=LS("sp-nutri-"+S.user.id)||S.nutri;S.flog=LS("sp-flog-"+S.user.id)||{};S.customPlans=LS("sp-custom-"+S.user.id)||[];S.customMeals=LS("sp-cmeals-"+S.user.id)||[];S.customExercises=LS("sp-cex-"+S.user.id)||[];S.water=LS("sp-water-"+S.user.id)||{};S.bodyMeasurements=LS("sp-meas-"+S.user.id)||[];S.restPref=LS('sp-rest-'+S.user.id)||60}loadTheme();loadU()}
 function savCEx(){if(S.user)SS("sp-cex-"+S.user.id,S.customExercises||[])}
@@ -1450,6 +1450,33 @@ function savCMeals(){if(S.user)SS("sp-cmeals-"+S.user.id,S.customMeals)}
 function savPlan(){if(S.user)SS("sp-plan-"+S.user.id,S.plan)}
 function localDS(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function tdk(){return localDS(new Date())}
+let _freeExs=[];
+// ── Continuous-programme helpers (no manual week counter) ──
+// Resolve the exercise name for set-group `sei` in a log. Plan sessions
+// snapshot their exercise names on the log (log.exs); older logs fall back
+// to the plan via dayIndex. Freestyle/off-plan sessions always carry exs.
+function _logExName(log,sei){
+  if(log&&log.exs&&log.exs[+sei]&&log.exs[+sei].n)return log.exs[+sei].n;
+  var di=(log&&log.dayIndex!=null)?log.dayIndex:null;
+  var day=(di!=null&&di>=0)?S.plan[di]:null;
+  return (day&&day.exs[+sei])?day.exs[+sei].n:null;
+}
+// Monday-anchored midnight of the current calendar week.
+function _weekStart(){var n=new Date();n.setHours(0,0,0,0);var off=(n.getDay()+6)%7;n.setDate(n.getDate()-off);return n;}
+// Most-recent plan-day session for plan day `i` within the current calendar
+// week (or null). Drives the "done this week / Redo" state so the plan rolls
+// over automatically every Monday — no week buttons needed.
+function _dayLogThisWeek(i){
+  var ws=_weekStart().getTime(),we=ws+7*86400000,best=null;
+  Object.values(S.logs||{}).forEach(function(l){
+    if(!l||l.freestyle||l.dayIndex!==i||!l.date)return;
+    var t=new Date(l.date).getTime();if(isNaN(t)||t<ws||t>=we)return;
+    if(!best||t>new Date(best.date).getTime())best=l;
+  });
+  return best;
+}
+// The day object currently being tracked (plan day or freestyle session).
+function _activeDay(){return S.aw==='free'?S.freeDay:S.plan[S.aw];}
 
 // ═══════ ONBOARDING (same as v3 with 1-6 days) ═══════
 let OB={step:0,goal:"",gender:"",areas:[],level:"intermediate",age:"",height:"",weight:"",days:4,name:"",avatar:"🦾",cardio:true,gym:"any"};
@@ -1502,7 +1529,7 @@ const ALL_TAB_IDS=["plan","library","food","track","equip","leaders","notes","bo
 function showApp(){document.getElementById("onboard").classList.add("hide");document.getElementById("app").classList.remove("hide");rNav();updHdr();swTab("plan")}
 function rNav(){const moreSubs=["body","notes","equip","leaders"];document.getElementById("nav").innerHTML=TABS.map(t=>{const isOn=S.tab===t.id||(t.id==="settings"&&moreSubs.includes(S.tab));return`<button class="${isOn?'on':''}" onclick="swTab('${t.id}')">${t.svg}<span class="nl">${t.lbl}</span></button>`}).join("")}
 function swTab(id){S.tab=id;rNav();ALL_TAB_IDS.forEach(t=>{const e=document.getElementById("tab-"+t);e&&(id===t?e.classList.add("active"):e.classList.remove("active"))});({plan:rPlan,library:rLib,food:rFood,body:rBody,track:rTrack,leaders:rLeaders,notes:rNotes,settings:rSet,equip:rEquip})[id]?.()}
-function updHdr(){document.getElementById("usrRow").innerHTML=`<span class="usr-av">${S.user.avatar}</span><span class="usr-nm">${esc(S.user.name)}</span><span class="sw-h">switch ▸</span>`;document.getElementById("wkLbl").textContent="WK "+S.week;const wk=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const dl=S.flog[tdk()]||[];const dc=dl.reduce((a,m)=>a+m.cal,0);const dp=dl.reduce((a,m)=>a+m.p,0);document.getElementById("statsBar").innerHTML=`<div><span class="st-v">${wk}</span><span class="st-l">/ ${S.plan.length} wk</span></div><div><span class="st-v">${dc}</span><span class="st-l">/ ${S.nutri.cal} kcal</span></div><div><span class="st-v">${dp}g</span><span class="st-l">/ ${S.nutri.protein}g pro</span></div>`}
+function updHdr(){document.getElementById("usrRow").innerHTML=`<span class="usr-av">${S.user.avatar}</span><span class="usr-nm">${esc(S.user.name)}</span><span class="sw-h">switch ▸</span>`;const wk=S.plan.filter(function(d,i){return _dayLogThisWeek(i)}).length;const dl=S.flog[tdk()]||[];const dc=dl.reduce((a,m)=>a+m.cal,0);const dp=dl.reduce((a,m)=>a+m.p,0);document.getElementById("statsBar").innerHTML=`<div><span class="st-v">${wk}</span><span class="st-l">/ ${S.plan.length} wk</span></div><div><span class="st-v">${dc}</span><span class="st-l">/ ${S.nutri.cal} kcal</span></div><div><span class="st-v">${dp}g</span><span class="st-l">/ ${S.nutri.protein}g pro</span></div>`}
 function chgWeek(d){S.week=Math.max(1,S.week+d);SS("sp-week-"+S.user.id,S.week);updHdr();if(S.tab==="plan")rPlan()}
 // ═══════ PLAN TAB ═══════
 function hasActiveProgress(i){
@@ -1967,7 +1994,7 @@ function qPanel(d,di){const q=scoreDay(d);
   const bc=function(p){return p>=0.85?"var(--grn)":p>=0.6?"var(--amb)":"var(--red)"};
   return`<div class="q-panel" id="qp${di}"><div class="q-head" onclick="event.stopPropagation();document.getElementById('qp${di}').classList.toggle('open')"><div><div class="q-title">🎯 Workout Quality</div><div class="q-grade">${q.tips.length} note${q.tips.length!==1?"s":""} · tap for detail</div></div><div style="display:flex;align-items:center;gap:8px"><span class="q-score" style="color:${q.col}">${q.score}%</span><span class="q-grade" style="color:${q.col};font-weight:700">${q.grade.l}</span><span class="chv">▸</span></div></div><div class="q-body">${q.crit.map(function(c){return`<div class="q-crit"><div class="q-crit-top"><span class="q-crit-lbl">${c.lbl}</span><span class="q-crit-val">${c.val}</span></div><div class="q-bar"><i style="width:${Math.round(c.pct*100)}%;background:${bc(c.pct)}"></i></div></div>`}).join("")}${qPendingFix&&qPendingFix.di===di?`<div class="q-fix-card"><div class="q-fix-proj">${qPendingFix.from}% <span class="q-arrow">→</span> <b>${qPendingFix.projected}%</b></div><div class="q-fix-desc">${qPendingFix.optimize?`⚡ <b>Optimise</b> — apply ${qPendingFix.steps.length} change${qPendingFix.steps.length>1?"s":""}:<br>`+qPendingFix.desc.split("\n").map(function(s){return"• "+s}).join("<br>"):"🔧 "+qPendingFix.desc}</div><div class="q-fix-actions"><button class="q-fix-apply" onclick="event.stopPropagation();qApplyFix()">✓ Apply${qPendingFix.optimize?" all":""}</button><button class="q-fix-cancel" onclick="event.stopPropagation();qCancelFix()">✕ Cancel</button></div></div>`:""}${q.tips.map(function(t){return`<div class="q-tip ${t.c}">${t.t}${t.fk?`<button class="q-fix-btn" onclick="event.stopPropagation();qProposeFix(${di},'${t.fk}','${t.fp||""}')">🔧 Fix it</button>`:""}</div>`}).join("")}${q.score<100&&!(qPendingFix&&qPendingFix.di===di)?`<button class="q-opt-btn" onclick="event.stopPropagation();qOptimize(${di})">⚡ Auto-optimise to best</button>`:""}</div></div>`}
 function renderDayBody(d, i){
-  const dn=S.logs["w"+S.week+"-d"+i];
+  const dn=_dayLogThisWeek(i);
   const inProg=!dn&&hasActiveProgress(i);
   const startLbl=dn?'Redo':inProg?'▶ Continue Session':'Start Session →';
   const startCls=dn?'out':inProg?'amb':'pri';
@@ -1976,7 +2003,7 @@ function renderDayBody(d, i){
 function rPlan(){const el=document.getElementById("tab-plan");if(!S.plan.length){el.innerHTML=`<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🏋️</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">No Plan Yet</div><div style="font-size:11px;color:var(--sub);margin-bottom:16px">Choose a preset program or build your own</div></div><div class="log-t">📋 Preset Programs</div><div class="preset-card" onclick="applyPreset('ppl')"><div style="font-weight:700;font-size:13px">🔥 Push Pull Legs (6-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Classic PPL split — Push A/B, Pull A/B, Legs A/B</div></div><div class="preset-card" onclick="applyPreset('upper_lower')"><div style="font-weight:700;font-size:13px">💪 Upper/Lower (4-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Upper A/B, Lower A/B — great for intermediates</div></div><div class="preset-card" onclick="applyPreset('full_body')"><div style="font-weight:700;font-size:13px">⚡ Full Body (3-day)</div><div style="font-size:10px;color:var(--sub);margin-top:2px">3 sessions/week hitting all muscle groups</div></div><div class="log-t" style="margin-top:14px">🟢 Pure Gym Presets</div><div class="preset-card" onclick="applyPreset('pg_kettlebell')"><div style="font-weight:700;font-size:13px">🔔 Kettlebell Full Body</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 6 lifts, 3 rounds</div></div><div class="preset-card" onclick="applyPreset('pg_circuit30')"><div style="font-weight:700;font-size:13px">⏱️ 30-Min Full Body Circuit</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 6 moves · 45s on / 15s off · 5 rounds</div></div><div class="preset-card" onclick="applyPreset('pg_dumbbell')"><div style="font-weight:700;font-size:13px">🏋️ Dumbbell Accumulator</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · DB-only progressive reps</div></div><div class="preset-card" onclick="applyPreset('pg_norwegian')"><div style="font-weight:700;font-size:13px">❤️ Norwegian 4×4 HIIT</div><div style="font-size:10px;color:var(--sub);margin-top:2px">Pure Gym · 4 min on / 3 min off × 4 · run, row or bike</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--sub)">Or build a custom plan using the Exercise Library below</div>`;return}
 const gk=S.user.profile?.goal||"general";const recs=GOAL_RECS[gk];
 // Calculate progress stats for hero
-const wkDone=Object.keys(S.logs).filter(k=>k.startsWith("w"+S.week+"-")).length;const wkTotal=S.plan.length;const wkPct=wkTotal?Math.round(wkDone/wkTotal*100):0;
+const wkDone=S.plan.filter(function(d,i){return _dayLogThisWeek(i)}).length;const wkTotal=S.plan.length;const wkPct=wkTotal?Math.round(wkDone/wkTotal*100):0;
 const dl=S.flog[tdk()]||[];const todayCal=dl.reduce((a,m)=>a+m.cal,0);const calTarget=S.nutri.cal;const calPct=calTarget?Math.min(100,Math.round(todayCal/calTarget*100)):0;
 const totalSessions=Object.keys(S.logs).length;
 const streak=(()=>{const dates=Object.values(S.logs).map(l=>l.date).filter(Boolean).sort();if(!dates.length)return 0;const logDates=new Set(dates.map(d=>new Date(d).toISOString().slice(0,10)));const today=new Date();today.setHours(0,0,0,0);let s=0,check=new Date(today);for(let w=0;w<52;w++){const ws=new Date(check);ws.setDate(ws.getDate()-ws.getDay());let has=false;for(let d=0;d<7;d++){const day=new Date(ws);day.setDate(day.getDate()+d);if(logDates.has(day.toISOString().slice(0,10))){has=true;break}}if(has)s++;else if(w>0)break;check.setDate(check.getDate()-7)}return s})();
@@ -1994,7 +2021,7 @@ for(let di=0;di<7;di++){
   calStrip+=`<div class="cal-day${isToday?' today':''}${hasLog?' done':''}"><div class="cal-day-name">${dayNames[di]}</div><div class="cal-day-num">${dd.getDate()}</div>${hasLog?'<div class="cal-dot"></div>':''}</div>`;
 }
 // Find today's workout (first uncompleted day in the plan)
-const todayIdx=S.plan.findIndex((d,i)=>!S.logs["w"+S.week+"-d"+i]);
+const todayIdx=S.plan.findIndex((d,i)=>!_dayLogThisWeek(i));
 const todayWO=todayIdx>=0?S.plan[todayIdx]:null;
 // Workout hero images via CSS gradients per muscle group
 const heroGradients={
@@ -2017,7 +2044,7 @@ function getHeroGrad(dayName){
 el.innerHTML=
 `<div class="dash-greeting"><div class="dash-hello">${greet},</div><div class="dash-name">${esc(S.user.name)}</div></div>`+
 `<div class="cal-strip">${calStrip}</div>`+
-(todayWO?(function(){const lbl=todayWO.day.replace(/Day \d+ — /,'');const q=scoreDay(todayWO);const grad=getHeroGrad(todayWO.day);return `<div class="today-hero" style="background:${grad}" onclick="var e=document.getElementById('dc${todayIdx}');if(e){e.classList.add('open');e.scrollIntoView({behavior:'smooth',block:'start'})}"><div class="th-glow"></div><div class="th-content"><div class="th-top"><div class="th-label">▶ TODAY'S WORKOUT</div>${q.na?"":`<span class="q-chip" style="color:${q.col};background:rgba(0,0,0,.3)">${q.score}%</span>`}</div><div class="th-name">${esc(lbl)}</div><div class="th-meta">${todayWO.exs.length} exercises · ${todayWO.dur}</div><button class="th-start" onclick="event.stopPropagation();startWO(${todayIdx})">▶&nbsp; Start Session</button></div></div>`})():`<div class="today-hero done"><div class="th-content"><div class="th-label" style="color:var(--grn)">✓ THIS WEEK</div><div class="th-name">All done 🎉</div><div class="th-meta">Every planned session this week is complete. Great work.</div><button class="th-start" onclick="event.stopPropagation();chgWeek(1)">Start Week ${S.week+1} →</button></div></div>`)+
+(todayWO?(function(){const lbl=todayWO.day.replace(/Day \d+ — /,'');const q=scoreDay(todayWO);const grad=getHeroGrad(todayWO.day);return `<div class="today-hero" style="background:${grad}" onclick="var e=document.getElementById('dc${todayIdx}');if(e){e.classList.add('open');e.scrollIntoView({behavior:'smooth',block:'start'})}"><div class="th-glow"></div><div class="th-content"><div class="th-top"><div class="th-label">▶ TODAY'S WORKOUT</div>${q.na?"":`<span class="q-chip" style="color:${q.col};background:rgba(0,0,0,.3)">${q.score}%</span>`}</div><div class="th-name">${esc(lbl)}</div><div class="th-meta">${todayWO.exs.length} exercises · ${todayWO.dur}</div><button class="th-start" onclick="event.stopPropagation();startWO(${todayIdx})">▶&nbsp; Start Session</button></div></div>`})():`<div class="today-hero done"><div class="th-content"><div class="th-label" style="color:var(--grn)">✓ THIS WEEK</div><div class="th-name">All done 🎉</div><div class="th-meta">Every planned session this week is complete. Great work.</div><button class="th-start" onclick="event.stopPropagation();startFreeWO()">➕ Log another workout</button></div></div>`)+
 `<div class="progress-bar-section"><div class="prog-item" onclick="var e=document.querySelector('.wo-stack-card');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})"><div class="prog-ring"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--amb)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${2*Math.PI*16}" stroke-dashoffset="${2*Math.PI*16-(2*Math.PI*16*wkPct/100)}" transform="rotate(-90 20 20)"/></svg><span>${wkDone}/${wkTotal}</span></div><div class="prog-label">Workouts</div></div><div class="prog-item" onclick="swTab('food')"><div class="prog-ring"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--grn)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${2*Math.PI*16}" stroke-dashoffset="${2*Math.PI*16-(2*Math.PI*16*calPct/100)}" transform="rotate(-90 20 20)"/></svg><span>${calPct}%</span></div><div class="prog-label">Nutrition</div></div><div class="prog-item" onclick="swTab('track')"><div class="prog-num">${totalSessions}</div><div class="prog-label">Sessions</div></div><div class="prog-item" onclick="if(typeof ftoast==='function')ftoast('🔥 ${streak}-week streak — keep it going!')"><div class="prog-num">${streak}🔥</div><div class="prog-label">Streak</div></div></div>`+
 (()=>{
 const todayFood=S.flog[tdk()]||[];
@@ -2033,13 +2060,13 @@ return homeSection("nutri","Today's Nutrition",`<div class="nutri-preview" oncli
   <div class="np-macros"><div class="np-macro"><div class="np-mv">${tCarb}g</div><div class="np-ml">Carbs</div></div><div class="np-macro"><div class="np-mv">${tFat}g</div><div class="np-ml">Fat</div></div><div class="np-macro"><div class="np-mv">${todayFood.length}</div><div class="np-ml">Meals</div></div></div>
   <div class="np-tap">Tap to log meals →</div>
 </div>`,true)})()+
-`<div class="sec-title">Week ${S.week} Schedule</div>`+
+`<div class="sec-title">This Week</div>`+
 `<div style="font-size:10px;color:var(--sub);margin:4px 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);line-height:1.4">💡 Your plan is flexible — do any workout on any day. Completed days show the actual date you trained, not the planned day. Streak and progress track real behaviour.</div>`+
-`<div class="wk-nav"><button onclick="chgWeek(-1)">◂ Prev</button><span>Week ${S.week}</span><button onclick="chgWeek(1)">Next ▸</button></div>`+
+`<button class="s-btn pri" style="margin:2px 0 8px;font-size:12px;font-weight:700" onclick="startFreeWO()">➕ Log a workout (off-plan / something different)</button>`+
 `<button class="s-btn amb" style="margin:6px 0 10px;font-size:12px;font-weight:700" onclick="shuffleWholePlan()">🔀 Shuffle entire plan (every day)</button><div style="font-size:10px;color:var(--sub);text-align:center;margin:-4px 0 10px">Use 🔀 to reshuffle the whole week · or tap 🔄 on any single day to reshuffle just that session.</div>`+
 rWeekQuality()+
 S.plan.map((d,i)=>{
-  const dn=S.logs["w"+S.week+"-d"+i];
+  const dn=_dayLogThisWeek(i);
   const isToday=(i===todayIdx);
   const statusClass=dn?'completed':isToday?'current':'upcoming';
   // When a day is completed, read the actual completion date from the log
@@ -4917,14 +4944,13 @@ function muscleStats(){
   const out={};
   MUSCLE_ORDER.forEach(function(m){out[m]={muscle:m,lastDate:null,lastVol:0,setsWeek:0,repsWeek:0,volWeek:0,setsMonth:0,volMonth:0,sessionsWeek:0,sessionsMonth:0,exercises:[]}});
   Object.values(S.logs||{}).forEach(function(log){
-    if(!log||!log.date||log.dayIndex==null||log.dayIndex<0)return;
-    const day=S.plan[log.dayIndex];if(!day)return;
+    if(!log||!log.date)return;
     const date=new Date(log.date).getTime();if(isNaN(date))return;
     const inWeek=date>=weekAgo;const inMonth=date>=monthAgo;
     const musInLog=new Set();
     Object.entries(log.sets||{}).forEach(function(e){
-      const ei=e[0],sets=e[1];const ex=day.exs[ei];if(!ex)return;
-      const mus=(typeof getMus==="function"?getMus(ex.n):null)||(findExInDB(ex.n)||{}).cat;
+      const ei=e[0],sets=e[1];const exn=_logExName(log,ei);if(!exn)return;
+      const mus=(typeof getMus==="function"?getMus(exn):null)||(findExInDB(exn)||{}).cat;
       if(!out[mus])return;
       const stat=out[mus];
       if(!stat.lastDate||date>stat.lastDate){stat.lastDate=date;stat.lastVol=0}
@@ -4935,7 +4961,7 @@ function muscleStats(){
         if(inMonth){stat.setsMonth++;stat.volMonth+=v}
       });
       if(inWeek&&(sets||[]).some(function(s){return s&&s.done})){
-        if(stat.exercises.indexOf(ex.n)<0)stat.exercises.push(ex.n);
+        if(stat.exercises.indexOf(exn)<0)stat.exercises.push(exn);
       }
       musInLog.add(mus);
     });
@@ -4963,9 +4989,8 @@ function weeklyVolumeSeries(weeks){
     const we=new Date(ws);we.setDate(we.getDate()+7);
     let vol=0,sets=0,sess=0;const dates=new Set();
     Object.values(S.logs||{}).forEach(function(log){
-      if(!log||!log.date||log.dayIndex==null)return;
+      if(!log||!log.date)return;
       const d=new Date(log.date);if(d<ws||d>=we)return;
-      const day=S.plan[log.dayIndex];if(!day)return;
       dates.add(d.toISOString().slice(0,10));
       Object.entries(log.sets||{}).forEach(function(e){
         (e[1]||[]).filter(function(s){return s&&s.done}).forEach(function(s){
@@ -5091,7 +5116,7 @@ function showDayDetail(dateKey){
   const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][date.getMonth()];
   let h=`<div class="gl-header"><h2>${wd} ${date.getDate()} ${mo}</h2><button class="gl-close" onclick="document.getElementById('dayDetailOverlay').remove()">✕</button></div><div class="gl-body">`;
   logs.forEach(function(log){
-    const day=S.plan[log.dayIndex]||{day:"Workout",exs:[]};
+    const day=(log.freestyle?{day:"Freestyle session",exs:log.exs||[]}:(S.plan[log.dayIndex]||{day:"Workout",exs:[]}));
     const dayName=(day.day||"Workout").replace(/^Day \d+ — /,"");
     let totSets=0,totReps=0,totVol=0;
     Object.entries(log.sets||{}).forEach(function(e){
@@ -5106,9 +5131,9 @@ function showDayDetail(dateKey){
     if(log.duration)h+=`<div class="mg-stat-row"><span>Duration</span><span>${Math.round(log.duration/60)} min</span></div>`;
     h+=`<div class="mg-head" style="margin-top:10px">Exercises</div>`;
     Object.entries(log.sets||{}).forEach(function(e){
-      const ei=e[0],sets=e[1];const ex=day.exs[ei];if(!ex)return;
+      const ei=e[0],sets=e[1];const exn=_logExName(log,ei);if(!exn)return;
       const parts=(sets||[]).map(function(s){const w=s.weight||"-";const r=s.reps||"-";return(s.done?"":"○ ")+w+"×"+r}).join("  ·  ");
-      h+=`<div style="padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.04)"><div style="font-size:12px;font-weight:700">${ex.n}</div><div style="font-size:11px;color:var(--sub);font-family:'Space Grotesk',monospace;margin-top:2px">${parts}</div></div>`;
+      h+=`<div style="padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.04)"><div style="font-size:12px;font-weight:700">${exn}</div><div style="font-size:11px;color:var(--sub);font-family:'Space Grotesk',monospace;margin-top:2px">${parts}</div></div>`;
     });
     if(log.comment)h+=`<div style="margin-top:8px;font-size:11px;color:var(--sub);font-style:italic">"${esc(log.comment)}"</div>`;
     h+=`</div>`;
@@ -5200,11 +5225,11 @@ const logs=S.logs;const plan=S.plan;const profile=S.user?.profile;if(!profile||!
 const goal=profile.goal||"general";const level=profile.level||"intermediate";
 // Collect per-exercise weight history across all weeks
 const exHistory={};
-Object.entries(logs).forEach(([key,log])=>{
-const wm=key.match(/^w(\d+)-d(\d+)$/);if(!wm)return;
-const week=+wm[1];const dayIdx=+wm[2];const day=plan[dayIdx];if(!day)return;
-Object.entries(log.sets).forEach(([ei,sets])=>{
-const ex=day.exs[+ei];if(!ex)return;const name=ex.n;
+Object.values(logs).forEach((log)=>{
+if(!log||!log.date)return;
+const week=Math.floor(new Date(log.date).getTime()/6048e5);
+Object.entries(log.sets||{}).forEach(([ei,sets])=>{
+const name=_logExName(log,ei);if(!name)return;
 if(!exHistory[name])exHistory[name]=[];
 const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);
 const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);
@@ -5246,7 +5271,7 @@ return recs;
 function getBodyGoalGuidance(){
 const p=S.user?.profile;if(!p)return"";
 const goal=p.goal||"general";const logs=S.logs;const totalSessions=Object.keys(logs).length;
-const weeks=S.week;const sessionsPerWeek=weeks?+(totalSessions/weeks).toFixed(1):0;
+const weeks=(function(){var ds=Object.values(logs).map(function(l){return l.date}).filter(Boolean).map(function(d){return new Date(d).getTime()}).filter(function(t){return!isNaN(t)});if(ds.length<2)return 1;return Math.max(1,Math.round((Math.max.apply(null,ds)-Math.min.apply(null,ds))/6048e5)+1)})();const sessionsPerWeek=weeks?+(totalSessions/weeks).toFixed(1):0;
 const targetDays=p.days||4;const adherence=targetDays?Math.min(100,Math.round(sessionsPerWeek/targetDays*100)):0;
 // Analyze weight trends
 const recs=analyzeProgression();
@@ -5314,12 +5339,10 @@ function isCircuitMode(){return supersetGroups.some(g=>g.length>=3)}
 // exercise — massive friction win. The inputs still accept edits as normal.
 function _lastSessionFor(exName){
   const entries=[];
-  Object.entries(S.logs||{}).forEach(function(kv){
-    const k=kv[0],log=kv[1];const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;
-    const day=S.plan[+wm[2]];if(!day)return;
+  Object.values(S.logs||{}).forEach(function(log){
     Object.entries(log.sets||{}).forEach(function(entry){
-      const sei=entry[0],sets=entry[1];const ex=day.exs[+sei];
-      if(!ex||ex.n!==exName)return;
+      const sei=entry[0],sets=entry[1];
+      if(_logExName(log,sei)!==exName)return;
       const done=(sets||[]).filter(function(s){return s&&s.done&&+s.weight>0});
       if(!done.length)return;
       const avgW=done.reduce(function(a,b){return a+(+b.weight||0)},0)/done.length;
@@ -5329,6 +5352,30 @@ function _lastSessionFor(exName){
   });
   entries.sort(function(a,b){return new Date(b.date)-new Date(a.date)});
   return entries[0]||null;
+}
+function startFreeWO(){openFreeWO();}
+function _allExNames(){var set=new Set();Object.values(typeof EX_DB!=='undefined'?EX_DB:{}).forEach(function(arr){(arr||[]).forEach(function(e){if(e&&e.n)set.add(e.n)})});(S.customExercises||[]).forEach(function(e){var n=(e&&e.n)?e.n:e;if(n)set.add(n)});return Array.from(set).sort();}
+function openFreeWO(){
+  _freeExs=[];
+  var ex=document.getElementById('freeOverlay');if(ex)ex.remove();
+  var o=document.createElement('div');o.className='gl-overlay';o.id='freeOverlay';
+  o.innerHTML='<div class="gl-header"><h2>➕ Log a workout</h2><button class="gl-close" onclick="document.getElementById(\'freeOverlay\').remove()">✕</button></div><div class="gl-body"><div class="cm-inline-hint" style="margin-bottom:10px">Did something different today? Add the exercises you actually did — this saves to today and feeds your progress, completely separate from your plan.</div><input id="freeExIn" class="qa-inp" list="freeExList" type="text" placeholder="Exercise name (e.g. Leg Press)" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();freeAddEx()}"><datalist id="freeExList">'+_allExNames().map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist><div class="qa-row" style="margin-top:8px;align-items:flex-end"><div class="qa-grp" style="flex:0 0 84px"><label>Sets</label><input id="freeSets" class="qa-inp" type="number" inputmode="numeric" value="3" min="1" max="12"></div><button class="s-btn amb" style="flex:1" onclick="freeAddEx()">+ Add exercise</button></div><div id="freeList" style="margin-top:12px"></div><button class="s-btn pri" style="margin-top:14px" onclick="freeStart()">▶ Start session</button></div>';
+  document.body.appendChild(o);
+  _renderFreeList();
+  setTimeout(function(){var i=document.getElementById('freeExIn');if(i)i.focus()},80);
+}
+function freeAddEx(){var i=document.getElementById('freeExIn');if(!i)return;var n=(i.value||'').trim();if(!n)return;var ss=Math.max(1,Math.min(12,parseInt(document.getElementById('freeSets').value,10)||3));_freeExs.push({n:n,s:ss});i.value='';_renderFreeList();i.focus();}
+function freeRmEx(idx){_freeExs.splice(idx,1);_renderFreeList();}
+function _renderFreeList(){var el=document.getElementById('freeList');if(!el)return;if(!_freeExs.length){el.innerHTML='<div style="font-size:11px;color:var(--sub);text-align:center;padding:6px">No exercises yet — add what you did above.</div>';return}el.innerHTML=_freeExs.map(function(e,idx){return '<div class="fs-row" style="cursor:default"><div class="fs-name">'+esc(e.n)+'</div><div class="fs-macros">'+e.s+' sets</div><button class="ex-rm-btn" onclick="freeRmEx('+idx+')" title="Remove">✕</button></div>'}).join('');}
+function freeStart(){
+  if(!_freeExs.length){alert('Add at least one exercise first');return}
+  var o=document.getElementById('freeOverlay');if(o)o.remove();
+  var dstr=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  S.freeDay={day:"Freestyle — "+dstr,sub:"Off-plan session",sched:"Any day",dur:"~"+(_freeExs.length*8+10)+" min",warm:"5 min cardio · dynamic stretches",exs:_freeExs.map(function(e){return{n:e.n,s:e.s,r:"8-12",rest:"90s",note:""}}),cool:"Full stretch · 5 min",prog:"Off-plan session — progress tracks by exercise name.",custom:true,freestyle:true};
+  S.aw='free';S.rat=null;S._woDiff=5;S._woComment="";S.cs={};
+  var isLbs=getUnit()==="lbs";
+  S.freeDay.exs.forEach(function(e,ei){var prev=_lastSessionFor(e.n);var wD=prev?String(isLbs?kgToDisplay(prev.avgW):prev.avgW):"";var rD=prev?String(prev.avgR):"";S.cs[ei]=Array.from({length:e.s},function(){return{w:wD,r:rD,d:false,rpe:""}})});
+  swTab("track");startWOTimer();
 }
 function startWO(i){
   S.aw=i;S.rat=null;S._woDiff=5;S._woComment="";S.cs={};
@@ -5345,7 +5392,7 @@ function startWO(i){
   swTab("track");startWOTimer();
 }
 function rTrack(){const el=document.getElementById("tab-track");if(S.aw===null){el.innerHTML=`<div class="empty"><div class="empty-i">📋</div><p class="empty-t">No active session</p><p class="empty-s">Go to Plan → Start Session.</p></div>`;return}
-const w=S.plan[S.aw];if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
+const w=_activeDay();if(!w){el.innerHTML=`<div class="empty"><p class="empty-t">Plan not found</p></div>`;return}const ts=Object.values(S.cs).reduce((a,s)=>a+s.length,0),ds=Object.values(S.cs).reduce((a,s)=>a+s.filter(x=>x.d).length,0),pct=ts?Math.round(ds/ts*100):0;
 el.innerHTML=`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:14px;font-weight:700">${w.day}</div><button class="wo-quit" onclick="quitWO()" title="Quit without saving">✕ Quit</button></div><div class="wo-timer"><div class="wt-dot"></div><span id="wo-timer-display">0:00</span><span style="color:var(--sub);font-size:10px;margin-left:6px">· nothing saves until you finish</span></div><div class="apb"><div class="fill amb" style="width:${pct}%"></div></div><div class="pb-tx" style="margin-top:4px">${ds}/${ts} sets (${pct}%)</div></div>`+
 (function(){
   // Coach digest at the top: per-exercise increase guidance + a couple of coaching tips.
@@ -5357,12 +5404,12 @@ el.innerHTML=`<div style="margin-bottom:12px"><div style="display:flex;align-ite
 })()+
 w.exs.map((e,ei)=>{
 // Find previous session data for this exercise
-const prevData=(()=>{const entries=[];Object.entries(S.logs).forEach(([k,log])=>{const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;const di=+wm[2];const day=S.plan[di];if(!day)return;Object.entries(log.sets).forEach(([sei,sets])=>{const ex=day.exs[+sei];if(ex&&ex.n===e.n){const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);if(weights.length)entries.push({date:log.date,avgW:+(weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1),maxW:Math.max(...weights),avgR:reps.length?+(reps.reduce((a,b)=>a+b,0)/reps.length).toFixed(0):0})}})});entries.sort((a,b)=>new Date(b.date)-new Date(a.date));return entries[0]||null})();
+const prevData=(()=>{const entries=[];Object.values(S.logs).forEach((log)=>{Object.entries(log.sets||{}).forEach(([sei,sets])=>{if(_logExName(log,sei)===e.n){const weights=sets.filter(s=>s.done&&+s.weight>0).map(s=>+s.weight);const reps=sets.filter(s=>s.done&&+s.reps>0).map(s=>+s.reps);if(weights.length)entries.push({date:log.date,avgW:+(weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(1),maxW:Math.max(...weights),avgR:reps.length?+(reps.reduce((a,b)=>a+b,0)/reps.length).toFixed(0):0})}})});entries.sort((a,b)=>new Date(b.date)-new Date(a.date));return entries[0]||null})();
 const rec=analyzeProgression().find(r=>r.name===e.n);
 const unitLbl=getUnit();
 const wBump=unitLbl==="lbs"?5:2.5;
 // Last-8-sessions mini sparkline for this exercise (SVG, no chart.js)
-const historyW=(function(){const entries=[];Object.entries(S.logs||{}).forEach(function(kv){const k=kv[0],log=kv[1];const wm=k.match(/^w(\d+)-d(\d+)$/);if(!wm)return;const day=S.plan[+wm[2]];if(!day)return;Object.entries(log.sets||{}).forEach(function(se){const sei=se[0],sets=se[1];const ex=day.exs[+sei];if(!ex||ex.n!==e.n)return;const done=(sets||[]).filter(function(s){return s&&s.done&&+s.weight>0});if(!done.length)return;const avg=done.reduce(function(a,b){return a+(+b.weight||0)},0)/done.length;entries.push({t:new Date(log.date).getTime(),w:avg})});});entries.sort(function(a,b){return a.t-b.t});return entries.slice(-8).map(function(x){return x.w})})();
+const historyW=(function(){const entries=[];Object.values(S.logs||{}).forEach(function(log){Object.entries(log.sets||{}).forEach(function(se){const sei=se[0],sets=se[1];if(_logExName(log,sei)!==e.n)return;const done=(sets||[]).filter(function(s){return s&&s.done&&+s.weight>0});if(!done.length)return;const avg=done.reduce(function(a,b){return a+(+b.weight||0)},0)/done.length;entries.push({t:new Date(log.date).getTime(),w:avg})});});entries.sort(function(a,b){return a.t-b.t});return entries.slice(-8).map(function(x){return x.w})})();
 let spark="";
 if(historyW.length>=2){
   const maxW=Math.max.apply(null,historyW),minW=Math.min.apply(null,historyW),range=Math.max(0.5,maxW-minW);
@@ -5432,7 +5479,7 @@ function quitWO(){
   if(!confirm("Quit this session? Nothing from it will be saved."))return;
   if(typeof clearRestTimer==="function")clearRestTimer();
   stopWOTimer();
-  S.aw=null;S.cs={};S.rat=null;S._woDiff=5;S._woComment="";
+  S.aw=null;S.freeDay=null;S.cs={};S.rat=null;S._woDiff=5;S._woComment="";
   try{localStorage.removeItem('sp-cs-'+S.user.id)}catch(e){}
   if(typeof ftoast==="function")ftoast("Session discarded — nothing saved");
   swTab("plan");
@@ -5449,12 +5496,12 @@ function bumpS(ei,si,f,delta){
 }
 function togS(ei,si){const wasUndone=!S.cs[ei][si].d;S.cs[ei][si].d=!S.cs[ei][si].d;if(wasUndone&&S.restPref>0)startRestTimer(S.restPref);SS('sp-cs-'+S.user.id,{cs:S.cs,aw:S.aw});rTrack()}
 function setRat(r){S.rat=r;rTrack()}
-function finWO(){clearRestTimer();const key="w"+S.week+"-d"+S.aw;const mapped={};const isLbs=getUnit()==="lbs";Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:isLbs?String(displayToKg(s.w)):s.w,reps:s.r,done:s.d,rpe:s.rpe||""}))});const woDuration=stopWOTimer();S.logs[key]={sets:mapped,rating:S.rat,difficulty:S._woDiff||5,comment:S._woComment||"",duration:woDuration,date:new Date().toISOString(),dayIndex:S.aw};savLogs();
+function finWO(){clearRestTimer();const free=S.aw==='free';const fday=_activeDay();const key="log-"+Date.now()+"-"+(free?'free':'d'+S.aw);const mapped={};const isLbs=getUnit()==="lbs";Object.entries(S.cs).forEach(([ei,sets])=>{mapped[ei]=sets.map(s=>({weight:isLbs?String(displayToKg(s.w)):s.w,reps:s.r,done:s.d,rpe:s.rpe||""}))});const woDuration=stopWOTimer();S.logs[key]={sets:mapped,rating:S.rat,difficulty:S._woDiff||5,comment:S._woComment||"",duration:woDuration,date:new Date().toISOString(),dayIndex:free?-1:S.aw,freestyle:free,exs:(fday&&fday.exs?fday.exs.map(function(e){return{n:e.n,s:e.s,r:e.r}}):[])};savLogs();
 // Show post-workout progression summary
-const postRecs=analyzeProgression();const day=S.plan[S.aw];
+const postRecs=analyzeProgression();const day=fday;
 if(postRecs.length&&day){const dayExNames=day.exs.map(e=>e.n);const relevantRecs=postRecs.filter(r=>dayExNames.includes(r.name));
 if(relevantRecs.length){const msgs=relevantRecs.map(r=>`${r.icon} ${r.name}: ${r.change||r.status}`).join('\n');alert('Workout Complete! 💪\n\nWeight Recommendations:\n'+msgs+'\n\nCheck the Plan tab for full details.')}}
-S.aw=null;S.cs={};S.rat=null;S._woDiff=5;S._woComment="";try{localStorage.removeItem('sp-cs-'+S.user.id)}catch{};updHdr();syncLeaderboard();swTab("plan")}
+S.aw=null;S.freeDay=null;S.cs={};S.rat=null;S._woDiff=5;S._woComment="";try{localStorage.removeItem('sp-cs-'+S.user.id)}catch{};updHdr();syncLeaderboard();swTab("plan")}
 
 // ═══════ SETTINGS TAB ═══════
 function rJourney(){
@@ -5840,8 +5887,7 @@ function getBest1RM(exName){
 let best={w:0,r:0,orm:0};
 Object.values(S.logs).forEach(log=>{
 Object.entries(log.sets).forEach(([ei,sets])=>{
-const day=S.plan[log.dayIndex];
-if(day&&day.exs[+ei]&&day.exs[+ei].n===exName){
+if(_logExName(log,ei)===exName){
 sets.filter(s=>s.done&&+s.weight>0&&+s.reps>0).forEach(s=>{
 const orm=calc1RM(+s.weight,+s.reps);
 if(orm>best.orm){best={w:+s.weight,r:+s.reps,orm}}
@@ -5854,9 +5900,8 @@ return best.orm?best:null;
 function getExHistory(exName){
 const entries=[];
 Object.entries(S.logs).forEach(([key,log])=>{
-const day=S.plan[log.dayIndex];if(!day)return;
-Object.entries(log.sets).forEach(([ei,sets])=>{
-if(day.exs[+ei]&&day.exs[+ei].n===exName){
+Object.entries(log.sets||{}).forEach(([ei,sets])=>{
+if(_logExName(log,ei)===exName){
 const done=sets.filter(s=>s.done&&+s.weight>0);
 if(done.length){
 const maxW=Math.max(...done.map(s=>+s.weight));
@@ -5883,14 +5928,13 @@ x:{ticks:{color:'#888',font:{size:9}},grid:{color:'rgba(255,255,255,.05)'}}}}});
 
 // ═══════ WEEKLY VOLUME PER MUSCLE GROUP ═══════
 function calcWeeklyVolume(){
-const vol={};const weekKey='w'+S.week;
-Object.entries(S.logs).forEach(([key,log])=>{
-if(!key.startsWith(weekKey+'-'))return;
-const day=S.plan[log.dayIndex];if(!day)return;
-Object.entries(log.sets).forEach(([ei,sets])=>{
-const ex=day.exs[+ei];if(!ex)return;
+const vol={};const ws=_weekStart().getTime(),we=ws+7*864e5;
+Object.values(S.logs).forEach((log)=>{
+if(!log||!log.date)return;const t=new Date(log.date).getTime();if(isNaN(t)||t<ws||t>=we)return;
+Object.entries(log.sets||{}).forEach(([ei,sets])=>{
+const exn=_logExName(log,ei);if(!exn)return;
 const doneSets=sets.filter(s=>s.done).length;
-const groups=findMuscleGroups(ex.n);
+const groups=findMuscleGroups(exn);
 groups.forEach(g=>{vol[g]=(vol[g]||0)+doneSets});
 })});
 return vol;
@@ -5994,9 +6038,9 @@ function closeExDetail(){const o=document.getElementById('exDetailOverlay');if(o
 function exportWorkoutCSV(){
 let csv='Date,Day,Exercise,Set,Weight,Reps,Done,RPE,Rating\n';
 Object.entries(S.logs).forEach(([key,log])=>{
-const day=S.plan[log.dayIndex];if(!day)return;
-Object.entries(log.sets).forEach(([ei,sets])=>{
-const exName=day.exs[+ei]?day.exs[+ei].n:'Unknown';
+const day=(log.freestyle?{day:"Freestyle"}:(S.plan[log.dayIndex]||{day:"Workout"}));
+Object.entries(log.sets||{}).forEach(([ei,sets])=>{
+const exName=_logExName(log,ei)||'Unknown';
 sets.forEach((s,si)=>{
 csv+=`${log.date},${day.day},${exName},${si+1},${s.weight||0},${s.reps||0},${s.done},${s.rpe||''},${log.rating||''}\n`;
 })})});
@@ -6081,9 +6125,8 @@ const allExNames=[...new Set(S.plan.flatMap(d=>d.exs.map(e=>e.n)))];
 allExNames.forEach(exName=>{
 const history=[];
 Object.entries(S.logs).forEach(([key,log])=>{
-const day=S.plan[log.dayIndex];if(!day)return;
-Object.entries(log.sets).forEach(([ei,sets])=>{
-if(day.exs[+ei]&&day.exs[+ei].n===exName){
+Object.entries(log.sets||{}).forEach(([ei,sets])=>{
+if(_logExName(log,ei)===exName){
 const doneSets=sets.filter(s=>s.done&&+s.weight>0&&+s.reps>0);
 if(doneSets.length){
 const avgRPE=doneSets.filter(s=>+s.rpe>0).reduce((a,s,_,arr)=>a+(+s.rpe)/arr.length,0);
@@ -6105,18 +6148,17 @@ return alerts;
 function getAllPRs(){
 const prs={};
 Object.entries(S.logs).forEach(([key,log])=>{
-const day=S.plan[log.dayIndex];if(!day)return;
-Object.entries(log.sets).forEach(([ei,sets])=>{
-const ex=day.exs[+ei];if(!ex)return;
+Object.entries(log.sets||{}).forEach(([ei,sets])=>{
+const exn=_logExName(log,ei);if(!exn)return;
 sets.filter(s=>s.done).forEach(s=>{
 const w=+s.weight,r=+s.reps;
 if(w>0){
-if(!prs[ex.n])prs[ex.n]={maxWeight:0,maxVol:0,max1RM:0,date:'',bestSet:''};
+if(!prs[exn])prs[exn]={maxWeight:0,maxVol:0,max1RM:0,date:'',bestSet:''};
 const vol=w*r;
 const orm=calc1RM(w,r);
-if(w>prs[ex.n].maxWeight){prs[ex.n].maxWeight=w;prs[ex.n].date=log.date;prs[ex.n].bestSet=w+'kg x'+r}
-if(vol>prs[ex.n].maxVol)prs[ex.n].maxVol=vol;
-if(orm>prs[ex.n].max1RM)prs[ex.n].max1RM=Math.round(orm*10)/10;
+if(w>prs[exn].maxWeight){prs[exn].maxWeight=w;prs[exn].date=log.date;prs[exn].bestSet=w+'kg x'+r}
+if(vol>prs[exn].maxVol)prs[exn].maxVol=vol;
+if(orm>prs[exn].max1RM)prs[exn].max1RM=Math.round(orm*10)/10;
 }})})});
 return prs;
 }
