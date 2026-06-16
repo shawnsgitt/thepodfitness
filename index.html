@@ -952,6 +952,41 @@ textarea.cm-inp{font-family:inherit;resize:vertical;line-height:1.5}
 .qa-bar-b{flex:1;padding:11px;border-radius:12px;border:1px solid var(--bdr);background:rgba(255,255,255,.04);color:var(--tx);font-size:12px;font-weight:700;cursor:pointer}
 .qa-bar-b:active{transform:scale(.98)}
 
+
+/* ── BOLD & PUNCHY restyle (tracker / plan / swap) v67 ── */
+.set-card{background:rgba(255,255,255,.035);border:1.5px solid var(--card-border);border-radius:18px;padding:14px 12px 13px;margin-bottom:12px}
+.set-card.dn{background:linear-gradient(180deg,rgba(159,232,112,.14),rgba(159,232,112,.06));border-color:var(--amb);box-shadow:0 0 0 1px rgba(159,232,112,.25),0 6px 18px rgba(159,232,112,.08)}
+.sc-n{font-size:11px;font-weight:900;letter-spacing:.14em}
+.sc-chk{width:38px;height:38px;border-width:2.5px;font-size:18px}
+.sc-chk.dn{box-shadow:0 0 14px rgba(159,232,112,.5)}
+.sc-nums{gap:4px}
+.sc-val{width:66px;height:50px;font-size:34px;font-weight:800;letter-spacing:-.02em}
+.set-card.dn .sc-val{color:#fff}
+.sc-step{width:32px;height:46px;border-radius:12px;font-size:21px;font-weight:800}
+.sc-unit{font-size:10px;font-weight:700;min-width:20px}
+.sc-x{font-size:17px;margin:0}
+.sc-rpe-p{width:30px;height:28px;border-radius:8px;font-size:12px}
+.wo-timer{font-size:15px;font-weight:800;color:var(--amb)}
+.coach-digest{border-radius:18px;border-width:1.5px}
+.cd-title{font-size:13px}
+.finish-panel{border-radius:20px;border-width:1.5px}
+.fp-title{font-size:18px}
+.fin-btn{padding:18px;font-size:17px;font-weight:900}
+.fin-btn.ok{box-shadow:0 8px 22px rgba(159,232,112,.28)}
+.wo-quit{font-weight:800}
+.ex-nm{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.ex-d{display:inline-block;font-size:11px;font-weight:800;color:var(--amb);background:rgba(159,232,112,.1);border:1px solid rgba(159,232,112,.22);padding:2px 8px;border-radius:100px;margin-bottom:3px}
+.ex-r{padding:12px 0}
+.ex-thumb.plan{width:50px;height:50px;border-radius:14px}
+.swo-cur{font-size:13px;color:var(--tx);margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bdr)}
+.swo-cur b{color:var(--amb)}
+.swo-sub{font-size:11px;color:var(--sub);margin-top:3px}
+.swo-grp{font-size:11px;font-weight:900;letter-spacing:.08em;color:var(--sub);margin:14px 0 6px}
+.swo-row{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--card-border);margin-bottom:7px;cursor:pointer;transition:transform .1s,border-color .15s}
+.swo-row:active{transform:scale(.99)}
+.swo-emoji{font-size:22px;width:30px;text-align:center;flex-shrink:0}
+.swo-nm{flex:1;font-size:14px;font-weight:700}
+.swo-go{color:var(--amb);font-size:18px;font-weight:800;flex-shrink:0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -2154,7 +2189,27 @@ function rWeekQuality(){
 }
 let addExDay=null;let addExFilter="all";
 let swapCtx=null;
-function openSwapEx(di,ei){swapCtx={di:di,ei:ei};rPlan();setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10)}
+function swapApply(di,ei,cat,idx){var o=document.getElementById('swapOverlay');if(o)o.remove();doSwapEx(di,ei,cat,idx);}
+function openSwapEx(di,ei){
+  var curName=S.plan[di].exs[ei].n;
+  var alts=getExAlternatives(curName);
+  var swDb=findExInDB(curName);
+  var musLbl=(CAT_META[(swDb&&swDb.cat)]||{l:"this muscle"}).l;
+  var ex=document.getElementById('swapOverlay');if(ex)ex.remove();
+  var o=document.createElement('div');o.className='gl-overlay';o.id='swapOverlay';
+  var groups={};
+  alts.forEach(function(e){var eq=(e.meta&&e.meta.eq)||e.t||'other';(groups[eq]=groups[eq]||[]).push(e)});
+  var order=['machine','cable','smith','dumbbell','barbell','bodyweight','kettlebell','band','trx','medball','other','compound','isolation','cardio','hiit','stretch','plyo'];
+  var eqEmoji={machine:'🛠️',cable:'🔗',smith:'🏗️',dumbbell:'🏋️',barbell:'🏋️',bodyweight:'🤸',kettlebell:'🔔',band:'🎗️',trx:'🪢',medball:'⚽',other:'🏋️',compound:'💪',isolation:'🎯'};
+  var keys=Object.keys(groups).sort(function(a,b){var ia=order.indexOf(a);var ib=order.indexOf(b);return(ia<0?99:ia)-(ib<0?99:ib)});
+  var body=keys.map(function(eq){
+    return '<div class="swo-grp">'+(eqEmoji[eq]||'🏋️')+' '+String(eq).toUpperCase()+'</div>'+groups[eq].map(function(e){
+      return '<div class="swo-row" onclick="swapApply('+di+','+ei+',\''+e.cat+'\',\''+e.idx+'\')"><div class="swo-emoji">'+(CAT_META[e.cat]||{e:'🏋️'}).e+'</div><div class="swo-nm">'+esc(e.n)+(e.custom?' ⭐':'')+'</div><div class="swo-go">⇄</div></div>';
+    }).join('');
+  }).join('');
+  o.innerHTML='<div class="gl-header"><h2>⇄ Swap exercise</h2><button class="gl-close" onclick="document.getElementById(\'swapOverlay\').remove()">✕</button></div><div class="gl-body"><div class="swo-cur">Replacing <b>'+esc(curName)+'</b><div class="swo-sub">'+alts.length+' '+musLbl+' option'+(alts.length!==1?'s':'')+' · grouped by equipment · closest first</div></div>'+(alts.length?body:'<div class="swo-sub" style="padding:10px 0">No alternatives in the database. Use + Add Exercise instead.</div>')+'<button class="s-btn out" style="margin-top:12px" onclick="document.getElementById(\'swapOverlay\').remove()">Cancel</button></div>';
+  document.body.appendChild(o);
+}
 function closeSwapEx(){const di=swapCtx?swapCtx.di:null;swapCtx=null;rPlan();if(di!==null)setTimeout(function(){document.getElementById("dc"+di)?.classList.add("open")},10)}
 function doSwapEx(di,ei,cat,idx){
   // idx can be a number (EX_DB slot) or a "c<N>" string for a custom exercise.
