@@ -1526,7 +1526,7 @@ function calcBodyComp(profile,nutri,flog){
 
 // ═══════ STATE ═══════
 let S={user:null,week:1,freeDay:null,tab:"plan",aw:null,cs:{},rat:null,restTimer:null,restPref:60,woStartTime:null,theme:"dark",bodyMeasurements:[],logs:{},users:[],plan:[],nutri:{cal:2500,protein:150,carbs:300,fat:70},flog:{},water:{},customPlans:[],customMeals:[],customExercises:[],libFilter:"all",libSearch:""};
-const LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}if(typeof scheduleBackup==="function"&&typeof k==="string"&&k.indexOf("sp-")===0&&k!=="sp-lastbackup"&&k!=="sp-leaderboard"&&k!=="sp-recovery")scheduleBackup();};
+const LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}};const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}if(typeof scheduleBackup==="function"&&typeof k==="string"&&k.indexOf("sp-")===0&&k.indexOf("sp-cs-")!==0&&k!=="sp-lastbackup"&&k!=="sp-leaderboard"&&k!=="sp-recovery")scheduleBackup();};
 function loadSt(){S.user=LS("sp-me");if(S.user){S.logs=LS("sp-logs-"+S.user.id)||{};S.week=LS("sp-week-"+S.user.id)||1;S.plan=LS("sp-plan-"+S.user.id)||[];S.nutri=LS("sp-nutri-"+S.user.id)||S.nutri;S.flog=LS("sp-flog-"+S.user.id)||{};S.customPlans=LS("sp-custom-"+S.user.id)||[];S.customMeals=LS("sp-cmeals-"+S.user.id)||[];S.customExercises=LS("sp-cex-"+S.user.id)||[];S.water=LS("sp-water-"+S.user.id)||{};S.bodyMeasurements=LS("sp-meas-"+S.user.id)||[];S.restPref=LS('sp-rest-'+S.user.id)||60}loadTheme();loadU()}
 function savCEx(){if(S.user)SS("sp-cex-"+S.user.id,S.customExercises||[])}
 function savWater(){if(S.user)SS("sp-water-"+S.user.id,S.water||{})}
